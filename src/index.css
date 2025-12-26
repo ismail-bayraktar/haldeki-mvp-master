@@ -1,0 +1,293 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Haldeki Design System - "Dijital Hal Deneyimi"
+   Fresh & Organic visual style with Andika typography
+   All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Haldeki Brand Colors */
+    --haldeki-green: 156 100% 14%; /* #004631 */
+    --haldeki-green-light: 145 50% 92%; /* Soft green background */
+    --haldeki-green-medium: 152 85% 20%; /* Deeper green for gradients */
+    --haldeki-green-soft: 150 70% 30%; /* Softer mid-green */
+    
+    /* Fresh Orange for Bugün Halde accents */
+    --fresh-orange: 16 100% 60%; /* #FF6B35 */
+    --fresh-orange-light: 16 100% 95%;
+    
+    /* Earth tones for organic feel */
+    --earth-brown: 25 76% 31%; /* #8B4513 */
+    --earth-cream: 40 30% 96%;
+    
+    /* Freshness indicator colors (avoiding stock market red/green) */
+    --fresh-up: 28 90% 55%; /* Warm orange-yellow for price up */
+    --fresh-down: 200 70% 50%; /* Cool blue for price down */
+    --fresh-stable: 156 40% 40%; /* Muted green for stable */
+    
+    /* Availability colors */
+    --stock-plenty: 156 60% 40%;
+    --stock-limited: 35 90% 55%;
+    --stock-last: 0 70% 55%;
+
+    /* Core Design Tokens */
+    --background: 40 30% 98%;
+    --foreground: 156 100% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 156 100% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 156 100% 14%;
+
+    --primary: 156 100% 14%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 140 40% 94%;
+    --secondary-foreground: 156 100% 14%;
+
+    --muted: 40 20% 94%;
+    --muted-foreground: 156 30% 40%;
+
+    --accent: 16 100% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 156 20% 85%;
+    --input: 156 20% 90%;
+    --ring: 156 100% 14%;
+
+    --radius: 0.75rem;
+
+    /* Shadows for depth */
+    --shadow-soft: 0 4px 20px -4px hsl(156 30% 30% / 0.1);
+    --shadow-card: 0 2px 12px -2px hsl(156 30% 30% / 0.08);
+    --shadow-hover: 0 8px 30px -8px hsl(156 30% 30% / 0.15);
+  }
+
+  .dark {
+    --background: 156 50% 5%;
+    --foreground: 140 40% 94%;
+
+    --card: 156 40% 8%;
+    --card-foreground: 140 40% 94%;
+
+    --popover: 156 40% 8%;
+    --popover-foreground: 140 40% 94%;
+
+    --primary: 140 60% 70%;
+    --primary-foreground: 156 100% 8%;
+
+    --secondary: 156 30% 15%;
+    --secondary-foreground: 140 40% 94%;
+
+    --muted: 156 20% 15%;
+    --muted-foreground: 140 20% 60%;
+
+    --accent: 16 100% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 156 20% 20%;
+    --input: 156 20% 20%;
+    --ring: 140 60% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-andika antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-andika font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Freshness Badge Styles */
+  .badge-fresh {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-fresh-today {
+    @apply badge-fresh bg-haldeki-green-light text-haldeki-green;
+  }
+  
+  .badge-fresh-yesterday {
+    @apply badge-fresh bg-muted text-muted-foreground;
+  }
+
+  /* Quality Badge Styles */
+  .badge-quality {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide;
+  }
+  
+  .badge-quality-premium {
+    @apply badge-quality bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200;
+  }
+  
+  .badge-quality-standard {
+    @apply badge-quality bg-secondary text-secondary-foreground;
+  }
+  
+  .badge-quality-economic {
+    @apply badge-quality bg-muted text-muted-foreground;
+  }
+
+  /* Price Change Indicators */
+  .price-up {
+    @apply text-fresh-up;
+  }
+  
+  .price-down {
+    @apply text-fresh-down;
+  }
+  
+  .price-stable {
+    @apply text-fresh-stable;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-hover hover:-translate-y-1;
+  }
+
+  /* Organic pattern background */
+  .bg-organic-pattern {
+    background-image: 
+      radial-gradient(circle at 20% 80%, hsl(var(--haldeki-green-light)) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(var(--fresh-orange-light)) 0%, transparent 50%);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out forwards;
+  }
+
+  /* Touch optimization utilities */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Price Ticker Animation */
+  .ticker-container {
+    width: 100%;
+  }
+
+  .ticker-content {
+    animation: ticker-scroll 40s linear infinite;
+  }
+
+  .ticker-container:hover .ticker-content {
+    animation-play-state: paused;
+  }
+
+  @keyframes ticker-scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Floating animation for hero product images */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-10px) rotate(2deg);
+    }
+    50% {
+      transform: translateY(-5px) rotate(0deg);
+    }
+    75% {
+      transform: translateY(-15px) rotate(-2deg);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Vertical scrolling products animation (bottom to top) */
+  .product-scroll-container {
+    overflow: hidden;
+  }
+
+  .product-scroll-content {
+    animation: scroll-up 25s linear infinite;
+  }
+
+  .product-scroll-container:hover .product-scroll-content {
+    animation-play-state: paused;
+  }
+
+  @keyframes scroll-up {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-50%);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
