@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type AppRole = 'superadmin' | 'admin' | 'dealer' | 'supplier' | 'user';
+type ApprovalStatus = 'pending' | 'approved' | 'rejected' | null;
 
 interface AuthContextType {
   user: User | null;
@@ -16,6 +17,8 @@ interface AuthContextType {
   isSupplier: boolean;
   roles: AppRole[];
   isRolesChecked: boolean;
+  approvalStatus: ApprovalStatus;
+  isApprovalChecked: boolean;
   isAuthDrawerOpen: boolean;
   openAuthDrawer: () => void;
   closeAuthDrawer: () => void;
@@ -33,6 +36,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [isRolesChecked, setIsRolesChecked] = useState(false);
+  const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>(null);
+  const [isApprovalChecked, setIsApprovalChecked] = useState(false);
   const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
 
   // Derived role states
@@ -48,6 +53,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return roles.includes(role);
   };
 
+  const checkApprovalStatus = async (userId: string, userRoles: AppRole[]) => {
+    try {
+      // Only check for dealers and suppliers
+      if (userRoles.includes('dealer')) {
+        const { data } = await supabase
+          .from('dealers')
+          .select('approval_status')
+          .eq('user_id', userId)
+          .single();
+        
+        if (data) {
+          setApprovalStatus(data.approval_status as ApprovalStatus);
+        }
+      } else if (userRoles.includes('supplier')) {
+        const { data } = await supabase
+          .from('suppliers')
+          .select('approval_status')
+          .eq('user_id', userId)
+          .single();
+        
+        if (data) {
+          setApprovalStatus(data.approval_status as ApprovalStatus);
+        }
+      } else {
+        // Not a dealer or supplier, no approval needed
+        setApprovalStatus(null);
+      }
+    } catch (e) {
+      console.error('Approval status check error:', e);
+      setApprovalStatus(null);
+    } finally {
+      setIsApprovalChecked(true);
+    }
+  };
+
   const checkUserRoles = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -55,14 +95,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .select('role')
         .eq('user_id', userId);
       
-      if (!error && data) {
-        setRoles(data.map(r => r.role as AppRole));
-      } else {
-        setRoles([]);
-      }
+      const userRoles = !error && data ? data.map(r => r.role as AppRole) : [];
+      setRoles(userRoles);
+      
+      // After setting roles, check approval status
+      await checkApprovalStatus(userId, userRoles);
     } catch (e) {
       console.error('Roles check error:', e);
       setRoles([]);
+      setIsApprovalChecked(true);
     } finally {
       setIsRolesChecked(true);
     }
@@ -76,12 +117,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (session?.user) {
           setIsRolesChecked(false);
+          setIsApprovalChecked(false);
           setTimeout(() => {
             checkUserRoles(session.user.id);
           }, 0);
         } else {
           setRoles([]);
           setIsRolesChecked(true);
+          setApprovalStatus(null);
+          setIsApprovalChecked(true);
         }
         setIsLoading(false);
       }
@@ -166,6 +210,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setRoles([]);
     setIsRolesChecked(true);
+    setApprovalStatus(null);
+    setIsApprovalChecked(true);
     toast.success('Çıkış yapıldı');
   };
 
@@ -182,6 +228,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isSupplier,
         roles,
         isRolesChecked,
+        approvalStatus,
+        isApprovalChecked,
         isAuthDrawerOpen,
         openAuthDrawer,
         closeAuthDrawer,

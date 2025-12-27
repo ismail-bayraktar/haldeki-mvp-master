@@ -16,6 +16,10 @@ export type Database = {
     Tables: {
       dealers: {
         Row: {
+          approval_notes: string | null
+          approval_status: Database["public"]["Enums"]["approval_status"]
+          approved_at: string | null
+          approved_by: string | null
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
@@ -24,10 +28,15 @@ export type Database = {
           is_active: boolean
           name: string
           region_ids: string[] | null
+          tax_number: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          approval_notes?: string | null
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
@@ -36,10 +45,15 @@ export type Database = {
           is_active?: boolean
           name: string
           region_ids?: string[] | null
+          tax_number?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          approval_notes?: string | null
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
@@ -48,6 +62,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           region_ids?: string[] | null
+          tax_number?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -138,70 +153,64 @@ export type Database = {
       }
       products: {
         Row: {
-          arrival_date: string | null
-          availability: Database["public"]["Enums"]["availability_status"]
-          category_id: string
-          category_name: string
-          created_at: string
-          description: string | null
           id: string
-          images: string[]
-          is_active: boolean
-          is_bugun_halde: boolean
           name: string
-          origin: string
-          previous_price: number | null
-          price: number
-          price_change: Database["public"]["Enums"]["price_change"]
-          quality: Database["public"]["Enums"]["quality_grade"]
           slug: string
+          description: string | null
+          category: string
           unit: Database["public"]["Enums"]["product_unit"]
+          base_price: number
+          images: string[] | null
+          origin: string | null
+          quality: Database["public"]["Enums"]["quality_grade"] | null
+          availability: Database["public"]["Enums"]["availability_status"] | null
+          price_change: Database["public"]["Enums"]["price_change"] | null
+          previous_price: number | null
+          arrival_date: string | null
+          is_bugun_halde: boolean
+          is_active: boolean
+          created_at: string
           updated_at: string
-          variants: Json | null
         }
         Insert: {
-          arrival_date?: string | null
-          availability?: Database["public"]["Enums"]["availability_status"]
-          category_id: string
-          category_name: string
-          created_at?: string
-          description?: string | null
           id?: string
-          images?: string[]
-          is_active?: boolean
-          is_bugun_halde?: boolean
           name: string
-          origin: string
-          previous_price?: number | null
-          price: number
-          price_change?: Database["public"]["Enums"]["price_change"]
-          quality?: Database["public"]["Enums"]["quality_grade"]
           slug: string
+          description?: string | null
+          category: string
           unit?: Database["public"]["Enums"]["product_unit"]
+          base_price: number
+          images?: string[] | null
+          origin?: string | null
+          quality?: Database["public"]["Enums"]["quality_grade"] | null
+          availability?: Database["public"]["Enums"]["availability_status"] | null
+          price_change?: Database["public"]["Enums"]["price_change"] | null
+          previous_price?: number | null
+          arrival_date?: string | null
+          is_bugun_halde?: boolean
+          is_active?: boolean
+          created_at?: string
           updated_at?: string
-          variants?: Json | null
         }
         Update: {
-          arrival_date?: string | null
-          availability?: Database["public"]["Enums"]["availability_status"]
-          category_id?: string
-          category_name?: string
-          created_at?: string
-          description?: string | null
           id?: string
-          images?: string[]
-          is_active?: boolean
-          is_bugun_halde?: boolean
           name?: string
-          origin?: string
-          previous_price?: number | null
-          price?: number
-          price_change?: Database["public"]["Enums"]["price_change"]
-          quality?: Database["public"]["Enums"]["quality_grade"]
           slug?: string
+          description?: string | null
+          category?: string
           unit?: Database["public"]["Enums"]["product_unit"]
+          base_price?: number
+          images?: string[] | null
+          origin?: string | null
+          quality?: Database["public"]["Enums"]["quality_grade"] | null
+          availability?: Database["public"]["Enums"]["availability_status"] | null
+          price_change?: Database["public"]["Enums"]["price_change"] | null
+          previous_price?: number | null
+          arrival_date?: string | null
+          is_bugun_halde?: boolean
+          is_active?: boolean
+          created_at?: string
           updated_at?: string
-          variants?: Json | null
         }
         Relationships: []
       }
@@ -402,6 +411,10 @@ export type Database = {
       }
       suppliers: {
         Row: {
+          approval_notes: string | null
+          approval_status: Database["public"]["Enums"]["approval_status"]
+          approved_at: string | null
+          approved_by: string | null
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
@@ -409,10 +422,15 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          product_categories: string[] | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          approval_notes?: string | null
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
@@ -420,10 +438,15 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          product_categories?: string[] | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          approval_notes?: string | null
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
@@ -431,6 +454,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          product_categories?: string[] | null
           updated_at?: string
           user_id?: string | null
         }
@@ -472,6 +496,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user" | "superadmin" | "dealer" | "supplier"
+      approval_status: "pending" | "approved" | "rejected"
       availability_status: "plenty" | "limited" | "last"
       price_change: "up" | "down" | "stable"
       product_unit: "kg" | "adet" | "demet" | "paket"
@@ -604,6 +629,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user", "superadmin", "dealer", "supplier"],
+      approval_status: ["pending", "approved", "rejected"],
       availability_status: ["plenty", "limited", "last"],
       price_change: ["up", "down", "stable"],
       product_unit: ["kg", "adet", "demet", "paket"],

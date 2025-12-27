@@ -144,13 +144,17 @@ const RegionSelector = ({ isOpen, onClose }: RegionSelectorProps) => {
                         >
                           <div className="flex flex-col gap-1">
                             <span className="font-medium">{region.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              Min. sipariş: {region.min_order_amount}₺ •
-                              {region.delivery_fee === 0
-                                ? " Ücretsiz teslimat"
-                                : ` Teslimat: ${region.delivery_fee}₺`}
-                            </span>
-                            {region.districts.length > 0 && (
+                            {(region.min_order_amount || region.delivery_fee !== undefined) && (
+                              <span className="text-xs text-muted-foreground">
+                                {region.min_order_amount && `Min. sipariş: ${region.min_order_amount}₺`}
+                                {region.delivery_fee !== undefined && (
+                                  region.delivery_fee === 0
+                                    ? " • Ücretsiz teslimat"
+                                    : ` • Teslimat: ${region.delivery_fee}₺`
+                                )}
+                              </span>
+                            )}
+                            {region.districts && region.districts.length > 0 && (
                               <span className="text-xs text-muted-foreground">
                                 {region.districts.slice(0, 3).join(", ")}
                                 {region.districts.length > 3 &&

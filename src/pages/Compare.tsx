@@ -157,7 +157,7 @@ const Compare = () => {
                     <Link to={`/urun/${product.slug}`}>
                       <div className="aspect-square overflow-hidden bg-secondary/30">
                         <img
-                          src={product.images[0]}
+                          src={product.images?.[0] || '/placeholder.svg'}
                           alt={product.name}
                           className="w-full h-full object-cover hover:scale-105 transition-transform"
                         />

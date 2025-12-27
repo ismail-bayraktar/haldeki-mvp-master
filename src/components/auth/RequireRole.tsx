@@ -9,10 +9,25 @@ interface RequireRoleProps {
   children: ReactNode;
   allowedRoles: AppRole[];
   redirectTo?: string;
+  requireApproval?: boolean;
 }
 
-const RequireRole = ({ children, allowedRoles, redirectTo = "/" }: RequireRoleProps) => {
-  const { isAuthenticated, isLoading, isRolesChecked, hasRole } = useAuth();
+const RequireRole = ({ 
+  children, 
+  allowedRoles, 
+  redirectTo = "/",
+  requireApproval = true 
+}: RequireRoleProps) => {
+  const { 
+    isAuthenticated, 
+    isLoading, 
+    isRolesChecked, 
+    hasRole,
+    isDealer,
+    isSupplier,
+    approvalStatus,
+    isApprovalChecked
+  } = useAuth();
   const location = useLocation();
 
   // Loading state
@@ -34,6 +49,23 @@ const RequireRole = ({ children, allowedRoles, redirectTo = "/" }: RequireRolePr
 
   if (!hasAccess) {
     return <Navigate to={redirectTo} replace />;
+  }
+
+  // For dealer/supplier roles, check approval status
+  if (requireApproval && (isDealer || isSupplier)) {
+    // Wait for approval status to be checked
+    if (!isApprovalChecked) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-background">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      );
+    }
+
+    // If pending or rejected, redirect to beklemede page
+    if (approvalStatus === 'pending' || approvalStatus === 'rejected') {
+      return <Navigate to="/beklemede" replace />;
+    }
   }
 
   return <>{children}</>;

@@ -5,7 +5,7 @@ interface SendEmailParams {
   toName?: string;
   subject?: string;
   htmlContent?: string;
-  templateType?: 'dealer_invite' | 'supplier_invite' | 'order_notification' | 'offer_status' | 'order_confirmation';
+  templateType?: 'dealer_invite' | 'supplier_invite' | 'order_notification' | 'offer_status' | 'order_confirmation' | 'admin_new_application' | 'application_approved' | 'application_rejected';
   templateData?: Record<string, any>;
 }
 
@@ -38,7 +38,8 @@ export const useEmailService = () => {
     email: string,
     dealerName: string,
     contactName: string,
-    regionIds?: string[]
+    regionIds?: string[],
+    inviteId?: string
   ) => {
     // Bölge ID'lerinden bölge isimlerini al
     let regionNames: string[] = [];
@@ -51,7 +52,11 @@ export const useEmailService = () => {
       regionNames = regions?.map(r => r.name) || [];
     }
 
-    const signupUrl = `${window.location.origin}/giris`;
+    // Token ile özel kayıt sayfasına yönlendir
+    const signupUrl = inviteId 
+      ? `${window.location.origin}/bayi-kayit?token=${inviteId}`
+      : `${window.location.origin}/giris`;
+      
     return sendEmail({
       to: email,
       toName: contactName,
@@ -69,9 +74,14 @@ export const useEmailService = () => {
   const sendSupplierInvite = async (
     email: string,
     supplierName: string,
-    contactName: string
+    contactName: string,
+    inviteId?: string
   ) => {
-    const signupUrl = `${window.location.origin}/giris`;
+    // Token ile özel kayıt sayfasına yönlendir
+    const signupUrl = inviteId
+      ? `${window.location.origin}/tedarikci-kayit?token=${inviteId}`
+      : `${window.location.origin}/giris`;
+      
     return sendEmail({
       to: email,
       toName: contactName,
@@ -159,12 +169,89 @@ export const useEmailService = () => {
     });
   };
 
+  // Yeni başvuru admin bildirimi
+  const sendNewApplicationNotification = async (
+    adminEmail: string,
+    applicationType: 'dealer' | 'supplier',
+    applicantName: string,
+    applicantEmail: string,
+    firmName: string
+  ) => {
+    const dashboardUrl = applicationType === 'dealer' 
+      ? `${window.location.origin}/admin/dealers`
+      : `${window.location.origin}/admin/suppliers`;
+      
+    return sendEmail({
+      to: adminEmail,
+      toName: 'Admin',
+      templateType: 'admin_new_application',
+      templateData: {
+        applicationType: applicationType === 'dealer' ? 'Bayi' : 'Tedarikçi',
+        applicantName,
+        applicantEmail,
+        firmName,
+        dashboardUrl
+      }
+    });
+  };
+
+  // Başvuru onay bildirimi
+  const sendApplicationApproved = async (
+    email: string,
+    name: string,
+    applicationType: 'dealer' | 'supplier',
+    firmName: string
+  ) => {
+    const dashboardUrl = applicationType === 'dealer'
+      ? `${window.location.origin}/bayi`
+      : `${window.location.origin}/tedarikci`;
+      
+    return sendEmail({
+      to: email,
+      toName: name,
+      templateType: 'application_approved',
+      templateData: {
+        name,
+        applicationType: applicationType === 'dealer' ? 'Bayi' : 'Tedarikçi',
+        firmName,
+        dashboardUrl
+      }
+    });
+  };
+
+  // Başvuru red bildirimi
+  const sendApplicationRejected = async (
+    email: string,
+    name: string,
+    applicationType: 'dealer' | 'supplier',
+    firmName: string,
+    reason?: string
+  ) => {
+    const contactUrl = `${window.location.origin}/iletisim`;
+    
+    return sendEmail({
+      to: email,
+      toName: name,
+      templateType: 'application_rejected',
+      templateData: {
+        name,
+        applicationType: applicationType === 'dealer' ? 'Bayi' : 'Tedarikçi',
+        firmName,
+        reason,
+        contactUrl
+      }
+    });
+  };
+
   return {
     sendEmail,
     sendDealerInvite,
     sendSupplierInvite,
     sendOfferStatusNotification,
     sendOrderNotification,
-    sendOrderConfirmation
+    sendOrderConfirmation,
+    sendNewApplicationNotification,
+    sendApplicationApproved,
+    sendApplicationRejected
   };
 };

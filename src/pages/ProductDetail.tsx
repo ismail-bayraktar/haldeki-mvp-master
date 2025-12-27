@@ -17,7 +17,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { getRegionPriceInfo, getPriceChangeLabel } from "@/lib/productUtils";
 import { cn } from "@/lib/utils";
-import { Product, ProductVariant } from "@/types";
+import { Product } from "@/types";
 import { toast } from "sonner";
 
 // Helper to convert DB product to frontend Product type
@@ -25,20 +25,19 @@ const convertDbProduct = (dbProduct: DbProduct): Product => ({
   id: dbProduct.id,
   name: dbProduct.name,
   slug: dbProduct.slug,
-  categoryId: dbProduct.category_id,
-  categoryName: dbProduct.category_name,
-  price: dbProduct.price,
+  categoryId: dbProduct.category,
+  categoryName: dbProduct.category,
+  price: dbProduct.base_price,
   unit: dbProduct.unit,
-  origin: dbProduct.origin,
-  quality: dbProduct.quality,
+  origin: dbProduct.origin || 'Türkiye',
+  quality: dbProduct.quality || 'standart',
   arrivalDate: dbProduct.arrival_date || new Date().toISOString().split("T")[0],
-  availability: dbProduct.availability,
+  availability: dbProduct.availability || 'plenty',
   isBugunHalde: dbProduct.is_bugun_halde,
-  priceChange: dbProduct.price_change,
+  priceChange: dbProduct.price_change || 'stable',
   previousPrice: dbProduct.previous_price ?? undefined,
-  images: dbProduct.images,
+  images: dbProduct.images || [],
   description: dbProduct.description ?? undefined,
-  variants: (dbProduct.variants as unknown as ProductVariant[]) ?? undefined,
 });
 
 const ProductDetail = () => {
@@ -84,7 +83,7 @@ const ProductDetail = () => {
   const relatedProducts = useMemo(() => {
     if (!product || !allProducts) return [];
     return allProducts
-      .filter(p => p.category_id === product.categoryId && p.id !== product.id)
+      .filter(p => p.category === product.categoryId && p.id !== product.id)
       .slice(0, 6)
       .map(convertDbProduct);
   }, [product, allProducts]);

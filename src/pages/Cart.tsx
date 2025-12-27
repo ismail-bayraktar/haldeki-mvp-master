@@ -103,7 +103,7 @@ const Cart = () => {
                       <div className="flex gap-4">
                         <Link to={`/urun/${item.product.slug}`} className="shrink-0">
                           <img
-                            src={item.product.images[0]}
+                            src={item.product.images?.[0] || '/placeholder.svg'}
                             alt={item.product.name}
                             className="w-24 h-24 rounded-lg object-cover"
                           />

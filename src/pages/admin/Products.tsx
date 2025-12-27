@@ -56,8 +56,8 @@ const AdminProducts = () => {
 
   const filteredProducts = products?.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.category_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.origin.toLowerCase().includes(searchQuery.toLowerCase())
+    product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (product.origin || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCreate = (data: ProductInsert) => {
@@ -200,7 +200,7 @@ const AdminProducts = () => {
                         <div className="flex items-center gap-3">
                           {product.images?.[0] && (
                             <img
-                              src={product.images[0]}
+                              src={product.images?.[0] || '/placeholder.svg'}
                               alt={product.name}
                               className="h-10 w-10 rounded-md object-cover"
                             />
@@ -211,12 +211,12 @@ const AdminProducts = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{product.category_name}</TableCell>
+                      <TableCell>{product.category}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <span className="font-medium">₺{product.price.toFixed(2)}</span>
+                          <span className="font-medium">₺{product.base_price.toFixed(2)}</span>
                           <span className="text-xs text-muted-foreground">/{product.unit}</span>
-                          {getPriceChangeIcon(product.price_change)}
+                          {product.price_change && getPriceChangeIcon(product.price_change)}
                         </div>
                         {product.previous_price && (
                           <div className="text-xs text-muted-foreground line-through">
@@ -224,8 +224,8 @@ const AdminProducts = () => {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell>{getAvailabilityBadge(product.availability)}</TableCell>
-                      <TableCell>{getQualityBadge(product.quality)}</TableCell>
+                      <TableCell>{product.availability && getAvailabilityBadge(product.availability)}</TableCell>
+                      <TableCell>{product.quality && getQualityBadge(product.quality)}</TableCell>
                       <TableCell>
                         <Badge variant={product.is_bugun_halde ? "default" : "outline"}>
                           {product.is_bugun_halde ? "Evet" : "Hayır"}

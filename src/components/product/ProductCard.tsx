@@ -138,7 +138,7 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
       <Link to={`/urun/${product.slug}`} className="block">
         <div className="relative aspect-square overflow-hidden bg-secondary/30">
           <img
-            src={product.images[0]}
+            src={product.images?.[0] || '/placeholder.svg'}
             alt={product.name}
             className={cn(
               "w-full h-full object-cover transition-transform duration-500",

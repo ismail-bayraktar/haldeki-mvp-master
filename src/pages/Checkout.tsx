@@ -496,7 +496,7 @@ const Checkout = () => {
                         {items.map((item) => (
                           <div key={item.productId} className="flex items-center gap-3">
                             <img
-                              src={item.product.images[0]}
+                              src={item.product.images?.[0] || '/placeholder.svg'}
                               alt={item.product.name}
                               className="w-12 h-12 rounded-lg object-cover"
                             />

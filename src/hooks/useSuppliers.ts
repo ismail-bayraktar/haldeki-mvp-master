@@ -11,6 +11,11 @@ export interface Supplier {
   contact_phone: string | null;
   contact_email: string | null;
   is_active: boolean;
+  approval_status: 'pending' | 'approved' | 'rejected';
+  approval_notes: string | null;
+  approved_at: string | null;
+  approved_by: string | null;
+  product_categories: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -49,7 +54,7 @@ export const useSuppliers = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [pendingInvites, setPendingInvites] = useState<PendingSupplierInvite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { sendSupplierInvite } = useEmailService();
+  const { sendSupplierInvite, sendApplicationApproved, sendApplicationRejected } = useEmailService();
 
   const fetchSuppliers = useCallback(async () => {
     try {
@@ -68,6 +73,7 @@ export const useSuppliers = () => {
 
   const fetchPendingInvites = useCallback(async () => {
     try {
+      // Önce pending_invites'ları al
       const { data, error } = await supabase
         .from('pending_invites')
         .select('*')
@@ -78,7 +84,21 @@ export const useSuppliers = () => {
 
       if (error) throw error;
       
-      const invites: PendingSupplierInvite[] = (data || []).map(inv => ({
+      // Kayıtlı supplier email'lerini al
+      const { data: suppliersData } = await supabase
+        .from('suppliers')
+        .select('contact_email');
+      
+      const registeredEmails = new Set(
+        (suppliersData || []).map(s => s.contact_email?.toLowerCase())
+      );
+      
+      // Kayıtlı olanları filtrele
+      const filteredData = (data || []).filter(
+        inv => !registeredEmails.has(inv.email.toLowerCase())
+      );
+      
+      const invites: PendingSupplierInvite[] = filteredData.map(inv => ({
         id: inv.id,
         email: inv.email,
         supplier_data: inv.supplier_data as PendingSupplierInvite['supplier_data'],
@@ -111,7 +131,7 @@ export const useSuppliers = () => {
         return false;
       }
 
-      const { error } = await supabase
+      const { data: inviteData, error } = await supabase
         .from('pending_invites')
         .insert({
           email: data.email,
@@ -123,7 +143,9 @@ export const useSuppliers = () => {
             contact_phone: data.contact_phone || '',
             contact_email: data.contact_email || data.email,
           },
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) {
         if (error.code === '23505') {
@@ -134,11 +156,12 @@ export const useSuppliers = () => {
         return false;
       }
 
-      // Email gönder
+      // Email gönder - invite ID ile özel kayıt sayfasına yönlendir
       const emailResult = await sendSupplierInvite(
         data.email,
         data.name,
-        data.contact_name || ''
+        data.contact_name || '',
+        inviteData?.id
       );
       
       if (emailResult.success) {
@@ -199,14 +222,95 @@ export const useSuppliers = () => {
     }
   };
 
+  const approveSupplier = async (id: string, notes?: string): Promise<boolean> => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('suppliers')
+        .update({
+          approval_status: 'approved',
+          approval_notes: notes || null,
+          approved_at: new Date().toISOString(),
+          approved_by: userData?.user?.id || null,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Get supplier info for email
+      const supplier = suppliers.find(s => s.id === id);
+      if (supplier?.contact_email && supplier?.contact_name) {
+        await sendApplicationApproved(
+          supplier.contact_email,
+          supplier.contact_name,
+          'supplier',
+          supplier.name
+        );
+      }
+
+      toast.success('Tedarikçi başvurusu onaylandı');
+      await fetchSuppliers();
+      return true;
+    } catch (error) {
+      console.error('Error approving supplier:', error);
+      toast.error('Onaylama sırasında hata oluştu');
+      return false;
+    }
+  };
+
+  const rejectSupplier = async (id: string, notes?: string): Promise<boolean> => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('suppliers')
+        .update({
+          approval_status: 'rejected',
+          approval_notes: notes || null,
+          approved_at: new Date().toISOString(),
+          approved_by: userData?.user?.id || null,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Get supplier info for email
+      const supplier = suppliers.find(s => s.id === id);
+      if (supplier?.contact_email && supplier?.contact_name) {
+        await sendApplicationRejected(
+          supplier.contact_email,
+          supplier.contact_name,
+          'supplier',
+          supplier.name,
+          notes
+        );
+      }
+
+      toast.success('Tedarikçi başvurusu reddedildi');
+      await fetchSuppliers();
+      return true;
+    } catch (error) {
+      console.error('Error rejecting supplier:', error);
+      toast.error('Reddetme sırasında hata oluştu');
+      return false;
+    }
+  };
+
+  // Filter pending applications
+  const pendingApplications = suppliers.filter(s => s.approval_status === 'pending');
+
   return {
     suppliers,
     pendingInvites,
+    pendingApplications,
     isLoading,
     fetchAll,
     createInvite,
     updateSupplier,
     toggleSupplierActive,
     cancelInvite,
+    approveSupplier,
+    rejectSupplier,
   };
 };

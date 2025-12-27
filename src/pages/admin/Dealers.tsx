@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Plus, RefreshCw, Search, Copy, Check, Power, PowerOff, Clock, Mail, MapPin, Phone, User, Edit } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Search, Copy, Check, Power, PowerOff, Clock, Mail, MapPin, Phone, User, Edit, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -15,7 +17,19 @@ import { useRegions } from "@/hooks/useRegions";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const AdminDealers = () => {
-  const { dealers, pendingInvites, isLoading, fetchAll, createInvite, toggleDealerActive, cancelInvite, updateDealer } = useDealers();
+  const { 
+    dealers, 
+    pendingInvites, 
+    pendingApplications,
+    isLoading, 
+    fetchAll, 
+    createInvite, 
+    toggleDealerActive, 
+    cancelInvite, 
+    updateDealer,
+    approveDealer,
+    rejectDealer 
+  } = useDealers();
   const regionsQuery = useRegions();
   const regions = regionsQuery.data || [];
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +50,13 @@ const AdminDealers = () => {
   const [editRegionIds, setEditRegionIds] = useState<string[]>([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Approval state
+  const [approvalDealer, setApprovalDealer] = useState<Dealer | null>(null);
+  const [approvalNotes, setApprovalNotes] = useState("");
+  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
+  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const filteredDealers = dealers.filter(dealer =>
     dealer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -67,7 +88,7 @@ const AdminDealers = () => {
   };
 
   const handleCopyInviteInfo = (invite: typeof pendingInvites[0]) => {
-    const signupUrl = `${window.location.origin}/giris`;
+    const signupUrl = `${window.location.origin}/bayi-kayit?token=${invite.id}`;
     const text = `Merhaba,\n\nHaldeki platformuna bayi olarak davet edildiniz.\n\nKayıt için: ${signupUrl}\nEmail: ${invite.email}\n\nBu davet 7 gün geçerlidir.`;
     
     navigator.clipboard.writeText(text);
@@ -75,6 +96,47 @@ const AdminDealers = () => {
     toast.success('Davet bilgileri kopyalandı');
     
     setTimeout(() => setCopiedInviteId(null), 2000);
+  };
+
+  const handleOpenApprovalDialog = (dealer: Dealer, action: 'approve' | 'reject') => {
+    setApprovalDealer(dealer);
+    setApprovalAction(action);
+    setApprovalNotes("");
+    setIsApprovalDialogOpen(true);
+  };
+
+  const handleApprovalAction = async () => {
+    if (!approvalDealer) return;
+    
+    setIsProcessing(true);
+    let success = false;
+    
+    if (approvalAction === 'approve') {
+      success = await approveDealer(approvalDealer.id, approvalNotes);
+    } else {
+      success = await rejectDealer(approvalDealer.id, approvalNotes);
+    }
+    
+    setIsProcessing(false);
+    
+    if (success) {
+      setIsApprovalDialogOpen(false);
+      setApprovalDealer(null);
+      setApprovalNotes("");
+    }
+  };
+
+  const getApprovalBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200 hover:text-yellow-900">Onay Bekliyor</Badge>;
+      case 'approved':
+        return <Badge variant="default" className="bg-green-600 text-white hover:bg-green-700">Onaylandı</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive" className="hover:text-white">Reddedildi</Badge>;
+      default:
+        return null;
+    }
   };
 
   const getRegionNames = (regionIds: string[]) => {
@@ -236,6 +298,80 @@ const AdminDealers = () => {
         />
       </div>
 
+      {/* Pending Applications */}
+      {pendingApplications.length > 0 && (
+        <Card className="border-yellow-200 bg-yellow-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-700">
+              <AlertCircle className="h-5 w-5" />
+              Onay Bekleyen Başvurular
+              <Badge variant="outline" className="ml-2 bg-yellow-100 text-yellow-700">
+                {pendingApplications.length}
+              </Badge>
+            </CardTitle>
+            <CardDescription>
+              Kayıt olmuş ve onay bekleyen bayi başvuruları
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {pendingApplications.map(dealer => (
+                <div key={dealer.id} className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-lg">{dealer.name}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {dealer.contact_name || '-'}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {dealer.contact_email || '-'}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {dealer.contact_phone || '-'}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {getRegionNames(dealer.region_ids)}
+                      </div>
+                    </div>
+                    {dealer.tax_number && (
+                      <p className="text-xs text-muted-foreground">
+                        Vergi No: {dealer.tax_number}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-green-600 border-green-300 hover:bg-green-50"
+                      onClick={() => handleOpenApprovalDialog(dealer, 'approve')}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Onayla
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 border-red-300 hover:bg-red-50"
+                      onClick={() => handleOpenApprovalDialog(dealer, 'reject')}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Reddet
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Pending Invites */}
       {pendingInvites.length > 0 && (
         <Card>
@@ -351,9 +487,15 @@ const AdminDealers = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={dealer.is_active ? "default" : "secondary"}>
-                          {dealer.is_active ? "Aktif" : "Pasif"}
-                        </Badge>
+                        <div className="flex flex-col gap-1">
+                          {getApprovalBadge(dealer.approval_status)}
+                          <Badge 
+                            variant={dealer.is_active ? "default" : "secondary"} 
+                            className={`text-xs ${dealer.is_active ? 'bg-green-700 text-white hover:bg-green-800' : 'hover:text-foreground'}`}
+                          >
+                            {dealer.is_active ? "Aktif" : "Pasif"}
+                          </Badge>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {format(new Date(dealer.created_at), 'dd MMM yyyy', { locale: tr })}
@@ -439,6 +581,60 @@ const AdminDealers = () => {
             <Button onClick={handleUpdateRegions} disabled={isUpdating}>
               {isUpdating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval Dialog */}
+      <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className={approvalAction === 'approve' ? 'text-green-700' : 'text-red-700'}>
+              {approvalAction === 'approve' ? 'Başvuruyu Onayla' : 'Başvuruyu Reddet'}
+            </DialogTitle>
+            <DialogDescription>
+              <span className="font-semibold">{approvalDealer?.name}</span> firmasının başvurusunu{' '}
+              {approvalAction === 'approve' ? 'onaylamak' : 'reddetmek'} istediğinizden emin misiniz?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {approvalDealer && (
+              <div className="bg-muted rounded-lg p-3 text-sm space-y-1">
+                <p><strong>Yetkili:</strong> {approvalDealer.contact_name || '-'}</p>
+                <p><strong>Email:</strong> {approvalDealer.contact_email || '-'}</p>
+                <p><strong>Telefon:</strong> {approvalDealer.contact_phone || '-'}</p>
+                {approvalDealer.tax_number && (
+                  <p><strong>Vergi No:</strong> {approvalDealer.tax_number}</p>
+                )}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="approval-notes">
+                {approvalAction === 'approve' ? 'Not (opsiyonel)' : 'Red Sebebi (opsiyonel)'}
+              </Label>
+              <Textarea
+                id="approval-notes"
+                placeholder={approvalAction === 'approve' 
+                  ? 'Onay ile ilgili not ekleyin...' 
+                  : 'Red sebebini belirtin...'}
+                value={approvalNotes}
+                onChange={(e) => setApprovalNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsApprovalDialogOpen(false)}>
+              İptal
+            </Button>
+            <Button 
+              onClick={handleApprovalAction} 
+              disabled={isProcessing}
+              variant={approvalAction === 'approve' ? 'default' : 'destructive'}
+            >
+              {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {approvalAction === 'approve' ? 'Onayla' : 'Reddet'}
             </Button>
           </DialogFooter>
         </DialogContent>

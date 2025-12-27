@@ -16,7 +16,6 @@ export function useRegions() {
         .from("regions")
         .select("*")
         .eq("is_active", true)
-        .order("sort_order", { ascending: true, nullsFirst: false })
         .order("name", { ascending: true });
 
       if (error) {

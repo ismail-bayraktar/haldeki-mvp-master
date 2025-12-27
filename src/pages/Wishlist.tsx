@@ -53,7 +53,7 @@ const Wishlist = () => {
                       <div className="flex gap-4">
                         <Link to={`/urun/${product.slug}`} className="shrink-0">
                           <img
-                            src={product.images[0]}
+                            src={product.images?.[0] || '/placeholder.svg'}
                             alt={product.name}
                             className="w-24 h-24 object-cover rounded-lg"
                           />

@@ -6,14 +6,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Plus, RefreshCw, Search, Copy, Check, Power, PowerOff, Clock, Mail, Phone, User } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Search, Copy, Check, Power, PowerOff, Clock, Mail, Phone, User, CheckCircle, XCircle, AlertCircle, Package } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { useSuppliers, CreateSupplierInviteData } from "@/hooks/useSuppliers";
+import { useSuppliers, CreateSupplierInviteData, Supplier } from "@/hooks/useSuppliers";
 
 const AdminSuppliers = () => {
-  const { suppliers, pendingInvites, isLoading, fetchAll, createInvite, toggleSupplierActive, cancelInvite } = useSuppliers();
+  const { 
+    suppliers, 
+    pendingInvites, 
+    pendingApplications,
+    isLoading, 
+    fetchAll, 
+    createInvite, 
+    toggleSupplierActive, 
+    cancelInvite,
+    approveSupplier,
+    rejectSupplier 
+  } = useSuppliers();
   const [searchTerm, setSearchTerm] = useState("");
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [inviteForm, setInviteForm] = useState<CreateSupplierInviteData>({
@@ -25,6 +37,13 @@ const AdminSuppliers = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
+
+  // Approval state
+  const [approvalSupplier, setApprovalSupplier] = useState<Supplier | null>(null);
+  const [approvalNotes, setApprovalNotes] = useState("");
+  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
+  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const filteredSuppliers = suppliers.filter(supplier =>
     supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -55,7 +74,7 @@ const AdminSuppliers = () => {
   };
 
   const handleCopyInviteInfo = (invite: typeof pendingInvites[0]) => {
-    const signupUrl = `${window.location.origin}/giris`;
+    const signupUrl = `${window.location.origin}/tedarikci-kayit?token=${invite.id}`;
     const text = `Merhaba,\n\nHaldeki platformuna tedarikçi olarak davet edildiniz.\n\nKayıt için: ${signupUrl}\nEmail: ${invite.email}\n\nBu davet 7 gün geçerlidir.`;
     
     navigator.clipboard.writeText(text);
@@ -63,6 +82,60 @@ const AdminSuppliers = () => {
     toast.success('Davet bilgileri kopyalandı');
     
     setTimeout(() => setCopiedInviteId(null), 2000);
+  };
+
+  const handleOpenApprovalDialog = (supplier: Supplier, action: 'approve' | 'reject') => {
+    setApprovalSupplier(supplier);
+    setApprovalAction(action);
+    setApprovalNotes("");
+    setIsApprovalDialogOpen(true);
+  };
+
+  const handleApprovalAction = async () => {
+    if (!approvalSupplier) return;
+    
+    setIsProcessing(true);
+    let success = false;
+    
+    if (approvalAction === 'approve') {
+      success = await approveSupplier(approvalSupplier.id, approvalNotes);
+    } else {
+      success = await rejectSupplier(approvalSupplier.id, approvalNotes);
+    }
+    
+    setIsProcessing(false);
+    
+    if (success) {
+      setIsApprovalDialogOpen(false);
+      setApprovalSupplier(null);
+      setApprovalNotes("");
+    }
+  };
+
+  const getApprovalBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200 hover:text-yellow-900">Onay Bekliyor</Badge>;
+      case 'approved':
+        return <Badge variant="default" className="bg-green-600 text-white hover:bg-green-700">Onaylandı</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive" className="hover:text-white">Reddedildi</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  const getCategoryLabels = (categories: string[] | null) => {
+    if (!categories || categories.length === 0) return '-';
+    const labels: Record<string, string> = {
+      'sebze': 'Sebze',
+      'meyve': 'Meyve',
+      'yesil': 'Yeşillik',
+      'organik': 'Organik',
+      'kuruyemis': 'Kuruyemiş',
+      'diger': 'Diğer',
+    };
+    return categories.map(c => labels[c] || c).join(', ');
   };
 
   if (isLoading) {
@@ -163,6 +236,75 @@ const AdminSuppliers = () => {
         />
       </div>
 
+      {/* Pending Applications */}
+      {pendingApplications.length > 0 && (
+        <Card className="border-yellow-200 bg-yellow-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-700">
+              <AlertCircle className="h-5 w-5" />
+              Onay Bekleyen Başvurular
+              <Badge variant="outline" className="ml-2 bg-yellow-100 text-yellow-700">
+                {pendingApplications.length}
+              </Badge>
+            </CardTitle>
+            <CardDescription>
+              Kayıt olmuş ve onay bekleyen tedarikçi başvuruları
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {pendingApplications.map(supplier => (
+                <div key={supplier.id} className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-lg">{supplier.name}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {supplier.contact_name || '-'}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {supplier.contact_email || '-'}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {supplier.contact_phone || '-'}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Package className="h-3 w-3" />
+                        {getCategoryLabels(supplier.product_categories)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-green-600 border-green-300 hover:bg-green-50"
+                      onClick={() => handleOpenApprovalDialog(supplier, 'approve')}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Onayla
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 border-red-300 hover:bg-red-50"
+                      onClick={() => handleOpenApprovalDialog(supplier, 'reject')}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Reddet
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Pending Invites */}
       {pendingInvites.length > 0 && (
         <Card>
@@ -239,6 +381,7 @@ const AdminSuppliers = () => {
                     <TableHead>Firma Adı</TableHead>
                     <TableHead>Yetkili</TableHead>
                     <TableHead>İletişim</TableHead>
+                    <TableHead>Kategoriler</TableHead>
                     <TableHead>Durum</TableHead>
                     <TableHead>Kayıt Tarihi</TableHead>
                     <TableHead>İşlem</TableHead>
@@ -271,9 +414,18 @@ const AdminSuppliers = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={supplier.is_active ? "default" : "secondary"}>
-                          {supplier.is_active ? "Aktif" : "Pasif"}
-                        </Badge>
+                        <span className="text-sm">{getCategoryLabels(supplier.product_categories)}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          {getApprovalBadge(supplier.approval_status)}
+                          <Badge 
+                            variant={supplier.is_active ? "default" : "secondary"} 
+                            className={`text-xs ${supplier.is_active ? 'bg-green-700 text-white hover:bg-green-800' : 'hover:text-foreground'}`}
+                          >
+                            {supplier.is_active ? "Aktif" : "Pasif"}
+                          </Badge>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {format(new Date(supplier.created_at), 'dd MMM yyyy', { locale: tr })}
@@ -305,6 +457,58 @@ const AdminSuppliers = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Approval Dialog */}
+      <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className={approvalAction === 'approve' ? 'text-green-700' : 'text-red-700'}>
+              {approvalAction === 'approve' ? 'Başvuruyu Onayla' : 'Başvuruyu Reddet'}
+            </DialogTitle>
+            <DialogDescription>
+              <span className="font-semibold">{approvalSupplier?.name}</span> firmasının başvurusunu{' '}
+              {approvalAction === 'approve' ? 'onaylamak' : 'reddetmek'} istediğinizden emin misiniz?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {approvalSupplier && (
+              <div className="bg-muted rounded-lg p-3 text-sm space-y-1">
+                <p><strong>Yetkili:</strong> {approvalSupplier.contact_name || '-'}</p>
+                <p><strong>Email:</strong> {approvalSupplier.contact_email || '-'}</p>
+                <p><strong>Telefon:</strong> {approvalSupplier.contact_phone || '-'}</p>
+                <p><strong>Kategoriler:</strong> {getCategoryLabels(approvalSupplier.product_categories)}</p>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="approval-notes">
+                {approvalAction === 'approve' ? 'Not (opsiyonel)' : 'Red Sebebi (opsiyonel)'}
+              </Label>
+              <Textarea
+                id="approval-notes"
+                placeholder={approvalAction === 'approve' 
+                  ? 'Onay ile ilgili not ekleyin...' 
+                  : 'Red sebebini belirtin...'}
+                value={approvalNotes}
+                onChange={(e) => setApprovalNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsApprovalDialogOpen(false)}>
+              İptal
+            </Button>
+            <Button 
+              onClick={handleApprovalAction} 
+              disabled={isProcessing}
+              variant={approvalAction === 'approve' ? 'default' : 'destructive'}
+            >
+              {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {approvalAction === 'approve' ? 'Onayla' : 'Reddet'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

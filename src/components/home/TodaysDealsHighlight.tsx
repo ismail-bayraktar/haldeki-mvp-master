@@ -4,7 +4,7 @@ import { ArrowRight, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBugunHaldeProducts, DbProduct } from "@/hooks/useProducts";
 import { useCart } from "@/contexts/CartContext";
-import { Product, ProductVariant } from "@/types";
+import { Product } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Helper to convert DB product to frontend Product type
@@ -12,20 +12,19 @@ const convertDbProduct = (dbProduct: DbProduct): Product => ({
   id: dbProduct.id,
   name: dbProduct.name,
   slug: dbProduct.slug,
-  categoryId: dbProduct.category_id,
-  categoryName: dbProduct.category_name,
-  price: dbProduct.price,
+  categoryId: dbProduct.category,
+  categoryName: dbProduct.category,
+  price: dbProduct.base_price,
   unit: dbProduct.unit,
-  origin: dbProduct.origin,
-  quality: dbProduct.quality,
+  origin: dbProduct.origin || 'Türkiye',
+  quality: dbProduct.quality || 'standart',
   arrivalDate: dbProduct.arrival_date || new Date().toISOString().split("T")[0],
-  availability: dbProduct.availability,
+  availability: dbProduct.availability || 'plenty',
   isBugunHalde: dbProduct.is_bugun_halde,
-  priceChange: dbProduct.price_change,
+  priceChange: dbProduct.price_change || 'stable',
   previousPrice: dbProduct.previous_price ?? undefined,
-  images: dbProduct.images,
+  images: dbProduct.images || [],
   description: dbProduct.description ?? undefined,
-  variants: (dbProduct.variants as unknown as ProductVariant[]) ?? undefined,
 });
 
 const TodaysDealsHighlight = () => {
@@ -99,7 +98,7 @@ const TodaysDealsHighlight = () => {
                 <Link to={`/urun/${product.slug}`}>
                   <div className="relative aspect-square bg-secondary/30 overflow-hidden cursor-pointer">
                     <img
-                      src={product.images[0]}
+                      src={product.images?.[0] || '/placeholder.svg'}
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

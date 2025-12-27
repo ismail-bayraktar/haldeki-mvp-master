@@ -12,6 +12,11 @@ export interface Dealer {
   contact_email: string | null;
   region_ids: string[];
   is_active: boolean;
+  approval_status: 'pending' | 'approved' | 'rejected';
+  approval_notes: string | null;
+  approved_at: string | null;
+  approved_by: string | null;
+  tax_number: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -53,7 +58,7 @@ export const useDealers = () => {
   const [dealers, setDealers] = useState<Dealer[]>([]);
   const [pendingInvites, setPendingInvites] = useState<PendingDealerInvite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { sendDealerInvite } = useEmailService();
+  const { sendDealerInvite, sendApplicationApproved, sendApplicationRejected } = useEmailService();
 
   const fetchDealers = useCallback(async () => {
     try {
@@ -72,6 +77,7 @@ export const useDealers = () => {
 
   const fetchPendingInvites = useCallback(async () => {
     try {
+      // Önce pending_invites'ları al
       const { data, error } = await supabase
         .from('pending_invites')
         .select('*')
@@ -82,7 +88,21 @@ export const useDealers = () => {
 
       if (error) throw error;
       
-      const invites: PendingDealerInvite[] = (data || []).map(inv => ({
+      // Kayıtlı dealer email'lerini al
+      const { data: dealersData } = await supabase
+        .from('dealers')
+        .select('contact_email');
+      
+      const registeredEmails = new Set(
+        (dealersData || []).map(d => d.contact_email?.toLowerCase())
+      );
+      
+      // Kayıtlı olanları filtrele
+      const filteredData = (data || []).filter(
+        inv => !registeredEmails.has(inv.email.toLowerCase())
+      );
+      
+      const invites: PendingDealerInvite[] = filteredData.map(inv => ({
         id: inv.id,
         email: inv.email,
         dealer_data: inv.dealer_data as PendingDealerInvite['dealer_data'],
@@ -115,7 +135,7 @@ export const useDealers = () => {
         return false;
       }
 
-      const { error } = await supabase
+      const { data: inviteData, error } = await supabase
         .from('pending_invites')
         .insert({
           email: data.email,
@@ -128,7 +148,9 @@ export const useDealers = () => {
             contact_email: data.contact_email || data.email,
             region_ids: data.region_ids || [],
           },
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) {
         if (error.code === '23505') {
@@ -139,12 +161,13 @@ export const useDealers = () => {
         return false;
       }
 
-      // Email gönder
+      // Email gönder - invite ID ile özel kayıt sayfasına yönlendir
       const emailResult = await sendDealerInvite(
         data.email,
         data.name,
         data.contact_name || '',
-        data.region_ids
+        data.region_ids,
+        inviteData?.id
       );
       
       if (emailResult.success) {
@@ -205,14 +228,95 @@ export const useDealers = () => {
     }
   };
 
+  const approveDealer = async (id: string, notes?: string): Promise<boolean> => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('dealers')
+        .update({
+          approval_status: 'approved',
+          approval_notes: notes || null,
+          approved_at: new Date().toISOString(),
+          approved_by: userData?.user?.id || null,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Get dealer info for email
+      const dealer = dealers.find(d => d.id === id);
+      if (dealer?.contact_email && dealer?.contact_name) {
+        await sendApplicationApproved(
+          dealer.contact_email,
+          dealer.contact_name,
+          'dealer',
+          dealer.name
+        );
+      }
+
+      toast.success('Bayi başvurusu onaylandı');
+      await fetchDealers();
+      return true;
+    } catch (error) {
+      console.error('Error approving dealer:', error);
+      toast.error('Onaylama sırasında hata oluştu');
+      return false;
+    }
+  };
+
+  const rejectDealer = async (id: string, notes?: string): Promise<boolean> => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('dealers')
+        .update({
+          approval_status: 'rejected',
+          approval_notes: notes || null,
+          approved_at: new Date().toISOString(),
+          approved_by: userData?.user?.id || null,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Get dealer info for email
+      const dealer = dealers.find(d => d.id === id);
+      if (dealer?.contact_email && dealer?.contact_name) {
+        await sendApplicationRejected(
+          dealer.contact_email,
+          dealer.contact_name,
+          'dealer',
+          dealer.name,
+          notes
+        );
+      }
+
+      toast.success('Bayi başvurusu reddedildi');
+      await fetchDealers();
+      return true;
+    } catch (error) {
+      console.error('Error rejecting dealer:', error);
+      toast.error('Reddetme sırasında hata oluştu');
+      return false;
+    }
+  };
+
+  // Filter pending applications
+  const pendingApplications = dealers.filter(d => d.approval_status === 'pending');
+
   return {
     dealers,
     pendingInvites,
+    pendingApplications,
     isLoading,
     fetchAll,
     createInvite,
     updateDealer,
     toggleDealerActive,
     cancelInvite,
+    approveDealer,
+    rejectDealer,
   };
 };

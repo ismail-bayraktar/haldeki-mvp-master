@@ -26,6 +26,9 @@ import Compare from "./pages/Compare";
 import MenemenLanding from "./pages/MenemenLanding";
 import AliagaLanding from "./pages/AliagaLanding";
 import Auth from "./pages/Auth";
+import BayiKayit from "./pages/BayiKayit";
+import TedarikciKayit from "./pages/TedarikciKayit";
+import Beklemede from "./pages/Beklemede";
 import NotFound from "./pages/NotFound";
 
 // Admin imports
@@ -74,6 +77,9 @@ const App = () => (
                     <Route path="/menemen-taze-sebze-meyve" element={<MenemenLanding />} />
                     <Route path="/aliaga-taze-sebze-meyve" element={<AliagaLanding />} />
                     <Route path="/giris" element={<Auth />} />
+                    <Route path="/bayi-kayit" element={<BayiKayit />} />
+                    <Route path="/tedarikci-kayit" element={<TedarikciKayit />} />
+                    <Route path="/beklemede" element={<Beklemede />} />
                     
                     {/* Dealer Dashboard - Only for dealers */}
                     <Route 

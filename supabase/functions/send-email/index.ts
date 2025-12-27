@@ -19,7 +19,7 @@ interface EmailRequest {
   subject?: string;
   htmlContent?: string;
   textContent?: string;
-  templateType?: 'dealer_invite' | 'supplier_invite' | 'order_notification' | 'offer_status' | 'order_confirmation';
+  templateType?: 'dealer_invite' | 'supplier_invite' | 'order_notification' | 'offer_status' | 'order_confirmation' | 'admin_new_application' | 'application_approved' | 'application_rejected';
   templateData?: Record<string, any>;
 }
 
@@ -356,6 +356,150 @@ const getEmailTemplate = (type: string, data: Record<string, any>) => {
               <div class="footer">
                 <p>Bu email siparişiniz ile ilgili olarak gönderilmiştir.</p>
                 <p>© 2024 Haldeki. Tüm hakları saklıdır.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+    case 'admin_new_application':
+      return {
+        subject: `Haldeki - Yeni ${escapeHtml(data.applicationType)} Başvurusu`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+              .button { display: inline-block; background: #6366f1; color: #ffffff !important; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+              .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+              .info-box { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #6366f1; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Yeni ${escapeHtml(data.applicationType)} Başvurusu</h1>
+              </div>
+              <div class="content">
+                <h2>Yeni bir başvuru alındı!</h2>
+                
+                <div class="info-box">
+                  <strong>Başvuru Detayları:</strong><br>
+                  Tür: ${escapeHtml(data.applicationType)}<br>
+                  Firma: ${escapeHtml(data.firmName)}<br>
+                  Yetkili: ${escapeHtml(data.applicantName)}<br>
+                  Email: ${escapeHtml(data.applicantEmail)}
+                </div>
+                
+                <p>Bu başvuruyu incelemek ve onaylamak/reddetmek için admin paneline gidin:</p>
+                
+                <center>
+                  <a href="${data.dashboardUrl || ''}" class="button" style="color: #ffffff;">Başvuruyu İncele</a>
+                </center>
+              </div>
+              <div class="footer">
+                <p>© 2025 Haldeki. Tüm hakları saklıdır.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+    case 'application_approved':
+      return {
+        subject: 'Haldeki - Başvurunuz Onaylandı!',
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+              .button { display: inline-block; background: #22c55e; color: #ffffff !important; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+              .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+              .info-box { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #22c55e; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Tebrikler!</h1>
+                <p>Başvurunuz Onaylandı</p>
+              </div>
+              <div class="content">
+                <h2>Merhaba ${escapeHtml(data.name)},</h2>
+                <p><strong>${escapeHtml(data.firmName)}</strong> firmanızın ${escapeHtml(data.applicationType)} başvurusu onaylanmıştır!</p>
+                
+                <div class="info-box">
+                  <strong>Artık Haldeki ailesinin bir parçasısınız!</strong><br>
+                  ${escapeHtml(data.applicationType)} panelinize giriş yaparak işlemlerinize başlayabilirsiniz.
+                </div>
+                
+                <center>
+                  <a href="${data.dashboardUrl || ''}" class="button" style="color: #ffffff;">Panele Git</a>
+                </center>
+              </div>
+              <div class="footer">
+                <p>© 2025 Haldeki. Tüm hakları saklıdır.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+    case 'application_rejected':
+      return {
+        subject: 'Haldeki - Başvurunuz Hakkında',
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+              .button { display: inline-block; background: #6b7280; color: #ffffff !important; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+              .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+              .info-box { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #ef4444; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Başvuru Sonucu</h1>
+              </div>
+              <div class="content">
+                <h2>Merhaba ${escapeHtml(data.name)},</h2>
+                <p><strong>${escapeHtml(data.firmName)}</strong> firmanızın ${escapeHtml(data.applicationType)} başvurusu şu anda onaylanamamıştır.</p>
+                
+                ${data.reason ? `
+                <div class="info-box">
+                  <strong>Açıklama:</strong><br>
+                  ${escapeHtml(data.reason)}
+                </div>
+                ` : ''}
+                
+                <p>Daha fazla bilgi almak veya yeniden başvurmak için bizimle iletişime geçebilirsiniz.</p>
+                
+                <center>
+                  <a href="${data.contactUrl || ''}" class="button" style="color: #ffffff;">İletişime Geç</a>
+                </center>
+              </div>
+              <div class="footer">
+                <p>© 2025 Haldeki. Tüm hakları saklıdır.</p>
               </div>
             </div>
           </body>

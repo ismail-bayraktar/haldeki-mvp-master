@@ -13,7 +13,6 @@ import { useRegion } from "@/contexts/RegionContext";
 import { mergeProductsWithRegion, sortByAvailability } from "@/lib/productUtils";
 import { categories } from "@/data/categories";
 import { Product, ProductWithRegionInfo } from "@/types";
-import { ProductVariant } from "@/types";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc" | "newest";
 
@@ -22,20 +21,19 @@ const convertDbProduct = (dbProduct: DbProduct): Product => ({
   id: dbProduct.id,
   name: dbProduct.name,
   slug: dbProduct.slug,
-  categoryId: dbProduct.category_id,
-  categoryName: dbProduct.category_name,
-  price: dbProduct.price,
+  categoryId: dbProduct.category,
+  categoryName: dbProduct.category,
+  price: dbProduct.base_price,
   unit: dbProduct.unit,
-  origin: dbProduct.origin,
-  quality: dbProduct.quality,
+  origin: dbProduct.origin || 'Türkiye',
+  quality: dbProduct.quality || 'standart',
   arrivalDate: dbProduct.arrival_date || new Date().toISOString().split("T")[0],
-  availability: dbProduct.availability,
+  availability: dbProduct.availability || 'plenty',
   isBugunHalde: dbProduct.is_bugun_halde,
-  priceChange: dbProduct.price_change,
+  priceChange: dbProduct.price_change || 'stable',
   previousPrice: dbProduct.previous_price ?? undefined,
-  images: dbProduct.images,
+  images: dbProduct.images || [],
   description: dbProduct.description ?? undefined,
-  variants: (dbProduct.variants as unknown as ProductVariant[]) ?? undefined,
 });
 
 const Products = () => {

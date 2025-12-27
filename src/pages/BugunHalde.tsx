@@ -12,7 +12,7 @@ import { useRegion } from "@/contexts/RegionContext";
 import { useCart } from "@/contexts/CartContext";
 import { mergeProductsWithRegion, sortByAvailability, getPriceChangeLabel } from "@/lib/productUtils";
 import { cn } from "@/lib/utils";
-import { Product, ProductVariant, ProductWithRegionInfo } from "@/types";
+import { Product, ProductWithRegionInfo } from "@/types";
 import { toast } from "sonner";
 
 // Helper to convert DB product to frontend Product type
@@ -20,20 +20,19 @@ const convertDbProduct = (dbProduct: DbProduct): Product => ({
   id: dbProduct.id,
   name: dbProduct.name,
   slug: dbProduct.slug,
-  categoryId: dbProduct.category_id,
-  categoryName: dbProduct.category_name,
-  price: dbProduct.price,
+  categoryId: dbProduct.category,
+  categoryName: dbProduct.category,
+  price: dbProduct.base_price,
   unit: dbProduct.unit,
-  origin: dbProduct.origin,
-  quality: dbProduct.quality,
+  origin: dbProduct.origin || 'Türkiye',
+  quality: dbProduct.quality || 'standart',
   arrivalDate: dbProduct.arrival_date || new Date().toISOString().split("T")[0],
-  availability: dbProduct.availability,
+  availability: dbProduct.availability || 'plenty',
   isBugunHalde: dbProduct.is_bugun_halde,
-  priceChange: dbProduct.price_change,
+  priceChange: dbProduct.price_change || 'stable',
   previousPrice: dbProduct.previous_price ?? undefined,
-  images: dbProduct.images,
+  images: dbProduct.images || [],
   description: dbProduct.description ?? undefined,
-  variants: (dbProduct.variants as unknown as ProductVariant[]) ?? undefined,
 });
 
 const BugunHalde = () => {
@@ -178,7 +177,7 @@ const BugunHalde = () => {
                         >
                           <TableCell>
                             <Link to={`/urun/${product.slug}`} className="flex items-center gap-3 hover:text-primary">
-                              <img src={product.images[0]} alt={product.name} className="w-12 h-12 rounded-lg object-cover" />
+                              <img src={product.images?.[0] || '/placeholder.svg'} alt={product.name} className="w-12 h-12 rounded-lg object-cover" />
                               <div>
                                 <span className="font-medium block">{product.name}</span>
                                 {priceLabel && (

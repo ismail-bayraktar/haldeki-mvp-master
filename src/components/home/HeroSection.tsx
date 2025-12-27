@@ -138,7 +138,7 @@ const HeroSection = () => {
               >
                 <div className="relative">
                   <img
-                    src={product.images[0]}
+                    src={product.images?.[0] || '/placeholder.svg'}
                     alt={product.name}
                     className="w-full h-28 object-cover"
                   />
@@ -183,7 +183,7 @@ const HeroSection = () => {
                     {/* Product Image */}
                     <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-secondary/30">
                       <img
-                        src={product.images[0]}
+                        src={product.images?.[0] || '/placeholder.svg'}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />

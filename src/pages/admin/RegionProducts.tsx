@@ -255,7 +255,7 @@ export default function RegionProducts() {
                     <div className="flex items-center gap-3">
                       {rp.products?.images?.[0] && (
                         <img
-                          src={rp.products.images[0]}
+                          src={rp.products?.images?.[0] || '/placeholder.svg'}
                           alt={rp.products.name}
                           className="h-10 w-10 rounded object-cover"
                         />
@@ -263,7 +263,7 @@ export default function RegionProducts() {
                       <div>
                         <p className="font-medium">{rp.products?.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {rp.products?.category_name}
+                          {rp.products?.category}
                         </p>
                       </div>
                     </div>

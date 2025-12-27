@@ -26,8 +26,8 @@ import { categories } from "@/data/categories";
 const productSchema = z.object({
   name: z.string().min(2, "Ürün adı en az 2 karakter olmalı"),
   slug: z.string().min(2, "Slug en az 2 karakter olmalı"),
-  category_id: z.string().min(1, "Kategori seçiniz"),
-  price: z.coerce.number().positive("Fiyat pozitif olmalı"),
+  category: z.string().min(1, "Kategori seçiniz"),
+  base_price: z.coerce.number().positive("Fiyat pozitif olmalı"),
   unit: z.enum(["kg", "adet", "demet", "paket"]),
   origin: z.string().min(2, "Menşei en az 2 karakter olmalı"),
   quality: z.enum(["premium", "standart", "ekonomik"]),
@@ -55,8 +55,8 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
     defaultValues: {
       name: product?.name ?? "",
       slug: product?.slug ?? "",
-      category_id: product?.category_id ?? "",
-      price: product?.price ?? 0,
+      category: product?.category ?? "",
+      base_price: product?.base_price ?? 0,
       unit: product?.unit ?? "kg",
       origin: product?.origin ?? "",
       quality: product?.quality ?? "standart",
@@ -71,14 +71,11 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
   });
 
   const handleSubmit = (values: ProductFormValues) => {
-    const selectedCategory = categories.find((c) => c.id === values.category_id);
-    
     const productData: ProductInsert = {
       name: values.name,
       slug: values.slug,
-      category_id: values.category_id,
-      category_name: selectedCategory?.name ?? "",
-      price: values.price,
+      category: values.category,
+      base_price: values.base_price,
       unit: values.unit,
       origin: values.origin,
       quality: values.quality,
@@ -150,7 +147,7 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
 
           <FormField
             control={form.control}
-            name="category_id"
+            name="category"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Kategori</FormLabel>
@@ -162,7 +159,7 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
                   </FormControl>
                   <SelectContent>
                     {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
+                      <SelectItem key={cat.id} value={cat.slug}>
                         {cat.name}
                       </SelectItem>
                     ))}
@@ -175,7 +172,7 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
 
           <FormField
             control={form.control}
-            name="price"
+            name="base_price"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Fiyat (₺)</FormLabel>
