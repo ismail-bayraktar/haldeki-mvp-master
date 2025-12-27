@@ -72,6 +72,12 @@ CREATE INDEX IF NOT EXISTS idx_dealer_customers_phone ON public.dealer_customers
 -- RLS
 ALTER TABLE public.dealer_customers ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Dealers can view own customers" ON public.dealer_customers;
+DROP POLICY IF EXISTS "Dealers can insert own customers" ON public.dealer_customers;
+DROP POLICY IF EXISTS "Dealers can update own customers" ON public.dealer_customers;
+DROP POLICY IF EXISTS "Admins can manage all dealer_customers" ON public.dealer_customers;
+
 -- Bayi kendi müşterilerini görebilir
 CREATE POLICY "Dealers can view own customers"
   ON public.dealer_customers FOR SELECT
@@ -125,8 +131,11 @@ CREATE INDEX IF NOT EXISTS idx_products_supplier_id ON public.products(supplier_
 -- 4. Orders RLS Güncellemeleri
 -- ============================================
 
--- Bayi atandığı bölgelerdeki siparişleri görebilir
+-- Drop existing policies first to make migration idempotent
 DROP POLICY IF EXISTS "Dealers can view region orders" ON public.orders;
+DROP POLICY IF EXISTS "Dealers can update assigned orders" ON public.orders;
+
+-- Bayi atandığı bölgelerdeki siparişleri görebilir
 CREATE POLICY "Dealers can view region orders"
   ON public.orders FOR SELECT
   USING (
@@ -136,7 +145,6 @@ CREATE POLICY "Dealers can view region orders"
   );
 
 -- Bayi atandığı siparişleri güncelleyebilir
-DROP POLICY IF EXISTS "Dealers can update assigned orders" ON public.orders;
 CREATE POLICY "Dealers can update assigned orders"
   ON public.orders FOR UPDATE
   USING (
