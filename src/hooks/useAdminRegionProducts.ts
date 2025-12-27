@@ -52,7 +52,7 @@ export function useProductsNotInRegion(regionId: string | null) {
       // Bölgede olmayan ürünleri al
       let query = supabase
         .from("products")
-        .select("id, name, slug, category_name, unit, price, images")
+        .select("id, name, slug, category_name, unit, base_price, images")
         .eq("is_active", true)
         .order("name");
 
@@ -174,7 +174,7 @@ export function useBulkAddMissingProducts() {
       // 2. Tüm aktif ürünleri al
       const { data: allProducts, error: productsError } = await supabase
         .from("products")
-        .select("id, price")
+        .select("id, base_price")
         .eq("is_active", true);
 
       if (productsError) throw productsError;
@@ -193,7 +193,7 @@ export function useBulkAddMissingProducts() {
         missingProducts.map((product) => ({
           region_id: regionId,
           product_id: product.id,
-          price: product.price,
+          price: product.base_price || 0,
           stock_quantity: 100,
           availability: "plenty" as const,
           is_active: true,

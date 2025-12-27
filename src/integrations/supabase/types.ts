@@ -265,6 +265,7 @@ export type Database = {
           arrival_date: string | null
           is_bugun_halde: boolean
           is_active: boolean
+          variants: Json | null
           created_at: string
           updated_at: string
         }
@@ -278,6 +279,7 @@ export type Database = {
           base_price: number
           images?: string[] | null
           origin?: string | null
+          variants?: Json | null
           quality?: Database["public"]["Enums"]["quality_grade"] | null
           availability?: Database["public"]["Enums"]["availability_status"] | null
           price_change?: Database["public"]["Enums"]["price_change"] | null
@@ -298,6 +300,7 @@ export type Database = {
           base_price?: number
           images?: string[] | null
           origin?: string | null
+          variants?: Json | null
           quality?: Database["public"]["Enums"]["quality_grade"] | null
           availability?: Database["public"]["Enums"]["availability_status"] | null
           price_change?: Database["public"]["Enums"]["price_change"] | null

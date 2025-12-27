@@ -97,7 +97,7 @@ export default function RegionProducts() {
     createMutation.mutate({
       region_id: selectedRegionId,
       product_id: addingProductId,
-      price: product.price,
+      price: product.base_price || 0,
       stock_quantity: 100,
       availability: "plenty",
       is_active: true,
@@ -341,7 +341,7 @@ export default function RegionProducts() {
                 <SelectContent>
                   {availableProducts?.map((product: any) => (
                     <SelectItem key={product.id} value={product.id}>
-                      {product.name} - {product.price}₺/{product.unit}
+                      {product.name} - {product.base_price}₺/{product.unit}
                     </SelectItem>
                   ))}
                 </SelectContent>
