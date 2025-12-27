@@ -1,13 +1,13 @@
 # Haldeki.com - Mevcut Durum Raporu
 
-> Tarih: 2025-12-27
+> Tarih: 2025-12-27 (Son güncelleme: 17:45)
 > Bu doküman projenin güncel durumunu, eksikleri ve yapılması gerekenleri içerir.
 
 ---
 
 ## 🎯 Özet
 
-Proje Lovable.dev'den local'e taşındı ve yeni Supabase hesabına migrate edildi. Faz 5 (Onay Sistemi) tamamlandı. Admin paneli, bayi ve tedarikçi panelleri çalışır durumda.
+Proje Lovable.dev'den local'e taşındı ve yeni Supabase hesabına migrate edildi. Faz 5 (Onay Sistemi) ve Faz 6 (Sipariş ve Teslimat) tamamlandı. Admin paneli, bayi ve tedarikçi panelleri çalışır durumda.
 
 ---
 
@@ -50,6 +50,15 @@ Proje Lovable.dev'den local'e taşındı ve yeni Supabase hesabına migrate edil
 - [x] Onay/Red email bildirimleri
 - [x] Approval status kontrolü
 
+### Faz 6: Sipariş ve Teslimat
+- [x] Orders tablosu genişletildi (dealer_id, payment_status, vb.)
+- [x] Bayi sipariş yönetimi (onay, iptal, durum güncelleme)
+- [x] Teslimat kanıtı (fotoğraf + not)
+- [x] Tahsilat durumu (Ödendi/Ödenmedi)
+- [x] Bayi müşteri yönetimi (/bayi/musteriler)
+- [x] Müşteri sipariş takibi (/hesabim/siparisler)
+- [x] Tedarikçi "Bugün Hazırlanacaklar" listesi
+
 ---
 
 ## ⚠️ Bilinen Sorunlar (Çözüldü)
@@ -69,6 +78,15 @@ Kayıtlı kullanıcılar artık "Bekleyen Davetler"de görünmüyor.
 ### 4. Badge Hover Renkleri ✅
 **Durum**: Çözüldü  
 Onaylandı/Aktif badge'lerinde hover text rengi düzeltildi.
+
+### 5. Bölge Ürünleri 400 Hatası ✅
+**Durum**: Çözüldü  
+- `category_name` → `category` düzeltildi
+- Join sorgusu ayrı sorgular olarak refactor edildi (FK ilişkisi gerekmez)
+
+### 6. RLS Policy Duplicate Hatası ✅
+**Durum**: Çözüldü  
+Migration'lara `DROP POLICY IF EXISTS` eklendi.
 
 ---
 
@@ -117,25 +135,29 @@ Onaylandı/Aktif badge'lerinde hover text rengi düzeltildi.
 
 ### Kısa Vadeli (Bu Hafta)
 
-1. **Faz 6 - Sipariş Sistemi**
-   - [ ] Sipariş akışını tamamla
-   - [ ] Bayi sipariş yönetimi
-   - [ ] Sipariş durumu takibi
+1. **Faz 6 - Sipariş Sistemi** ✅ (Tamamlandı)
+   - [x] Sipariş akışını tamamla
+   - [x] Bayi sipariş yönetimi
+   - [x] Sipariş durumu takibi
+   - [x] Teslimat kanıtı
+   - [x] Tahsilat durumu
 
-2. **Bayi Dashboard**
-   - [ ] Sipariş listesi
-   - [ ] Sipariş detayı
-   - [ ] Teslimat güncelleme
+2. **Faz 7 - Ödeme Sistemi** (Planlandı)
+   - [ ] Kapıda ödeme entegrasyonu
+   - [ ] Online ödeme (iyzico/Stripe)
+   - [ ] Fatura oluşturma
 
 ### Orta Vadeli (Bu Ay)
 
-3. **Tedarikçi Dashboard**
+3. **Faz 8 - İşletme (B2B) Paneli**
+   - [ ] İşletme rolü ve davet sistemi
+   - [ ] B2B sipariş paneli
+   - [ ] Bugün Halde fırsatları görünümü
+
+4. **Tedarikçi Dashboard İyileştirmeleri**
    - [ ] Teklif oluşturma
    - [ ] Teklif yönetimi
-
-4. **Ödeme Sistemi**
-   - [ ] Kapıda ödeme
-   - [ ] Online ödeme (planlandı)
+   - [ ] Stok güncelleme
 
 ---
 
