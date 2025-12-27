@@ -80,6 +80,18 @@ export type Database = {
           total_amount: number
           updated_at: string
           user_id: string | null
+          dealer_id: string | null
+          payment_status: string
+          payment_notes: string | null
+          estimated_delivery_time: string | null
+          delivery_notes: string | null
+          delivery_photo_url: string | null
+          delivered_at: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          cancellation_reason: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
         }
         Insert: {
           created_at?: string
@@ -92,6 +104,18 @@ export type Database = {
           total_amount: number
           updated_at?: string
           user_id?: string | null
+          dealer_id?: string | null
+          payment_status?: string
+          payment_notes?: string | null
+          estimated_delivery_time?: string | null
+          delivery_notes?: string | null
+          delivery_photo_url?: string | null
+          delivered_at?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cancellation_reason?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
         }
         Update: {
           created_at?: string
@@ -104,6 +128,18 @@ export type Database = {
           total_amount?: number
           updated_at?: string
           user_id?: string | null
+          dealer_id?: string | null
+          payment_status?: string
+          payment_notes?: string | null
+          estimated_delivery_time?: string | null
+          delivery_notes?: string | null
+          delivery_photo_url?: string | null
+          delivered_at?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cancellation_reason?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
         }
         Relationships: [
           {
@@ -111,6 +147,66 @@ export type Database = {
             columns: ["region_id"]
             isOneToOne: false
             referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dealer_customers: {
+        Row: {
+          id: string
+          dealer_id: string
+          business_name: string
+          contact_name: string | null
+          phone: string
+          email: string | null
+          address: string | null
+          district: string | null
+          notes: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          dealer_id: string
+          business_name: string
+          contact_name?: string | null
+          phone: string
+          email?: string | null
+          address?: string | null
+          district?: string | null
+          notes?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          dealer_id?: string
+          business_name?: string
+          contact_name?: string | null
+          phone?: string
+          email?: string | null
+          address?: string | null
+          district?: string | null
+          notes?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dealer_customers_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
             referencedColumns: ["id"]
           },
         ]

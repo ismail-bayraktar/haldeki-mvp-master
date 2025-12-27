@@ -41,8 +41,12 @@ import AdminSupplierOffers from "./pages/admin/SupplierOffers";
 
 // Role-specific imports
 import DealerDashboard from "./pages/dealer/DealerDashboard";
+import DealerCustomers from "./pages/dealer/DealerCustomers";
 import SupplierDashboard from "./pages/supplier/SupplierDashboard";
 import RequireRole from "@/components/auth/RequireRole";
+
+// Account imports
+import AccountOrders from "./pages/account/Orders";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +73,7 @@ const App = () => (
                     <Route path="/hakkimizda" element={<Hakkimizda />} />
                     <Route path="/iletisim" element={<Iletisim />} />
                     <Route path="/hesabim" element={<Account />} />
+                    <Route path="/hesabim/siparisler" element={<AccountOrders />} />
                     <Route path="/sepet" element={<Cart />} />
                     <Route path="/teslimat" element={<Checkout />} />
                     <Route path="/siparis-tamamlandi" element={<OrderComplete />} />
@@ -87,6 +92,14 @@ const App = () => (
                       element={
                         <RequireRole allowedRoles={['dealer']}>
                           <DealerDashboard />
+                        </RequireRole>
+                      } 
+                    />
+                    <Route 
+                      path="/bayi/musteriler" 
+                      element={
+                        <RequireRole allowedRoles={['dealer']}>
+                          <DealerCustomers />
                         </RequireRole>
                       } 
                     />

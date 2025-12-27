@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Building2, Phone, Mail, MapPin, AlertCircle, Home, LogOut, Bell } from "lucide-react";
+import { Loader2, Building2, Phone, Mail, MapPin, AlertCircle, Home, LogOut, Bell, Users, TrendingUp, CreditCard, Package } from "lucide-react";
 import { useDealerProfile } from "@/hooks/useDealerProfile";
 import { useDealerOrders } from "@/hooks/useDealerOrders";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,14 +13,24 @@ const DealerDashboard = () => {
   const { user, logout } = useAuth();
   const { dealer, regions, isLoading, error } = useDealerProfile();
   const regionIds = dealer?.region_ids || [];
-  const { orders, isLoading: ordersLoading } = useDealerOrders(regionIds);
+  const { 
+    orders, 
+    isLoading: ordersLoading,
+    updateOrderStatus,
+    updatePaymentStatus,
+    updateEstimatedDelivery,
+    uploadDeliveryPhoto,
+    getOrderStats,
+  } = useDealerOrders(regionIds);
+
+  const stats = getOrderStats();
 
   // Son 24 saatte oluşan yeni siparişler
   const newOrdersCount = orders.filter(order => {
     const createdAt = new Date(order.created_at);
     const now = new Date();
     const diffHours = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
-    return diffHours <= 24;
+    return diffHours <= 24 && order.status === 'pending';
   }).length;
 
   if (isLoading) {
@@ -55,6 +65,12 @@ const DealerDashboard = () => {
               ) : (
                 <Badge variant="destructive">Pasif</Badge>
               )}
+              <Link to="/bayi/musteriler">
+                <Button variant="outline" size="sm">
+                  <Users className="h-4 w-4 mr-2" />
+                  Müşterilerim
+                </Button>
+              </Link>
               <Link to="/">
                 <Button variant="outline" size="sm">
                   <Home className="h-4 w-4 mr-2" />
@@ -80,6 +96,62 @@ const DealerDashboard = () => {
           </Alert>
         ) : dealer ? (
           <>
+            {/* İstatistik Kartları */}
+            <div className="grid gap-4 md:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Bekleyen</CardTitle>
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.pending}</div>
+                  <p className="text-xs text-muted-foreground">
+                    sipariş onay bekliyor
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Aktif</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {stats.confirmed + stats.preparing + stats.shipped}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    işlemde sipariş
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Ödenmemiş</CardTitle>
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-destructive">{stats.unpaid}</div>
+                  <p className="text-xs text-muted-foreground">
+                    tahsilat bekliyor
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Toplam Ciro</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    ₺{stats.totalRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    teslim edilen siparişler
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2">
               {/* Bayi Bilgileri */}
               <Card>
@@ -145,7 +217,14 @@ const DealerDashboard = () => {
             </div>
 
             {/* Bölge Siparişleri */}
-            <DealerOrderList orders={orders} isLoading={ordersLoading} />
+            <DealerOrderList 
+              orders={orders} 
+              isLoading={ordersLoading}
+              onUpdateStatus={updateOrderStatus}
+              onUpdatePayment={updatePaymentStatus}
+              onUpdateDeliveryTime={updateEstimatedDelivery}
+              onUploadPhoto={uploadDeliveryPhoto}
+            />
           </>
         ) : (
           <Alert>

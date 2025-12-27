@@ -115,17 +115,21 @@ Haldeki.com, taze meyve-sebze tedarik zincirini dijitalleştiren, bölge bazlı 
 
 ---
 
-### Faz 6: Sipariş ve Teslimat 🔜
+### Faz 6: Sipariş ve Teslimat ✅
 
-**Durum**: Planlandı
+**Durum**: Tamamlandı  
+**Döküman**: [phases/phase-6-order-delivery.md](./phases/phase-6-order-delivery.md)
 
-| Görev | Durum | Öncelik |
-|-------|-------|---------|
-| Sipariş akışı tamamlama | ⏳ | Yüksek |
-| Bayi sipariş yönetimi | ⏳ | Yüksek |
-| Teslimat durumu takibi | ⏳ | Orta |
-| Bayi dashboard | ⏳ | Orta |
-| Sipariş geçmişi | ⏳ | Orta |
+| Görev | Durum |
+|-------|-------|
+| Sipariş akışı (pending → delivered) | ✅ |
+| Bayi sipariş yönetimi (onay, iptal, durum) | ✅ |
+| Teslimat kanıtı (not + fotoğraf) | ✅ |
+| Tahsilat durumu (ödendi/ödenmedi) | ✅ |
+| Tahmini teslimat saati | ✅ |
+| Bayi müşteri yönetimi (dealer_customers) | ✅ |
+| Müşteri sipariş takibi (/hesabim/siparisler) | ✅ |
+| Tedarikçi hazırlanacaklar listesi | ✅ |
 
 ---
 
@@ -141,20 +145,34 @@ Haldeki.com, taze meyve-sebze tedarik zincirini dijitalleştiren, bölge bazlı 
 
 ---
 
-### Faz 8: Tedarikçi Özellikleri 📋
+### Faz 8: İşletme (B2B) Paneli 📋
 
 **Durum**: Planlandı
 
 | Görev | Durum | Öncelik |
 |-------|-------|---------|
-| Tedarikçi dashboard | ⏳ | Orta |
-| Teklif yönetimi | ⏳ | Orta |
-| Teklif onay akışı | ⏳ | Orta |
-| Tedarikçi performans metrikleri | 📋 | Düşük |
+| İşletme rolü (business) | 📋 | Yüksek |
+| İşletme davet ve kayıt sistemi | 📋 | Yüksek |
+| B2B sipariş paneli | 📋 | Yüksek |
+| Bugün Halde fırsatları görünümü | 📋 | Orta |
+| Sipariş geçmişi ve tekrar sipariş | 📋 | Orta |
+| Bayi → İşletme kayıt akışı | 📋 | Orta |
 
 ---
 
-### Faz 9: Gelişmiş Özellikler 📋
+### Faz 9: Tedarikçi Gelişmiş Özellikler 📋
+
+**Durum**: Planlandı
+
+| Görev | Durum | Öncelik |
+|-------|-------|---------|
+| Tedarikçi performans metrikleri | 📋 | Orta |
+| Otomatik stok uyarıları | 📋 | Orta |
+| Tedarikçi raporları | 📋 | Düşük |
+
+---
+
+### Faz 10: Gelişmiş Özellikler 📋
 
 **Durum**: Planlandı
 
@@ -291,6 +309,12 @@ supabase/
 | 2025-12-27 | 5 | Bekleyen davetler filtreleme (kayıtlı olanları gizle) |
 | 2025-12-27 | 5 | Admin products sayfası base_price düzeltmesi |
 | 2025-12-27 | 5 | Badge hover renk düzeltmeleri |
+| 2025-12-27 | 6 | Sipariş ve Teslimat sistemi tamamlandı |
+| 2025-12-27 | 6 | Bayi sipariş yönetimi (durum, iptal, ödeme) |
+| 2025-12-27 | 6 | Teslimat kanıtı (not + fotoğraf) |
+| 2025-12-27 | 6 | Bayi müşteri yönetimi (dealer_customers) |
+| 2025-12-27 | 6 | Müşteri sipariş takibi sayfası |
+| 2025-12-27 | 6 | Tedarikçi hazırlanacaklar listesi |
 
 ---
 
