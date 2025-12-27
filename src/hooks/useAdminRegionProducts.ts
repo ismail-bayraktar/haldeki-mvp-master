@@ -11,24 +11,31 @@ export function useAdminRegionProducts(regionId: string | null) {
     queryFn: async () => {
       if (!regionId) return [];
 
-      const { data, error } = await supabase
+      // 1. Bölge ürünlerini al
+      const { data: regionProducts, error: rpError } = await supabase
         .from("region_products")
-        .select(`
-          *,
-          products (
-            id,
-            name,
-            slug,
-            category_name,
-            unit,
-            images
-          )
-        `)
+        .select("*")
         .eq("region_id", regionId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (rpError) throw rpError;
+      if (!regionProducts || regionProducts.length === 0) return [];
+
+      // 2. Ürün detaylarını al
+      const productIds = regionProducts.map((rp) => rp.product_id);
+      const { data: products, error: pError } = await supabase
+        .from("products")
+        .select("id, name, slug, category, unit, images")
+        .in("id", productIds);
+
+      if (pError) throw pError;
+
+      // 3. Birleştir
+      const productMap = new Map((products || []).map((p) => [p.id, p]));
+      return regionProducts.map((rp) => ({
+        ...rp,
+        products: productMap.get(rp.product_id) || null,
+      }));
     },
     enabled: !!regionId,
   });
@@ -52,7 +59,7 @@ export function useProductsNotInRegion(regionId: string | null) {
       // Bölgede olmayan ürünleri al
       let query = supabase
         .from("products")
-        .select("id, name, slug, category_name, unit, base_price, images")
+        .select("id, name, slug, category, unit, base_price, images")
         .eq("is_active", true)
         .order("name");
 
