@@ -5,7 +5,7 @@ interface SendEmailParams {
   toName?: string;
   subject?: string;
   htmlContent?: string;
-  templateType?: 'dealer_invite' | 'supplier_invite' | 'order_notification' | 'offer_status' | 'order_confirmation' | 'admin_new_application' | 'application_approved' | 'application_rejected';
+  templateType?: 'dealer_invite' | 'supplier_invite' | 'order_notification' | 'offer_status' | 'order_confirmation' | 'admin_new_application' | 'application_approved' | 'application_rejected' | 'order_confirmed' | 'order_delivered' | 'order_cancelled' | 'payment_notification_received' | 'payment_notification_verified';
   templateData?: Record<string, any>;
 }
 
@@ -243,6 +243,120 @@ export const useEmailService = () => {
     });
   };
 
+  const sendOrderConfirmed = async (
+    email: string,
+    customerName: string,
+    orderId: string,
+    regionName?: string,
+    estimatedDelivery?: string
+  ) => {
+    const siteUrl = window.location.origin;
+    return sendEmail({
+      to: email,
+      toName: customerName,
+      templateType: 'order_confirmed',
+      templateData: {
+        orderId,
+        customerName,
+        regionName,
+        estimatedDelivery,
+        siteUrl
+      }
+    });
+  };
+
+  const sendOrderDelivered = async (
+    email: string,
+    customerName: string,
+    orderId: string,
+    deliveredAt?: string,
+    paymentStatus?: string
+  ) => {
+    const siteUrl = window.location.origin;
+    return sendEmail({
+      to: email,
+      toName: customerName,
+      templateType: 'order_delivered',
+      templateData: {
+        orderId,
+        customerName,
+        deliveredAt,
+        paymentStatus,
+        siteUrl
+      }
+    });
+  };
+
+  const sendOrderCancelled = async (
+    email: string,
+    customerName: string,
+    orderId: string,
+    cancellationReason?: string,
+    refundInfo?: string
+  ) => {
+    const siteUrl = window.location.origin;
+    return sendEmail({
+      to: email,
+      toName: customerName,
+      templateType: 'order_cancelled',
+      templateData: {
+        orderId,
+        customerName,
+        cancellationReason,
+        refundInfo,
+        siteUrl
+      }
+    });
+  };
+
+  const sendPaymentNotificationReceived = async (
+    email: string,
+    orderId: string,
+    customerName: string,
+    bankName: string,
+    accountHolder: string,
+    amount: number,
+    transactionDate: string
+  ) => {
+    const dashboardUrl = `${window.location.origin}/admin/orders`;
+    return sendEmail({
+      to: email,
+      toName: 'Admin/Bayi',
+      templateType: 'payment_notification_received',
+      templateData: {
+        orderId,
+        customerName,
+        bankName,
+        accountHolder,
+        amount,
+        transactionDate,
+        dashboardUrl
+      }
+    });
+  };
+
+  const sendPaymentNotificationVerified = async (
+    email: string,
+    customerName: string,
+    orderId: string,
+    amount: number,
+    verifiedAt?: string
+  ) => {
+    const siteUrl = window.location.origin;
+    return sendEmail({
+      to: email,
+      toName: customerName,
+      templateType: 'payment_notification_verified',
+      templateData: {
+        orderId,
+        customerName,
+        amount,
+        verifiedAt,
+        siteUrl
+      }
+    });
+  };
+
   return {
     sendEmail,
     sendDealerInvite,
@@ -252,6 +366,11 @@ export const useEmailService = () => {
     sendOrderConfirmation,
     sendNewApplicationNotification,
     sendApplicationApproved,
-    sendApplicationRejected
+    sendApplicationRejected,
+    sendOrderConfirmed,
+    sendOrderDelivered,
+    sendOrderCancelled,
+    sendPaymentNotificationReceived,
+    sendPaymentNotificationVerified
   };
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useEmailService } from '@/hooks/useEmailService';
 
 export interface OrderItem {
   productId: string;
@@ -33,6 +34,8 @@ export interface DealerOrder {
   dealer_id: string | null;
   payment_status: string;
   payment_notes: string | null;
+  payment_method: string | null;
+  payment_method_details: Record<string, unknown> | null;
   estimated_delivery_time: string | null;
   delivery_notes: string | null;
   delivery_photo_url: string | null;
@@ -50,6 +53,7 @@ export type PaymentStatus = 'unpaid' | 'paid' | 'partial';
 export const useDealerOrders = (regionIds: string[]) => {
   const [orders, setOrders] = useState<DealerOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { sendOrderConfirmed, sendOrderDelivered, sendOrderCancelled } = useEmailService();
   const [error, setError] = useState<string | null>(null);
 
   const fetchOrders = useCallback(async () => {
@@ -139,12 +143,76 @@ export const useDealerOrders = (regionIds: string[]) => {
         }
       }
 
+      // Sipariş bilgilerini al (email için)
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select('*, user_id, region_id, estimated_delivery_time, payment_status')
+        .eq('id', orderId)
+        .single();
+
       const { error } = await supabase
         .from('orders')
         .update(updateData)
         .eq('id', orderId);
 
       if (error) throw error;
+
+      // Email gönderimi (kritik durumlar için)
+      try {
+        if (orderData) {
+          // Müşteri bilgilerini al
+          const { data: userData } = await supabase
+            .from('profiles')
+            .select('email, full_name')
+            .eq('id', orderData.user_id)
+            .single();
+
+          // Bölge bilgilerini al
+          const { data: regionData } = await supabase
+            .from('regions')
+            .select('name')
+            .eq('id', orderData.region_id)
+            .single();
+
+          if (userData?.email) {
+            const customerName = userData.full_name || 'Değerli Müşterimiz';
+            const regionName = regionData?.name;
+
+            if (newStatus === 'confirmed') {
+              const estimatedDelivery = orderData.estimated_delivery_time 
+                ? new Date(orderData.estimated_delivery_time).toLocaleDateString('tr-TR')
+                : undefined;
+              await sendOrderConfirmed(
+                userData.email,
+                customerName,
+                orderId,
+                regionName,
+                estimatedDelivery
+              );
+            } else if (newStatus === 'delivered') {
+              const deliveredAt = new Date().toLocaleDateString('tr-TR');
+              await sendOrderDelivered(
+                userData.email,
+                customerName,
+                orderId,
+                deliveredAt,
+                orderData.payment_status
+              );
+            } else if (newStatus === 'cancelled') {
+              await sendOrderCancelled(
+                userData.email,
+                customerName,
+                orderId,
+                additionalData?.cancellationReason,
+                undefined // refundInfo - gelecekte eklenebilir
+              );
+            }
+          }
+        }
+      } catch (emailError) {
+        // Email hatası sipariş güncellemesini engellemez
+        console.error('[useDealerOrders] Email error:', emailError);
+      }
 
       const statusMessages: Record<OrderStatus, string> = {
         pending: 'Sipariş beklemeye alındı',

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { CartItem, Product, ProductVariant, CartValidationResult } from "@/types";
 import { useAuth } from "./AuthContext";
 import { useRegion } from "./RegionContext";
@@ -20,10 +20,71 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const CART_STORAGE_KEY = 'haldeki_cart_items';
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
   const { isAuthenticated, openAuthDrawer } = useAuth();
   const { selectedRegion, openRegionModal } = useRegion();
+
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(CART_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as CartItem[];
+        // Only restore cart if user is authenticated and region is selected
+        if (isAuthenticated && selectedRegion) {
+          setItems(parsed);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error);
+      localStorage.removeItem(CART_STORAGE_KEY);
+    }
+    setIsHydrated(true);
+  }, []); // Only run on mount
+
+  // Save cart to localStorage whenever items change (but only after hydration)
+  useEffect(() => {
+    if (!isHydrated) return;
+    
+    try {
+      if (items.length > 0 && isAuthenticated && selectedRegion) {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+      } else {
+        localStorage.removeItem(CART_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error('Error saving cart to localStorage:', error);
+    }
+  }, [items, isHydrated, isAuthenticated, selectedRegion]);
+
+  // Sync cart when page becomes visible (user returns to tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isAuthenticated && selectedRegion) {
+        try {
+          const stored = localStorage.getItem(CART_STORAGE_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored) as CartItem[];
+            // Only sync if items are different to avoid unnecessary updates
+            if (JSON.stringify(parsed) !== JSON.stringify(items)) {
+              setItems(parsed);
+            }
+          }
+        } catch (error) {
+          console.error('Error syncing cart on visibility change:', error);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [items, isAuthenticated, selectedRegion]);
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   
@@ -111,6 +172,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = () => {
     setItems([]);
+    localStorage.removeItem(CART_STORAGE_KEY);
   };
 
   // 2A.3: Bölge değişikliği için validation

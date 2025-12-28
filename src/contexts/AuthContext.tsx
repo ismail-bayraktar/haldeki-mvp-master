@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PasswordChangeModal } from "@/components/auth/PasswordChangeModal";
 
 type AppRole = 'superadmin' | 'admin' | 'dealer' | 'supplier' | 'user';
 type ApprovalStatus = 'pending' | 'approved' | 'rejected' | null;
@@ -20,6 +21,7 @@ interface AuthContextType {
   approvalStatus: ApprovalStatus;
   isApprovalChecked: boolean;
   isAuthDrawerOpen: boolean;
+  mustChangePassword: boolean;
   openAuthDrawer: () => void;
   closeAuthDrawer: () => void;
   hasRole: (role: AppRole) => boolean;
@@ -39,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>(null);
   const [isApprovalChecked, setIsApprovalChecked] = useState(false);
   const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
 
   // Derived role states
   const isSuperAdmin = roles.includes('superadmin');
@@ -109,6 +112,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const checkMustChangePassword = (user: User) => {
+    const mustChange = user.user_metadata?.must_change_password === true;
+    setMustChangePassword(mustChange);
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -116,6 +124,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          checkMustChangePassword(session.user);
           setIsRolesChecked(false);
           setIsApprovalChecked(false);
           setTimeout(() => {
@@ -126,6 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIsRolesChecked(true);
           setApprovalStatus(null);
           setIsApprovalChecked(true);
+          setMustChangePassword(false);
         }
         setIsLoading(false);
       }
@@ -136,9 +146,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        checkMustChangePassword(session.user);
         checkUserRoles(session.user.id);
       } else {
         setIsRolesChecked(true);
+        setMustChangePassword(false);
       }
       setIsLoading(false);
     });
@@ -212,7 +224,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsRolesChecked(true);
     setApprovalStatus(null);
     setIsApprovalChecked(true);
+    setMustChangePassword(false);
     toast.success('Çıkış yapıldı');
+  };
+
+  const handlePasswordChangeSuccess = async () => {
+    // Update user metadata to clear flag
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser) {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          ...currentUser.user_metadata,
+          must_change_password: false,
+        },
+      });
+      if (!error) {
+        setMustChangePassword(false);
+      }
+    }
   };
 
   return (
@@ -231,6 +260,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         approvalStatus,
         isApprovalChecked,
         isAuthDrawerOpen,
+        mustChangePassword,
         openAuthDrawer,
         closeAuthDrawer,
         hasRole,
@@ -240,6 +270,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }}
     >
       {children}
+      {mustChangePassword && user && (
+        <PasswordChangeModal
+          open={mustChangePassword}
+          onSuccess={handlePasswordChangeSuccess}
+        />
+      )}
     </AuthContext.Provider>
   );
 };

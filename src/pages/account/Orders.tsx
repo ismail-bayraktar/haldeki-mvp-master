@@ -21,9 +21,10 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Package, ChevronLeft, ShoppingBag, Clock, CheckCircle, XCircle, Truck, MapPin } from 'lucide-react';
+import { Loader2, Package, ChevronLeft, ShoppingBag, Clock, CheckCircle, XCircle, Truck, MapPin, CreditCard, Building2, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePaymentNotificationByOrder } from '@/hooks/usePaymentNotifications';
 import { toast } from 'sonner';
 
 interface OrderItem {
@@ -54,6 +55,9 @@ interface Order {
   delivered_at: string | null;
   cancelled_at: string | null;
   cancellation_reason: string | null;
+  payment_method: string | null;
+  payment_method_details: Record<string, unknown> | null;
+  payment_status: string | null;
 }
 
 const getStatusConfig = (status: string) => {
@@ -132,6 +136,34 @@ const OrderTimeline = ({ order }: { order: Order }) => {
         );
       })}
     </div>
+  );
+};
+
+const PaymentNotificationButton = ({ orderId }: { orderId: string }) => {
+  const { data: notification } = usePaymentNotificationByOrder(orderId);
+  
+  if (notification) {
+    return (
+      <div className="ml-6 mt-2">
+        <Badge variant={notification.status === "verified" ? "default" : notification.status === "rejected" ? "destructive" : "secondary"}>
+          {notification.status === "verified" ? "Doğrulandı" : notification.status === "rejected" ? "Reddedildi" : "Beklemede"}
+        </Badge>
+      </div>
+    );
+  }
+  
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className="ml-6 mt-2"
+      asChild
+    >
+      <Link to={`/odeme-bildirimi/${orderId}`}>
+        <ExternalLink className="h-3 w-3 mr-1" />
+        Havale Bildirimi Yap
+      </Link>
+    </Button>
   );
 };
 
@@ -292,6 +324,44 @@ const AccountOrders = () => {
                               </div>
                             </div>
                           )}
+
+                          {/* Ödeme Bilgileri */}
+                          <div>
+                            <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
+                              <CreditCard className="h-3 w-3" />
+                              Ödeme Bilgileri
+                            </h4>
+                            <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-2">
+                              {order.payment_method === "cash" && (
+                                <div className="flex items-center gap-2">
+                                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                                  <span>Kapıda Ödeme - Nakit</span>
+                                </div>
+                              )}
+                              {order.payment_method === "card" && (
+                                <div className="flex items-center gap-2">
+                                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                                  <span>Kapıda Ödeme - Kart</span>
+                                </div>
+                              )}
+                              {order.payment_method === "eft" && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                                    <span>EFT/Havale</span>
+                                  </div>
+                                  {order.payment_status && (
+                                    <div className="ml-6">
+                                      <Badge variant={order.payment_status === "paid" ? "default" : "secondary"}>
+                                        {order.payment_status === "paid" ? "Ödendi" : order.payment_status === "partial" ? "Kısmi Ödendi" : "Ödenmedi"}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                  <PaymentNotificationButton orderId={order.id} />
+                                </div>
+                              )}
+                            </div>
+                          </div>
 
                           {/* Tahmini Teslimat */}
                           {order.estimated_delivery_time && order.status !== 'delivered' && order.status !== 'cancelled' && (

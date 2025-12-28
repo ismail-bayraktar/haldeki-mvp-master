@@ -43,8 +43,10 @@ import {
   Loader2,
   Camera,
   Calendar,
+  Building2,
 } from 'lucide-react';
 import { DealerOrder, OrderStatus, PaymentStatus } from '@/hooks/useDealerOrders';
+import { usePaymentNotificationByOrder, useVerifyPaymentNotification } from '@/hooks/usePaymentNotifications';
 
 interface OrderDetailModalProps {
   order: DealerOrder | null;
@@ -98,6 +100,8 @@ const OrderDetailModal = ({
   const [deliveryNotes, setDeliveryNotes] = useState('');
   const [estimatedTime, setEstimatedTime] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const { data: paymentNotification } = usePaymentNotificationByOrder(order?.id || '');
+  const verifyNotification = useVerifyPaymentNotification();
 
   if (!order) return null;
 
@@ -193,6 +197,96 @@ const OrderDetailModal = ({
                 <Badge variant="outline">{order.region_name || '-'}</Badge>
               </div>
             </div>
+
+            <Separator />
+
+            {/* Ödeme Yöntemi */}
+            {order.payment_method && (
+              <div>
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  Ödeme Yöntemi
+                </h4>
+                <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                  {order.payment_method === "cash" && (
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-muted-foreground" />
+                      <span>Kapıda Ödeme - Nakit</span>
+                    </div>
+                  )}
+                  {order.payment_method === "card" && (
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-muted-foreground" />
+                      <span>Kapıda Ödeme - Kart</span>
+                    </div>
+                  )}
+                  {order.payment_method === "eft" && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        <span>EFT/Havale</span>
+                      </div>
+                      {paymentNotification && (
+                        <div className="ml-6 space-y-2 p-2 bg-background rounded border">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">Bildirim Durumu:</span>
+                            <Badge variant={paymentNotification.status === "verified" ? "default" : paymentNotification.status === "rejected" ? "destructive" : "secondary"}>
+                              {paymentNotification.status === "verified" ? "Doğrulandı" : paymentNotification.status === "rejected" ? "Reddedildi" : "Beklemede"}
+                            </Badge>
+                          </div>
+                          <div className="text-xs space-y-1">
+                            <p><strong>Banka:</strong> {paymentNotification.bank_name}</p>
+                            <p><strong>Hesap Sahibi:</strong> {paymentNotification.account_holder}</p>
+                            <p><strong>Tutar:</strong> ₺{paymentNotification.amount.toFixed(2)}</p>
+                            <p><strong>İşlem Tarihi:</strong> {new Date(paymentNotification.transaction_date).toLocaleDateString("tr-TR")}</p>
+                            {paymentNotification.notes && (
+                              <p><strong>Notlar:</strong> {paymentNotification.notes}</p>
+                            )}
+                          </div>
+                          {paymentNotification.status === "pending" && (
+                            <div className="flex gap-2 mt-2">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={async () => {
+                                  await verifyNotification.mutateAsync({
+                                    notificationId: paymentNotification.id,
+                                    status: "verified",
+                                  });
+                                }}
+                                disabled={verifyNotification.isPending}
+                              >
+                                {verifyNotification.isPending ? (
+                                  <>
+                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                    Doğrulanıyor...
+                                  </>
+                                ) : (
+                                  "Doğrula"
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={async () => {
+                                  await verifyNotification.mutateAsync({
+                                    notificationId: paymentNotification.id,
+                                    status: "rejected",
+                                  });
+                                }}
+                                disabled={verifyNotification.isPending}
+                              >
+                                Reddet
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <Separator />
 

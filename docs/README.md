@@ -35,7 +35,9 @@ docs/
 │   ├── phase-2a4-delivery-slots.md     # Teslimat slotları
 │   ├── phase-3-rbac.md                 # Rol sistemi
 │   ├── phase-4-email.md                # Email sistemi
-│   └── phase-5-approval-system.md      # Onay sistemi
+│   ├── phase-5-approval-system.md      # Onay sistemi
+│   ├── phase-6-order-delivery.md      # Sipariş ve teslimat sistemi
+│   └── phase-7-payment-system.md      # Ödeme sistemi
 │
 ├── scripts/                            # SQL ve Migration
 │   ├── full-schema.sql                 # Birleşik veritabanı şeması
@@ -83,7 +85,8 @@ docs/
 | 3 - RBAC & Rol Sistemi | ✅ Tamamlandı | phases/phase-3-rbac.md |
 | 4 - Email Sistemi | ✅ Tamamlandı | phases/phase-4-email.md |
 | 5 - Onay Sistemi | ✅ Tamamlandı | phases/phase-5-approval-system.md |
-| 6 - Sipariş & Teslimat | 🔜 Planlandı | - |
+| 6 - Sipariş & Teslimat | ✅ Tamamlandı | phases/phase-6-order-delivery.md |
+| 7 - Ödeme Sistemi | ✅ Tamamlandı | phases/phase-7-payment-system.md |
 
 ---
 

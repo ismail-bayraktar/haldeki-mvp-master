@@ -47,6 +47,7 @@ import RequireRole from "@/components/auth/RequireRole";
 
 // Account imports
 import AccountOrders from "./pages/account/Orders";
+import PaymentNotification from "./pages/PaymentNotification";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
                     <Route path="/iletisim" element={<Iletisim />} />
                     <Route path="/hesabim" element={<Account />} />
                     <Route path="/hesabim/siparisler" element={<AccountOrders />} />
+                    <Route path="/odeme-bildirimi/:orderId" element={<PaymentNotification />} />
                     <Route path="/sepet" element={<Cart />} />
                     <Route path="/teslimat" element={<Checkout />} />
                     <Route path="/siparis-tamamlandi" element={<OrderComplete />} />

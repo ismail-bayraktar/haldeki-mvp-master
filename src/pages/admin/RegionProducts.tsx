@@ -287,9 +287,27 @@ export default function RegionProducts() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={rp.is_active ? "default" : "secondary"}>
-                      {rp.is_active ? "Aktif" : "Pasif"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={rp.is_active}
+                        onCheckedChange={(checked) => {
+                          if (!selectedRegionId) return;
+                          updateMutation.mutate({
+                            id: rp.id,
+                            regionId: selectedRegionId,
+                            price: rp.price,
+                            previous_price: rp.previous_price,
+                            stock_quantity: rp.stock_quantity,
+                            availability: rp.availability,
+                            is_active: checked,
+                          });
+                        }}
+                        disabled={updateMutation.isPending}
+                      />
+                      <Badge variant={rp.is_active ? "default" : "secondary"}>
+                        {rp.is_active ? "Aktif" : "Pasif"}
+                      </Badge>
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

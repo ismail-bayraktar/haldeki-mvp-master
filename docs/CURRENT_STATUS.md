@@ -142,10 +142,14 @@ Migration'lara `DROP POLICY IF EXISTS` eklendi.
    - [x] Teslimat kanıtı
    - [x] Tahsilat durumu
 
-2. **Faz 7 - Ödeme Sistemi** (Planlandı)
-   - [ ] Kapıda ödeme entegrasyonu
-   - [ ] Online ödeme (iyzico/Stripe)
-   - [ ] Fatura oluşturma
+2. **Faz 7 - Ödeme Sistemi** ✅ (Tamamlandı)
+   - [x] Kapıda ödeme entegrasyonu (Nakit/Kart)
+   - [x] EFT/Havale ödeme sistemi
+   - [x] Ödeme bildirim formu
+   - [x] Admin IBAN ayarları
+   - [x] Email bildirimleri
+   - [ ] Online ödeme (iyzico/Stripe) - Sonraki fazlarda
+   - [ ] Fatura oluşturma - Sonraki fazlarda
 
 ### Orta Vadeli (Bu Ay)
 

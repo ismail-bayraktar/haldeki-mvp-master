@@ -19,7 +19,7 @@ interface EmailRequest {
   subject?: string;
   htmlContent?: string;
   textContent?: string;
-  templateType?: 'dealer_invite' | 'supplier_invite' | 'order_notification' | 'offer_status' | 'order_confirmation' | 'admin_new_application' | 'application_approved' | 'application_rejected';
+  templateType?: 'dealer_invite' | 'supplier_invite' | 'order_notification' | 'offer_status' | 'order_confirmation' | 'admin_new_application' | 'application_approved' | 'application_rejected' | 'order_confirmed' | 'order_delivered' | 'order_cancelled' | 'payment_notification_received' | 'payment_notification_verified';
   templateData?: Record<string, any>;
 }
 
@@ -59,6 +59,16 @@ const getEmailTemplate = (type: string, data: Record<string, any>) => {
     siteUrl: data.siteUrl || '',
     status: data.status, // Used for conditional logic, not displayed directly
     items: data.items, // Array, processed separately
+    estimatedDelivery: escapeHtml(data.estimatedDelivery),
+    deliveredAt: escapeHtml(data.deliveredAt),
+    paymentStatus: escapeHtml(data.paymentStatus),
+    cancellationReason: escapeHtml(data.cancellationReason),
+    refundInfo: escapeHtml(data.refundInfo),
+    bankName: escapeHtml(data.bankName),
+    accountHolder: escapeHtml(data.accountHolder),
+    amount: escapeHtml(String(data.amount || '')),
+    transactionDate: escapeHtml(data.transactionDate),
+    verifiedAt: escapeHtml(data.verifiedAt),
   };
 
   switch (type) {
@@ -165,7 +175,7 @@ const getEmailTemplate = (type: string, data: Record<string, any>) => {
                 </center>
                 
                 <p style="color: #666; font-size: 14px;">
-                  ⚠️ Bu davet 7 gün içinde geçerliliğini yitirecektir.<br>
+                  Bu davet 7 gün içinde geçerliliğini yitirecektir.<br>
                   Kayıt olurken bu email adresini (${safeData.email}) kullanmanız gerekmektedir.
                 </p>
               </div>
@@ -180,7 +190,7 @@ const getEmailTemplate = (type: string, data: Record<string, any>) => {
       };
 
     case 'offer_status':
-      const statusText = safeData.status === 'approved' ? 'Onaylandı ✅' : 'Reddedildi ❌';
+      const statusText = safeData.status === 'approved' ? 'Onaylandı' : 'Reddedildi';
       const statusColor = safeData.status === 'approved' ? '#22c55e' : '#ef4444';
       return {
         subject: `Haldeki - Teklifiniz ${statusText}`,
@@ -255,7 +265,7 @@ const getEmailTemplate = (type: string, data: Record<string, any>) => {
           <body>
             <div class="container">
               <div class="header">
-                <h1>📦 Yeni Sipariş</h1>
+                <h1>Yeni Sipariş</h1>
               </div>
               <div class="content">
                 <h2>Yeni bir sipariş alındı!</h2>
@@ -309,7 +319,7 @@ const getEmailTemplate = (type: string, data: Record<string, any>) => {
           <body>
             <div class="container">
               <div class="header">
-                <h1>✅ Siparişiniz Alındı</h1>
+                <h1>Siparişiniz Alındı</h1>
                 <p>Teşekkür ederiz!</p>
               </div>
               <div class="content">
@@ -496,6 +506,262 @@ const getEmailTemplate = (type: string, data: Record<string, any>) => {
                 
                 <center>
                   <a href="${data.contactUrl || ''}" class="button" style="color: #ffffff;">İletişime Geç</a>
+                </center>
+              </div>
+              <div class="footer">
+                <p>© 2025 Haldeki. Tüm hakları saklıdır.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+    case 'order_confirmed':
+      return {
+        subject: `Haldeki - Siparişiniz Onaylandı #${safeData.orderId?.slice(0, 8) || ''}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+              .button { display: inline-block; background: #22c55e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+              .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+              .info-box { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #22c55e; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Siparişiniz Onaylandı</h1>
+                <p>Hazırlanmaya Başlandı</p>
+              </div>
+              <div class="content">
+                <h2>Merhaba ${safeData.customerName || 'Değerli Müşterimiz'},</h2>
+                <p>Siparişiniz onaylandı ve hazırlanmaya başlandı.</p>
+                
+                <div class="info-box">
+                  <strong>Sipariş Bilgileri:</strong><br>
+                  Sipariş No: #${safeData.orderId?.slice(0, 8) || ''}<br>
+                  ${safeData.estimatedDelivery ? `Tahmini Teslimat: ${escapeHtml(safeData.estimatedDelivery)}<br>` : ''}
+                  ${safeData.regionName ? `Bölge: ${safeData.regionName}` : ''}
+                </div>
+                
+                <p>Siparişiniz hazır olduğunda size bilgi vereceğiz.</p>
+                
+                <center>
+                  <a href="${safeData.siteUrl || 'https://haldekimvp.lovable.app'}/hesabim/siparisler" class="button">Siparişimi Görüntüle</a>
+                </center>
+              </div>
+              <div class="footer">
+                <p>© 2025 Haldeki. Tüm hakları saklıdır.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+    case 'order_delivered':
+      return {
+        subject: `Haldeki - Siparişiniz Teslim Edildi #${safeData.orderId?.slice(0, 8) || ''}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+              .button { display: inline-block; background: #22c55e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+              .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+              .info-box { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #22c55e; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Siparişiniz Teslim Edildi</h1>
+                <p>Teşekkür Ederiz!</p>
+              </div>
+              <div class="content">
+                <h2>Merhaba ${safeData.customerName || 'Değerli Müşterimiz'},</h2>
+                <p>Siparişiniz başarıyla teslim edilmiştir.</p>
+                
+                <div class="info-box">
+                  <strong>Sipariş Bilgileri:</strong><br>
+                  Sipariş No: #${safeData.orderId?.slice(0, 8) || ''}<br>
+                  Teslimat Tarihi: ${safeData.deliveredAt ? escapeHtml(safeData.deliveredAt) : 'Bugün'}<br>
+                  ${safeData.paymentStatus ? `Ödeme Durumu: ${escapeHtml(safeData.paymentStatus)}` : ''}
+                </div>
+                
+                <p>Tekrar sipariş vermek için sitemizi ziyaret edebilirsiniz.</p>
+                
+                <center>
+                  <a href="${safeData.siteUrl || 'https://haldekimvp.lovable.app'}" class="button">Yeni Sipariş Ver</a>
+                </center>
+              </div>
+              <div class="footer">
+                <p>© 2025 Haldeki. Tüm hakları saklıdır.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+    case 'order_cancelled':
+      return {
+        subject: `Haldeki - Siparişiniz İptal Edildi #${safeData.orderId?.slice(0, 8) || ''}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+              .button { display: inline-block; background: #6b7280; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+              .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+              .info-box { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #ef4444; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Sipariş İptal Edildi</h1>
+              </div>
+              <div class="content">
+                <h2>Merhaba ${safeData.customerName || 'Değerli Müşterimiz'},</h2>
+                <p>Maalesef siparişiniz iptal edilmiştir.</p>
+                
+                <div class="info-box">
+                  <strong>Sipariş Bilgileri:</strong><br>
+                  Sipariş No: #${safeData.orderId?.slice(0, 8) || ''}<br>
+                  ${safeData.cancellationReason ? `Sebep: ${escapeHtml(safeData.cancellationReason)}` : ''}
+                </div>
+                
+                ${safeData.refundInfo ? `
+                <div class="info-box">
+                  <strong>İade Bilgileri:</strong><br>
+                  ${escapeHtml(safeData.refundInfo)}
+                </div>
+                ` : ''}
+                
+                <p>Sorularınız için bizimle iletişime geçebilirsiniz.</p>
+                
+                <center>
+                  <a href="${safeData.siteUrl || 'https://haldekimvp.lovable.app'}/iletisim" class="button">İletişime Geç</a>
+                </center>
+              </div>
+              <div class="footer">
+                <p>© 2025 Haldeki. Tüm hakları saklıdır.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+    case 'payment_notification_received':
+      return {
+        subject: `Haldeki - Yeni Ödeme Bildirimi #${safeData.orderId?.slice(0, 8) || ''}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+              .button { display: inline-block; background: #6366f1; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+              .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+              .info-box { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #6366f1; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Yeni Ödeme Bildirimi</h1>
+              </div>
+              <div class="content">
+                <h2>Yeni bir ödeme bildirimi alındı!</h2>
+                
+                <div class="info-box">
+                  <strong>Bildirim Detayları:</strong><br>
+                  Sipariş No: #${safeData.orderId?.slice(0, 8) || ''}<br>
+                  Müşteri: ${safeData.customerName || ''}<br>
+                  Banka: ${safeData.bankName || ''}<br>
+                  Hesap Sahibi: ${safeData.accountHolder || ''}<br>
+                  Tutar: ₺${safeData.amount || '0'}<br>
+                  İşlem Tarihi: ${safeData.transactionDate || ''}
+                </div>
+                
+                <p>Bu bildirimi doğrulamak için panele gidin:</p>
+                
+                <center>
+                  <a href="${safeData.dashboardUrl || ''}" class="button">Bildirimi İncele</a>
+                </center>
+              </div>
+              <div class="footer">
+                <p>© 2025 Haldeki. Tüm hakları saklıdır.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+    case 'payment_notification_verified':
+      return {
+        subject: `Haldeki - Ödeme Bildiriminiz Doğrulandı #${safeData.orderId?.slice(0, 8) || ''}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+              .button { display: inline-block; background: #22c55e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+              .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+              .info-box { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #22c55e; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Ödeme Bildirimi Doğrulandı</h1>
+                <p>Teşekkür Ederiz!</p>
+              </div>
+              <div class="content">
+                <h2>Merhaba ${safeData.customerName || 'Değerli Müşterimiz'},</h2>
+                <p>Ödeme bildiriminiz doğrulandı. Siparişiniz hazırlanmaya başlayacaktır.</p>
+                
+                <div class="info-box">
+                  <strong>Sipariş Bilgileri:</strong><br>
+                  Sipariş No: #${safeData.orderId?.slice(0, 8) || ''}<br>
+                  Tutar: ₺${safeData.amount || '0'}<br>
+                  Doğrulama Tarihi: ${safeData.verifiedAt || 'Bugün'}
+                </div>
+                
+                <p>Siparişinizin durumunu takip edebilirsiniz.</p>
+                
+                <center>
+                  <a href="${safeData.siteUrl || 'https://haldekimvp.lovable.app'}/hesabim/siparisler" class="button">Siparişimi Görüntüle</a>
                 </center>
               </div>
               <div class="footer">

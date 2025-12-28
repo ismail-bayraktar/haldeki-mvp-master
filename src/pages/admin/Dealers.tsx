@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { useDealers, CreateDealerInviteData, Dealer } from "@/hooks/useDealers";
+import { useDealers, CreateDealerInviteData, CreateDirectDealerData, Dealer } from "@/hooks/useDealers";
 import { useRegions } from "@/hooks/useRegions";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PasswordGenerator } from "@/components/admin/PasswordGenerator";
+import { PasswordDisplayModal } from "@/components/admin/PasswordDisplayModal";
+import { generatePassword, getTemporaryPassword } from "@/utils/passwordUtils";
+import { Eye, EyeOff, Key } from "lucide-react";
 
 const AdminDealers = () => {
   const { 
@@ -23,7 +27,8 @@ const AdminDealers = () => {
     pendingApplications,
     isLoading, 
     fetchAll, 
-    createInvite, 
+    createInvite,
+    createDirectDealer,
     toggleDealerActive, 
     cancelInvite, 
     updateDealer,
@@ -45,6 +50,29 @@ const AdminDealers = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
   
+  // Registration mode: 'invite' or 'direct'
+  const [registrationMode, setRegistrationMode] = useState<'invite' | 'direct'>('invite');
+  
+  // Direct registration form
+  const [directForm, setDirectForm] = useState<CreateDirectDealerData>({
+    email: "",
+    password: "",
+    name: "",
+    contact_name: "",
+    contact_phone: "",
+    contact_email: "",
+    region_ids: [],
+    tax_number: "",
+    send_email: false,
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Password display modal
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [tempPassword, setTempPassword] = useState("");
+  const [tempEmail, setTempEmail] = useState("");
+  const [tempUserName, setTempUserName] = useState("");
+  
   // Region edit state
   const [editingDealer, setEditingDealer] = useState<Dealer | null>(null);
   const [editRegionIds, setEditRegionIds] = useState<string[]>([]);
@@ -57,6 +85,11 @@ const AdminDealers = () => {
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   const filteredDealers = dealers.filter(dealer =>
     dealer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,7 +117,57 @@ const AdminDealers = () => {
         contact_email: "",
         region_ids: [],
       });
+      setRegistrationMode('invite');
     }
+  };
+
+  const handleCreateDirect = async () => {
+    if (!directForm.email || !directForm.name) {
+      toast.error('Email ve isim zorunludur');
+      return;
+    }
+
+    if (!directForm.password || directForm.password.length < 6) {
+      toast.error('Şifre en az 6 karakter olmalıdır');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const result = await createDirectDealer(directForm);
+    setIsSubmitting(false);
+
+    if (result.success) {
+      // Close the invite dialog first
+      setIsInviteDialogOpen(false);
+      
+      // Show password modal
+      setTempPassword(result.password || directForm.password);
+      setTempEmail(directForm.email);
+      setTempUserName(directForm.name);
+      setPasswordModalOpen(true);
+      
+      // Reset form
+      setDirectForm({
+        email: "",
+        password: "",
+        name: "",
+        contact_name: "",
+        contact_phone: "",
+        contact_email: "",
+        region_ids: [],
+        tax_number: "",
+        send_email: false,
+      });
+      setShowPassword(false);
+      setRegistrationMode('invite');
+      
+      // Fetch updated list (already called in createDirectDealer, but ensure it's done)
+      await fetchAll();
+    }
+  };
+
+  const handlePasswordGenerated = (password: string) => {
+    setDirectForm(prev => ({ ...prev, password }));
   };
 
   const handleCopyInviteInfo = (invite: typeof pendingInvites[0]) => {
@@ -210,14 +293,33 @@ const AdminDealers = () => {
                 Bayi Davet Et
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent 
+              className="max-w-md max-h-[90vh] overflow-y-auto"
+              onKeyDown={(e) => {
+                // Prevent form submission on Enter key
+                if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+                  e.preventDefault();
+                }
+              }}
+            >
               <DialogHeader>
-                <DialogTitle>Yeni Bayi Daveti</DialogTitle>
+                <DialogTitle>Yeni Bayi Ekle</DialogTitle>
                 <DialogDescription>
-                  Bayi bilgilerini girin. Davet oluşturulduktan sonra kayıt bilgilerini kopyalayabilirsiniz.
+                  Davet göndererek veya direkt kayıt yaparak yeni bayi ekleyebilirsiniz.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
+              <Tabs 
+                value={registrationMode} 
+                onValueChange={(v) => {
+                  setRegistrationMode(v as 'invite' | 'direct');
+                }} 
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="invite">Davet Gönder</TabsTrigger>
+                  <TabsTrigger value="direct">Direkt Kayıt</TabsTrigger>
+                </TabsList>
+                <TabsContent value="invite" className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email *</Label>
                   <Input
@@ -272,17 +374,156 @@ const AdminDealers = () => {
                     ))}
                   </div>
                 </div>
-              </div>
+                </TabsContent>
+                <TabsContent value="direct" className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="direct-email">Email *</Label>
+                    <Input
+                      id="direct-email"
+                      type="email"
+                      placeholder="bayi@example.com"
+                      value={directForm.email}
+                      onChange={(e) => setDirectForm(prev => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="direct-name">Firma Adı *</Label>
+                    <Input
+                      id="direct-name"
+                      placeholder="Bayi Firma Adı"
+                      value={directForm.name}
+                      onChange={(e) => setDirectForm(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="direct-password">Geçici Şifre *</Label>
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Input
+                          id="direct-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="En az 6 karakter"
+                          value={directForm.password}
+                          onChange={(e) => setDirectForm(prev => ({ ...prev, password: e.target.value }))}
+                          minLength={6}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <PasswordGenerator onPasswordGenerated={handlePasswordGenerated} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="direct-contact_name">Yetkili Adı</Label>
+                    <Input
+                      id="direct-contact_name"
+                      placeholder="Ad Soyad"
+                      value={directForm.contact_name}
+                      onChange={(e) => setDirectForm(prev => ({ ...prev, contact_name: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="direct-contact_phone">Telefon</Label>
+                    <Input
+                      id="direct-contact_phone"
+                      placeholder="0555 555 55 55"
+                      value={directForm.contact_phone}
+                      onChange={(e) => setDirectForm(prev => ({ ...prev, contact_phone: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="direct-tax_number">Vergi Numarası</Label>
+                    <Input
+                      id="direct-tax_number"
+                      placeholder="Vergi Numarası"
+                      value={directForm.tax_number}
+                      onChange={(e) => setDirectForm(prev => ({ ...prev, tax_number: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Servis Bölgeleri</Label>
+                    <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                      {regions.map(region => (
+                        <div key={region.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`direct-region-${region.id}`}
+                            checked={directForm.region_ids?.includes(region.id)}
+                            onCheckedChange={() => {
+                              setDirectForm(prev => ({
+                                ...prev,
+                                region_ids: prev.region_ids?.includes(region.id)
+                                  ? prev.region_ids.filter(id => id !== region.id)
+                                  : [...(prev.region_ids || []), region.id]
+                              }));
+                            }}
+                          />
+                          <label htmlFor={`direct-region-${region.id}`} className="text-sm cursor-pointer">
+                            {region.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="send-email"
+                      checked={directForm.send_email}
+                      onCheckedChange={(checked) => setDirectForm(prev => ({ ...prev, send_email: checked === true }))}
+                    />
+                    <label htmlFor="send-email" className="text-sm cursor-pointer">
+                      Email gönder (geçici şifre ve giriş bilgileri)
+                    </label>
+                  </div>
+                </TabsContent>
+              </Tabs>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
+                <Button variant="outline" onClick={() => {
+                  setIsInviteDialogOpen(false);
+                  setRegistrationMode('invite');
+                }}>
                   İptal
                 </Button>
-                <Button onClick={handleCreateInvite} disabled={isSubmitting}>
+                <Button 
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (registrationMode === 'invite') {
+                      handleCreateInvite();
+                    } else {
+                      handleCreateDirect();
+                    }
+                  }} 
+                  disabled={isSubmitting}
+                >
                   {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Davet Oluştur
+                  {registrationMode === 'invite' ? 'Davet Oluştur' : 'Kayıt Oluştur'}
                 </Button>
               </DialogFooter>
             </DialogContent>
+            <PasswordDisplayModal
+              open={passwordModalOpen}
+              onOpenChange={(open) => {
+                setPasswordModalOpen(open);
+                if (!open) {
+                  // Refresh list when modal closes
+                  fetchAll();
+                }
+              }}
+              password={tempPassword}
+              email={tempEmail}
+              userName={tempUserName}
+            />
           </Dialog>
         </div>
       </div>
@@ -415,7 +656,12 @@ const AdminDealers = () => {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => cancelInvite(invite.id)}
+                      onClick={async () => {
+                        const success = await cancelInvite(invite.id);
+                        if (success) {
+                          await fetchAll();
+                        }
+                      }}
                     >
                       İptal
                     </Button>
@@ -510,6 +756,24 @@ const AdminDealers = () => {
                             <Edit className="h-4 w-4 mr-1" />
                             Bölge
                           </Button>
+                          {dealer.user_id && getTemporaryPassword(dealer.user_id) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const password = getTemporaryPassword(dealer.user_id!);
+                                if (password) {
+                                  setTempPassword(password);
+                                  setTempEmail(dealer.contact_email || dealer.email || '');
+                                  setTempUserName(dealer.name);
+                                  setPasswordModalOpen(true);
+                                }
+                              }}
+                            >
+                              <Key className="h-4 w-4 mr-1" />
+                              Şifre Gör
+                            </Button>
+                          )}
                           <Button
                             variant={dealer.is_active ? "destructive" : "outline"}
                             size="sm"

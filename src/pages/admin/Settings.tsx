@@ -1,18 +1,87 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Mail, Send, CheckCircle, XCircle, Loader2, Info } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Settings, Mail, Send, CheckCircle, XCircle, Loader2, Info, CreditCard, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  useBankAccount, 
+  usePaymentSettings, 
+  useUpdateBankAccount, 
+  useUpdatePaymentSettings,
+  type BankAccount,
+  type PaymentSettings 
+} from "@/hooks/useSystemSettings";
 
 const AdminSettings = () => {
   const [testEmail, setTestEmail] = useState("");
   const [isTestingSend, setIsTestingSend] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string; details?: string } | null>(null);
+  
+  // Bank account settings
+  const { data: bankAccount, isLoading: isLoadingBank } = useBankAccount();
+  const { data: paymentSettings, isLoading: isLoadingPayment } = usePaymentSettings();
+  const updateBankAccount = useUpdateBankAccount();
+  const updatePaymentSettings = useUpdatePaymentSettings();
+  
+  const [bankForm, setBankForm] = useState<BankAccount>({
+    bank_name: "",
+    account_holder: "",
+    iban: "",
+    branch: "",
+  });
+  
+  const [paymentForm, setPaymentForm] = useState<PaymentSettings>({
+    eft_enabled: true,
+    cash_on_delivery_enabled: true,
+  });
+  
+  // Load bank account data
+  useEffect(() => {
+    if (bankAccount) {
+      setBankForm({
+        bank_name: bankAccount.bank_name || "",
+        account_holder: bankAccount.account_holder || "",
+        iban: bankAccount.iban || "",
+        branch: bankAccount.branch || "",
+      });
+    }
+  }, [bankAccount]);
+  
+  // Load payment settings
+  useEffect(() => {
+    if (paymentSettings) {
+      setPaymentForm({
+        eft_enabled: paymentSettings.eft_enabled ?? true,
+        cash_on_delivery_enabled: paymentSettings.cash_on_delivery_enabled ?? true,
+      });
+    }
+  }, [paymentSettings]);
+  
+  const handleSaveBankAccount = () => {
+    if (!bankForm.bank_name || !bankForm.account_holder || !bankForm.iban) {
+      toast.error("Lütfen tüm zorunlu alanları doldurun");
+      return;
+    }
+    
+    // IBAN format validasyonu (basit)
+    const ibanRegex = /^TR\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{2}$/i;
+    if (!ibanRegex.test(bankForm.iban.replace(/\s/g, ""))) {
+      toast.error("Geçerli bir IBAN formatı girin (TR ile başlamalı, 26 karakter)");
+      return;
+    }
+    
+    updateBankAccount.mutate(bankForm);
+  };
+  
+  const handleSavePaymentSettings = () => {
+    updatePaymentSettings.mutate(paymentForm);
+  };
 
   const handleTestEmail = async () => {
     if (!testEmail) {
@@ -83,6 +152,10 @@ const AdminSettings = () => {
           <TabsTrigger value="email" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
             Email Ayarları
+          </TabsTrigger>
+          <TabsTrigger value="payment" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Ödeme Ayarları
           </TabsTrigger>
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -259,6 +332,167 @@ const AdminSettings = () => {
                   <span>Edge function loglarını kontrol edin (Supabase Dashboard → Edge Functions → Logs)</span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payment" className="space-y-4 mt-4">
+          {/* Banka Hesap Bilgileri */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Banka Hesap Bilgileri
+              </CardTitle>
+              <CardDescription>
+                EFT/Havale ödemeleri için banka hesap bilgileri
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isLoadingBank ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="bank_name">Banka Adı *</Label>
+                      <Input
+                        id="bank_name"
+                        value={bankForm.bank_name}
+                        onChange={(e) => setBankForm({ ...bankForm, bank_name: e.target.value })}
+                        placeholder="Örn: Ziraat Bankası"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="account_holder">Hesap Sahibi *</Label>
+                      <Input
+                        id="account_holder"
+                        value={bankForm.account_holder}
+                        onChange={(e) => setBankForm({ ...bankForm, account_holder: e.target.value })}
+                        placeholder="Örn: Haldeki Ticaret Ltd. Şti."
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="iban">IBAN *</Label>
+                      <Input
+                        id="iban"
+                        value={bankForm.iban}
+                        onChange={(e) => setBankForm({ ...bankForm, iban: e.target.value.toUpperCase() })}
+                        placeholder="TR00 0000 0000 0000 0000 0000 00"
+                        maxLength={34}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        IBAN formatı: TR ile başlamalı, 26 karakter (boşluksuz)
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="branch">Şube (Opsiyonel)</Label>
+                      <Input
+                        id="branch"
+                        value={bankForm.branch || ""}
+                        onChange={(e) => setBankForm({ ...bankForm, branch: e.target.value })}
+                        placeholder="Örn: Menemen Şubesi"
+                      />
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleSaveBankAccount}
+                    disabled={updateBankAccount.isPending}
+                    className="w-full md:w-auto"
+                  >
+                    {updateBankAccount.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Kaydediliyor...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Kaydet
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Ödeme Yöntemleri */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Ödeme Yöntemleri
+              </CardTitle>
+              <CardDescription>
+                Aktif/pasif ödeme yöntemlerini yönetin
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isLoadingPayment ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="cash_on_delivery" className="text-base font-medium">
+                        Kapıda Ödeme
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Müşteriler siparişlerini kapıda nakit veya kart ile ödeyebilir
+                      </p>
+                    </div>
+                    <Switch
+                      id="cash_on_delivery"
+                      checked={paymentForm.cash_on_delivery_enabled}
+                      onCheckedChange={(checked) => 
+                        setPaymentForm({ ...paymentForm, cash_on_delivery_enabled: checked })
+                      }
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="eft" className="text-base font-medium">
+                        EFT/Havale
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Müşteriler banka havalesi ile ödeme yapabilir
+                      </p>
+                    </div>
+                    <Switch
+                      id="eft"
+                      checked={paymentForm.eft_enabled}
+                      onCheckedChange={(checked) => 
+                        setPaymentForm({ ...paymentForm, eft_enabled: checked })
+                      }
+                    />
+                  </div>
+                  
+                  <Button 
+                    onClick={handleSavePaymentSettings}
+                    disabled={updatePaymentSettings.isPending}
+                    className="w-full md:w-auto"
+                  >
+                    {updatePaymentSettings.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Kaydediliyor...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Kaydet
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

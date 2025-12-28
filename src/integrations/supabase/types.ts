@@ -92,6 +92,8 @@ export type Database = {
           cancellation_reason: string | null
           confirmed_at: string | null
           confirmed_by: string | null
+          payment_method: string | null
+          payment_method_details: Json | null
         }
         Insert: {
           created_at?: string
@@ -116,6 +118,8 @@ export type Database = {
           cancellation_reason?: string | null
           confirmed_at?: string | null
           confirmed_by?: string | null
+          payment_method?: string | null
+          payment_method_details?: Json | null
         }
         Update: {
           created_at?: string
@@ -140,6 +144,8 @@ export type Database = {
           cancellation_reason?: string | null
           confirmed_at?: string | null
           confirmed_by?: string | null
+          payment_method?: string | null
+          payment_method_details?: Json | null
         }
         Relationships: [
           {
@@ -579,6 +585,111 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      system_settings: {
+        Row: {
+          id: string
+          key: string
+          value: Json
+          description: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          key: string
+          value: Json
+          description?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          key?: string
+          value?: Json
+          description?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_notifications: {
+        Row: {
+          id: string
+          order_id: string
+          user_id: string
+          bank_name: string
+          account_holder: string
+          amount: number
+          transaction_date: string
+          receipt_url: string | null
+          notes: string | null
+          status: string
+          verified_at: string | null
+          verified_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          user_id: string
+          bank_name: string
+          account_holder: string
+          amount: number
+          transaction_date: string
+          receipt_url?: string | null
+          notes?: string | null
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          user_id?: string
+          bank_name?: string
+          account_holder?: string
+          amount?: number
+          transaction_date?: string
+          receipt_url?: string | null
+          notes?: string | null
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_notifications_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, MapPin, Plus, Check, Clock, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Plus, Check, Clock, Calendar, Loader2, CreditCard, Building2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRegion } from "@/contexts/RegionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmailService } from "@/hooks/useEmailService";
+import { useBankAccount, usePaymentSettings } from "@/hooks/useSystemSettings";
 import { DeliverySlot, ProcessedDeliverySlot } from "@/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -33,7 +34,7 @@ const Checkout = () => {
   const { sendOrderConfirmation, sendOrderNotification } = useEmailService();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [step, setStep] = useState<"address" | "delivery" | "summary">("address");
+  const [step, setStep] = useState<"address" | "delivery" | "payment" | "summary">("address");
   const [addresses, setAddresses] = useState<Address[]>([
     {
       id: "1",
@@ -45,6 +46,12 @@ const Checkout = () => {
   ]);
   const [selectedAddress, setSelectedAddress] = useState<string>("1");
   const [selectedSlot, setSelectedSlot] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "eft" | null>(null);
+  const [cashOrCard, setCashOrCard] = useState<"cash" | "card" | null>(null);
+  
+  // Bank account ve payment settings
+  const { data: bankAccount } = useBankAccount();
+  const { data: paymentSettings } = usePaymentSettings();
   const [showNewAddress, setShowNewAddress] = useState(false);
   const [newAddress, setNewAddress] = useState({
     title: "",
@@ -141,6 +148,18 @@ const Checkout = () => {
         toast.error("Lütfen teslimat saati seçin");
         return;
       }
+      setStep("payment");
+    } else if (step === "payment") {
+      if (!paymentMethod) {
+        toast.error("Lütfen ödeme yöntemi seçin");
+        return;
+      }
+      if (paymentMethod === "cash" || paymentMethod === "card") {
+        if (!cashOrCard) {
+          toast.error("Lütfen nakit veya kart seçin");
+          return;
+        }
+      }
       setStep("summary");
     }
   };
@@ -169,11 +188,28 @@ const Checkout = () => {
 
       const deliveryNote = selectedSlotData ? `${selectedSlotData.date} - ${selectedSlotData.label}` : undefined;
 
+      // Ödeme yöntemi detayları
+      let paymentMethodValue: string;
+      let paymentMethodDetails: Record<string, unknown> | null = null;
+      
+      if (paymentMethod === "cash" || paymentMethod === "card") {
+        paymentMethodValue = paymentMethod; // "cash" veya "card"
+        paymentMethodDetails = { type: cashOrCard };
+      } else if (paymentMethod === "eft") {
+        paymentMethodValue = "eft";
+        paymentMethodDetails = null; // Bildirim formundan sonra doldurulacak
+      } else {
+        paymentMethodValue = "bank_transfer";
+        paymentMethodDetails = null;
+      }
+
       const { data: orderData, error } = await supabase.from('orders').insert([{
         user_id: user.id,
         region_id: selectedRegion.id,
         status: 'pending',
         total_amount: grandTotal,
+        payment_method: paymentMethodValue,
+        payment_method_details: paymentMethodDetails,
         shipping_address: {
           title: selectedAddressData?.title,
           fullAddress: selectedAddressData?.fullAddress,
@@ -243,7 +279,7 @@ const Checkout = () => {
 
       clearCart();
       toast.success("Siparişiniz başarıyla oluşturuldu!");
-      navigate("/siparis-tamamlandi");
+      navigate(`/siparis-tamamlandi?orderId=${orderId}${paymentMethod === "eft" ? "&payment=eft" : ""}`);
     } catch (error) {
       console.error('Order error:', error);
       toast.error("Bir hata oluştu");
@@ -300,17 +336,17 @@ const Checkout = () => {
             </Link>
             
             {/* Progress Steps */}
-            <div className="flex items-center gap-2 mt-4">
-              {["address", "delivery", "summary"].map((s, i) => (
+            <div className="flex items-center gap-2 mt-4 flex-wrap">
+              {["address", "delivery", "payment", "summary"].map((s, i) => (
                 <div key={s} className="flex items-center gap-2">
                   <div className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
                     step === s ? "bg-primary text-primary-foreground" :
-                    ["address", "delivery", "summary"].indexOf(step) > i 
+                    ["address", "delivery", "payment", "summary"].indexOf(step) > i 
                       ? "bg-primary/20 text-primary" 
                       : "bg-muted text-muted-foreground"
                   )}>
-                    {["address", "delivery", "summary"].indexOf(step) > i ? (
+                    {["address", "delivery", "payment", "summary"].indexOf(step) > i ? (
                       <Check className="h-4 w-4" />
                     ) : (
                       i + 1
@@ -320,9 +356,9 @@ const Checkout = () => {
                     "text-sm hidden sm:block",
                     step === s ? "font-medium text-foreground" : "text-muted-foreground"
                   )}>
-                    {s === "address" ? "Adres" : s === "delivery" ? "Teslimat" : "Özet"}
+                    {s === "address" ? "Adres" : s === "delivery" ? "Teslimat" : s === "payment" ? "Ödeme" : "Özet"}
                   </span>
-                  {i < 2 && <div className="w-8 h-0.5 bg-border" />}
+                  {i < 3 && <div className="w-8 h-0.5 bg-border" />}
                 </div>
               ))}
             </div>
@@ -460,6 +496,105 @@ const Checkout = () => {
                   </div>
                 )}
 
+                {/* Payment Step */}
+                {step === "payment" && (
+                  <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Ödeme Yöntemi</h2>
+                    
+                    {(!paymentSettings || paymentSettings.cash_on_delivery_enabled || paymentSettings.eft_enabled) && (
+                      <RadioGroup value={paymentMethod === "cash" || paymentMethod === "card" ? "cod" : paymentMethod || ""} onValueChange={(value) => {
+                        if (value === "cod") {
+                          // Kapıda ödeme seçildi, varsayılan olarak cash seç
+                          if (!paymentMethod || paymentMethod === "eft") {
+                            setPaymentMethod("cash");
+                            setCashOrCard("cash");
+                          }
+                        } else if (value === "eft") {
+                          setPaymentMethod("eft");
+                          setCashOrCard(null);
+                        }
+                      }}>
+                        {paymentSettings?.cash_on_delivery_enabled && (
+                          <Card className={cn(
+                            "p-4 cursor-pointer transition-colors",
+                            (paymentMethod === "cash" || paymentMethod === "card") ? "border-primary bg-primary/5" : ""
+                          )}>
+                            <label className="flex gap-3 cursor-pointer">
+                              <RadioGroupItem value="cod" className="mt-1" />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <CreditCard className="h-4 w-4 text-primary" />
+                                  <span className="font-bold">Kapıda Ödeme</span>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-3">
+                                  Siparişinizi teslim alırken nakit veya kart ile ödeyebilirsiniz
+                                </p>
+                                {(paymentMethod === "cash" || paymentMethod === "card") && (
+                                  <RadioGroup value={cashOrCard || "cash"} onValueChange={(value) => {
+                                    setCashOrCard(value as "cash" | "card");
+                                    setPaymentMethod(value as "cash" | "card");
+                                  }} className="ml-7 space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <RadioGroupItem value="cash" id="cash-option" />
+                                      <Label htmlFor="cash-option" className="cursor-pointer">Nakit</Label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <RadioGroupItem value="card" id="card-option" />
+                                      <Label htmlFor="card-option" className="cursor-pointer">Kart</Label>
+                                    </div>
+                                  </RadioGroup>
+                                )}
+                              </div>
+                            </label>
+                          </Card>
+                        )}
+                        
+                        {paymentSettings?.eft_enabled && bankAccount && (
+                          <Card className={cn(
+                            "p-4 cursor-pointer transition-colors",
+                            paymentMethod === "eft" ? "border-primary bg-primary/5" : ""
+                          )}>
+                            <label className="flex gap-3 cursor-pointer">
+                              <RadioGroupItem value="eft" className="mt-1" />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Building2 className="h-4 w-4 text-primary" />
+                                  <span className="font-bold">EFT/Havale</span>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-3">
+                                  Banka havalesi ile ödeme yapabilirsiniz
+                                </p>
+                                {paymentMethod === "eft" && (
+                                  <div className="ml-7 space-y-2 p-3 bg-muted rounded-lg">
+                                    <div className="space-y-1 text-sm">
+                                      <p><strong>Banka:</strong> {bankAccount.bank_name || "Belirtilmemiş"}</p>
+                                      <p><strong>Hesap Sahibi:</strong> {bankAccount.account_holder || "Belirtilmemiş"}</p>
+                                      <p><strong>IBAN:</strong> {bankAccount.iban || "Belirtilmemiş"}</p>
+                                      {bankAccount.branch && (
+                                        <p><strong>Şube:</strong> {bankAccount.branch}</p>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                      Siparişinizi oluşturduktan sonra ödeme bildirimi formunu doldurabilirsiniz
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          </Card>
+                        )}
+                      </RadioGroup>
+                    )}
+                    
+                    {paymentSettings && !paymentSettings.cash_on_delivery_enabled && !paymentSettings.eft_enabled && (
+                      <div className="p-4 border border-dashed rounded-lg text-center text-muted-foreground">
+                        <p>Şu anda aktif ödeme yöntemi bulunmamaktadır.</p>
+                        <p className="text-sm mt-2">Lütfen admin ile iletişime geçin.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Summary Step */}
                 {step === "summary" && (
                   <div className="space-y-6">
@@ -488,6 +623,38 @@ const Checkout = () => {
                           <p>{deliverySlots.find(s => s.id === selectedSlot)?.label}</p>
                         </div>
                       )}
+                    </Card>
+
+                    <Card className="p-4">
+                      <h3 className="font-bold mb-3">Ödeme Yöntemi</h3>
+                      <div className="text-sm text-muted-foreground">
+                        {paymentMethod === "cash" && (
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            <span className="font-medium text-foreground">Kapıda Ödeme - Nakit</span>
+                          </div>
+                        )}
+                        {paymentMethod === "card" && (
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            <span className="font-medium text-foreground">Kapıda Ödeme - Kart</span>
+                          </div>
+                        )}
+                        {paymentMethod === "eft" && (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4" />
+                              <span className="font-medium text-foreground">EFT/Havale</span>
+                            </div>
+                            {bankAccount && (
+                              <div className="ml-6 text-xs">
+                                <p>{bankAccount.bank_name}</p>
+                                <p>IBAN: {bankAccount.iban}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </Card>
 
                     <Card className="p-4">
@@ -572,7 +739,15 @@ const Checkout = () => {
                     <Button 
                       variant="outline"
                       className="w-full mt-2"
-                      onClick={() => setStep(step === "summary" ? "delivery" : "address")}
+                      onClick={() => {
+                        if (step === "summary") {
+                          setStep("payment");
+                        } else if (step === "payment") {
+                          setStep("delivery");
+                        } else if (step === "delivery") {
+                          setStep("address");
+                        }
+                      }}
                     >
                       Geri
                     </Button>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { CheckCircle, Package, Truck, Home, PartyPopper } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { CheckCircle, Package, Truck, Home, PartyPopper, Building2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Header, Footer, MobileNav } from "@/components/layout";
@@ -10,8 +10,11 @@ import Confetti from "@/components/ui/confetti";
 const OrderComplete = () => {
   const { clearCart } = useCart();
   const [showConfetti, setShowConfetti] = useState(true);
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get("orderId") || `HD${Date.now().toString().slice(-8)}`;
+  const paymentMethod = searchParams.get("payment");
+  const isEftPayment = paymentMethod === "eft";
   
-  const orderId = `HD${Date.now().toString().slice(-8)}`;
   const estimatedDelivery = new Date();
   estimatedDelivery.setDate(estimatedDelivery.getDate() + 1);
 
@@ -56,6 +59,27 @@ const OrderComplete = () => {
               </span>
             </div>
           </Card>
+
+          {/* EFT Payment Notification */}
+          {isEftPayment && (
+            <Card className="p-6 mb-8 border-primary/20 bg-primary/5">
+              <div className="flex items-start gap-3">
+                <Building2 className="h-5 w-5 text-primary mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-bold mb-2">EFT/Havale Ödemesi</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Ödeme yaptıktan sonra lütfen bildirim formunu doldurun. Bildiriminiz doğrulandıktan sonra siparişiniz hazırlanmaya başlayacaktır.
+                  </p>
+                  <Button asChild variant="default" className="w-full sm:w-auto">
+                    <Link to={`/odeme-bildirimi/${orderId}`}>
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Ödeme Bildirimi Yap
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* Order Timeline */}
           <Card className="p-6 mb-8">
