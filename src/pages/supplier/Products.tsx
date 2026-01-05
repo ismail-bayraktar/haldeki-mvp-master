@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Loader2, Package } from 'lucide-react';
+import { Plus, Loader2, Package, Upload } from 'lucide-react';
 import { SupplierMobileLayout, MobileCardContainer } from '@/components/supplier/SupplierMobileLayout';
 import { ProductCard } from '@/components/supplier/ProductCard';
 import { SearchBar } from '@/components/supplier/SearchBar';
 import { Button } from '@/components/ui/button';
+import { ProductImportModal } from '@/components/supplier/ProductImportModal';
+import { ProductExportButton } from '@/components/supplier/ProductExportButton';
 import { useSupplierProducts } from '@/hooks/useSupplierProducts';
 import { useDeleteProduct } from '@/hooks/useSupplierProducts';
 import { useProductSearch } from '@/hooks/useProductSearch';
@@ -27,6 +29,7 @@ export default function SupplierProducts() {
     open: false,
     product: null,
   });
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   const {
     searchQuery,
@@ -96,6 +99,20 @@ export default function SupplierProducts() {
           recentSearches={recentSearches}
           onRecentSearchClick={loadRecentSearch}
         />
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 mt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setImportModalOpen(true)}
+            className="flex-1 gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            İçe Aktar
+          </Button>
+          <ProductExportButton disabled={products.length === 0} className="flex-1" />
+        </div>
 
         {/* Active Filters Display */}
         {activeFilterCount > 0 && (
@@ -207,6 +224,12 @@ export default function SupplierProducts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Import Modal */}
+      <ProductImportModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+      />
     </SupplierMobileLayout>
   );
 }
