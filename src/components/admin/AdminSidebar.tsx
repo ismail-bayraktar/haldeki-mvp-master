@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingCart, Users, Settings, Package, MapPin, ChevronLeft, Store, Truck, FileText } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Users, Settings, Package, MapPin, ChevronLeft, Store, Truck, FileText, Building2 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -52,6 +52,11 @@ const menuItems = [
     title: "Tedarikçiler",
     url: "/admin/suppliers",
     icon: Truck,
+  },
+  {
+    title: "İşletmeler",
+    url: "/admin/businesses",
+    icon: Building2,
   },
   {
     title: "Teklifler",

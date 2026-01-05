@@ -4,3 +4,6 @@ export { default as ServiceAreaMap } from "./ServiceAreaMap";
 export { default as CustomerReviews } from "./CustomerReviews";
 export { default as OrderCounter } from "./OrderCounter";
 export { default as RegionWaitlist } from "./RegionWaitlist";
+export { default as HowItWorks } from "./HowItWorks";
+export { default as SeasonalHighlight } from "./SeasonalHighlight";
+export { default as NewsletterCTA } from "./NewsletterCTA";

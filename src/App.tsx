@@ -10,6 +10,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { CompareProvider } from "@/contexts/CompareContext";
 import RequireRegionModal from "@/components/region/RequireRegionModal";
+import { RoleSwitcher } from "@/components/dev/RoleSwitcher";
 import Index from "./pages/Index";
 import BugunHalde from "./pages/BugunHalde";
 import Products from "./pages/Products";
@@ -28,12 +29,13 @@ import AliagaLanding from "./pages/AliagaLanding";
 import Auth from "./pages/Auth";
 import BayiKayit from "./pages/BayiKayit";
 import TedarikciKayit from "./pages/TedarikciKayit";
+import BusinessRegistration from "./pages/BusinessRegistration";
 import Beklemede from "./pages/Beklemede";
 import NotFound from "./pages/NotFound";
 
 // Admin imports
 import { AdminLayout } from "@/components/admin";
-import { AdminDashboard, AdminOrders, AdminUsers, AdminProducts, AdminSettings } from "./pages/admin";
+import { AdminDashboard, AdminOrders, AdminUsers, AdminProducts, AdminSettings, AdminBusinesses } from "./pages/admin";
 import AdminRegionProducts from "./pages/admin/RegionProducts";
 import AdminDealers from "./pages/admin/Dealers";
 import AdminSuppliers from "./pages/admin/Suppliers";
@@ -43,6 +45,9 @@ import AdminSupplierOffers from "./pages/admin/SupplierOffers";
 import DealerDashboard from "./pages/dealer/DealerDashboard";
 import DealerCustomers from "./pages/dealer/DealerCustomers";
 import SupplierDashboard from "./pages/supplier/SupplierDashboard";
+import SupplierProducts from "./pages/supplier/Products";
+import SupplierProductForm from "./pages/supplier/ProductForm";
+import BusinessDashboard from "./pages/business/BusinessDashboard";
 import RequireRole from "@/components/auth/RequireRole";
 
 // Account imports
@@ -64,6 +69,8 @@ const App = () => (
                 <BrowserRouter>
                   <ScrollToTop />
                   <RequireRegionModal />
+                  {/* DEV-only: Role switcher for testing */}
+                  {import.meta.env.DEV && <RoleSwitcher />}
                   <Routes>
                     {/* Public routes */}
                     <Route path="/" element={<Index />} />
@@ -86,6 +93,7 @@ const App = () => (
                     <Route path="/giris" element={<Auth />} />
                     <Route path="/bayi-kayit" element={<BayiKayit />} />
                     <Route path="/tedarikci-kayit" element={<TedarikciKayit />} />
+                    <Route path="/isletme-kayit" element={<BusinessRegistration />} />
                     <Route path="/beklemede" element={<Beklemede />} />
                     
                     {/* Dealer Dashboard - Only for dealers */}
@@ -107,15 +115,49 @@ const App = () => (
                     />
                     
                     {/* Supplier Dashboard - Only for suppliers */}
-                    <Route 
-                      path="/tedarikci" 
+                    <Route
+                      path="/tedarikci"
                       element={
                         <RequireRole allowedRoles={['supplier']}>
                           <SupplierDashboard />
                         </RequireRole>
-                      } 
+                      }
                     />
-                    
+                    <Route
+                      path="/tedarikci/urunler"
+                      element={
+                        <RequireRole allowedRoles={['supplier']}>
+                          <SupplierProducts />
+                        </RequireRole>
+                      }
+                    />
+                    <Route
+                      path="/tedarikci/urunler/yeni"
+                      element={
+                        <RequireRole allowedRoles={['supplier']}>
+                          <SupplierProductForm />
+                        </RequireRole>
+                      }
+                    />
+                    <Route
+                      path="/tedarikci/urunler/:id/duzenle"
+                      element={
+                        <RequireRole allowedRoles={['supplier']}>
+                          <SupplierProductForm />
+                        </RequireRole>
+                      }
+                    />
+
+                    {/* Business Dashboard - Only for business users */}
+                    <Route
+                      path="/isletme"
+                      element={
+                        <RequireRole allowedRoles={['business']}>
+                          <BusinessDashboard />
+                        </RequireRole>
+                      }
+                    />
+
                     {/* Redirect old backend route to new admin */}
                     <Route path="/backend" element={<Navigate to="/admin" replace />} />
                     
@@ -128,6 +170,7 @@ const App = () => (
                       <Route path="region-products" element={<AdminRegionProducts />} />
                       <Route path="dealers" element={<AdminDealers />} />
                       <Route path="suppliers" element={<AdminSuppliers />} />
+                      <Route path="businesses" element={<AdminBusinesses />} />
                       <Route path="supplier-offers" element={<AdminSupplierOffers />} />
                       <Route path="settings" element={<AdminSettings />} />
                     </Route>

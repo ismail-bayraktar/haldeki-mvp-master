@@ -25,6 +25,7 @@ import { Loader2, Package, ChevronLeft, ShoppingBag, Clock, CheckCircle, XCircle
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePaymentNotificationByOrder } from '@/hooks/usePaymentNotifications';
+import { RepeatOrderButton } from '@/components/business/RepeatOrderButton';
 import { toast } from 'sonner';
 
 interface OrderItem {
@@ -375,13 +376,24 @@ const AccountOrders = () => {
                           )}
 
                           {/* Detay Butonu */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedOrder(order)}
-                          >
-                            Sipariş Takibi
-                          </Button>
+                          <div className="flex gap-2">
+                            {/* Repeat Order Button - Only for delivered orders */}
+                            {order.status === 'delivered' && (
+                              <RepeatOrderButton
+                                orderId={order.id}
+                                orderItems={order.items}
+                                orderDate={order.created_at}
+                                variant="customer"
+                              />
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedOrder(order)}
+                            >
+                              Sipariş Takibi
+                            </Button>
+                          </div>
                         </div>
                       </AccordionContent>
                     </AccordionItem>

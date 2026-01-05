@@ -4,22 +4,24 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Loader2, 
-  Truck, 
-  Phone, 
-  Mail, 
-  AlertCircle, 
-  Package, 
-  Trash2, 
-  Home, 
-  LogOut, 
-  CheckCircle, 
+import {
+  Loader2,
+  Truck,
+  Phone,
+  Mail,
+  AlertCircle,
+  Package,
+  Trash2,
+  Home,
+  LogOut,
+  CheckCircle,
   XCircle,
   ClipboardList,
   Calendar,
   TrendingUp,
   ShoppingCart,
+  Plus,
+  Boxes,
 } from "lucide-react";
 import { useSupplierProfile } from "@/hooks/useSupplierProfile";
 import { useSupplierOffers } from "@/hooks/useSupplierOffers";
@@ -203,6 +205,41 @@ const SupplierDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Yeni: Ürün Yönetimi - Phase 9 */}
+            <Card className="border-2 border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Boxes className="h-5 w-5" />
+                    Ürün Yönetimi
+                  </span>
+                  <Badge variant="default" className="bg-primary">Yeni!</Badge>
+                </CardTitle>
+                <CardDescription>
+                  Mobil uyumlu ürün yönetim paneli ile ürünlerinizi ekleyin, düzenleyin ve fotoğraf yükleyin
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button asChild className="flex-1">
+                    <Link to="/tedarikci/urunler">
+                      <Package className="h-4 w-4 mr-2" />
+                      Ürünlerimi Gör
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="flex-1">
+                    <Link to="/tedarikci/urunler/yeni">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Yeni Ürün Ekle
+                    </Link>
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  ✅ Doğrudan ürün ekleme ve düzenleme • ✅ Kamera ile fotoğraf çekme • ✅ Fiyat güncelleme
+                </p>
+              </CardContent>
+            </Card>
 
             <div className="grid gap-6 md:grid-cols-2">
               {/* Tedarikçi Bilgileri */}

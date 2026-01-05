@@ -43,6 +43,7 @@ type AvailabilityStatus = "plenty" | "limited" | "last";
 interface EditingProduct {
   id: string;
   price: number;
+  business_price: number | null;
   previous_price: number | null;
   stock_quantity: number;
   availability: AvailabilityStatus;
@@ -84,20 +85,20 @@ export default function RegionProducts() {
   const bulkAddMutation = useBulkAddMissingProducts();
 
   // Filter products by search
-  const filteredProducts = regionProducts?.filter((rp: any) =>
-    rp.products?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProducts = regionProducts?.filter((rp) =>
+    (rp as any).products?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddProduct = () => {
     if (!addingProductId || !selectedRegionId) return;
 
-    const product = availableProducts?.find((p: any) => p.id === addingProductId);
+    const product = availableProducts?.find((p) => p.id === addingProductId);
     if (!product) return;
 
     createMutation.mutate({
       region_id: selectedRegionId,
       product_id: addingProductId,
-      price: product.base_price || 0,
+      price: (product as any).base_price || 0,
       stock_quantity: 100,
       availability: "plenty",
       is_active: true,
@@ -114,6 +115,7 @@ export default function RegionProducts() {
       id: editingProduct.id,
       regionId: selectedRegionId,
       price: editingProduct.price,
+      business_price: editingProduct.business_price,
       previous_price: editingProduct.previous_price,
       stock_quantity: editingProduct.stock_quantity,
       availability: editingProduct.availability,
@@ -242,6 +244,7 @@ export default function RegionProducts() {
               <TableRow>
                 <TableHead>Ürün</TableHead>
                 <TableHead>Fiyat</TableHead>
+                <TableHead>İşletme Fiyatı</TableHead>
                 <TableHead>Stok</TableHead>
                 <TableHead>Durum</TableHead>
                 <TableHead>Aktif</TableHead>
@@ -278,6 +281,11 @@ export default function RegionProducts() {
                           {rp.previous_price.toFixed(2)}₺
                         </p>
                       )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium text-primary">
+                      {rp.business_price ? `${rp.business_price.toFixed(2)}₺` : "-"}
                     </div>
                   </TableCell>
                   <TableCell>{rp.stock_quantity}</TableCell>
@@ -318,6 +326,7 @@ export default function RegionProducts() {
                           setEditingProduct({
                             id: rp.id,
                             price: rp.price,
+                            business_price: rp.business_price,
                             previous_price: rp.previous_price,
                             stock_quantity: rp.stock_quantity,
                             availability: rp.availability,
@@ -425,6 +434,24 @@ export default function RegionProducts() {
                     placeholder="Opsiyonel"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>İşletme Fiyatı (₺)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={editingProduct.business_price || ""}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      business_price: e.target.value
+                        ? parseFloat(e.target.value)
+                        : null,
+                    })
+                  }
+                  placeholder="İşletmelere özel fiyat (opsiyonel)"
+                />
               </div>
 
               <div className="space-y-2">

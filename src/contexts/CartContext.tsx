@@ -28,8 +28,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated, openAuthDrawer } = useAuth();
   const { selectedRegion, openRegionModal } = useRegion();
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage on mount or when auth/region becomes available
   useEffect(() => {
+    if (isHydrated) return; // Prevent multiple hydrations
+
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
       if (stored) {
@@ -37,14 +39,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         // Only restore cart if user is authenticated and region is selected
         if (isAuthenticated && selectedRegion) {
           setItems(parsed);
+          setIsHydrated(true); // Mark as hydrated only after successful restoration
         }
+      } else {
+        setIsHydrated(true); // No cart to restore, mark as hydrated
       }
     } catch (error) {
       console.error('Error loading cart from localStorage:', error);
       localStorage.removeItem(CART_STORAGE_KEY);
+      setIsHydrated(true);
     }
-    setIsHydrated(true);
-  }, []); // Only run on mount
+  }, [isAuthenticated, selectedRegion, isHydrated]);
 
   // Save cart to localStorage whenever items change (but only after hydration)
   useEffect(() => {

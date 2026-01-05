@@ -4,14 +4,26 @@ import { ArrowRight, Truck, Shield, Clock, Leaf, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header, Footer, MobileNav } from "@/components/layout";
 import { ProductCarousel, CategoryCard } from "@/components/product";
-import { HeroSection, TodaysDealsHighlight, ServiceAreaMap, CustomerReviews, OrderCounter } from "@/components/home";
+import {
+  HeroSection,
+  TodaysDealsHighlight,
+  ServiceAreaMap,
+  CustomerReviews,
+  OrderCounter,
+  HowItWorks,
+  SeasonalHighlight,
+  NewsletterCTA,
+} from "@/components/home";
 import { LocalBusinessSchema, DeliveryAreaSchema, PageMeta } from "@/components/seo";
 import { categories } from "@/data/categories";
 import { useActiveProducts, DbProduct } from "@/hooks/useProducts";
+import { useRegionProducts } from "@/hooks/useRegionProducts";
+import { useRegion } from "@/contexts/RegionContext";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/ui/pull-to-refresh";
 import { toast } from "@/hooks/use-toast";
-import { Product } from "@/types";
+import { Product, ProductWithRegionInfo } from "@/types";
+import { mergeProductsWithRegion } from "@/lib/productUtils";
 
 // Helper to convert DB product to frontend Product type
 const convertDbProduct = (dbProduct: DbProduct): Product => ({
@@ -35,7 +47,9 @@ const convertDbProduct = (dbProduct: DbProduct): Product => ({
 
 const Index = () => {
   const [refreshKey, setRefreshKey] = useState(0);
+  const { selectedRegion } = useRegion();
   const { data: dbProducts, refetch } = useActiveProducts();
+  const { data: regionProducts } = useRegionProducts(selectedRegion?.id ?? null);
 
   // Convert DB products to frontend type
   const products = useMemo(() => {
@@ -43,9 +57,19 @@ const Index = () => {
     return dbProducts.map(convertDbProduct);
   }, [dbProducts]);
 
+  // Merge products with region info
+  const productsWithRegion: ProductWithRegionInfo[] = useMemo(() => {
+    if (!products.length) return [];
+    return mergeProductsWithRegion(products, regionProducts ?? []);
+  }, [products, regionProducts]);
+
+  // Filter for premium products - region pricing is optional
+  // If region has custom pricing, use it; otherwise use base_price
   const featuredProducts = useMemo(() => {
-    return products.filter(p => p.quality === "premium").slice(0, 8);
-  }, [products]);
+    return productsWithRegion
+      .filter(p => p.quality === "premium")
+      .slice(0, 8);
+  }, [productsWithRegion]);
 
   const handleRefresh = useCallback(async () => {
     await refetch();
@@ -122,19 +146,19 @@ const Index = () => {
 
         <TodaysDealsHighlight />
 
-        {/* Premium Products */}
+        {/* Özenle Seçilmişler - Premium Products */}
         <section className="py-12 md:py-16 bg-secondary/30">
           <div className="container">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-amber-100">
-                  <Award className="h-6 w-6 text-amber-600" />
+                <div className="p-2 rounded-full bg-primary/10">
+                  <Leaf className="h-6 w-6 text-primary" />
                 </div>
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                    Premium Ürünler
+                    Özenle Seçilmişler
                   </h2>
-                  <p className="text-muted-foreground mt-1">En kaliteli seçimler</p>
+                  <p className="text-muted-foreground mt-1">Sizin için en taze ve kaliteli ürünler</p>
                 </div>
               </div>
               <Button variant="outline" className="hidden sm:flex touch-manipulation" asChild>
@@ -144,9 +168,9 @@ const Index = () => {
                 </Link>
               </Button>
             </div>
-            
+
             <ProductCarousel products={featuredProducts} />
-            
+
             <div className="mt-4 sm:hidden">
               <Button variant="outline" className="w-full touch-manipulation" asChild>
                 <Link to="/urunler">
@@ -157,6 +181,10 @@ const Index = () => {
             </div>
           </div>
         </section>
+
+        {/* New Sections - Added after Premium Products */}
+        <HowItWorks />
+        <SeasonalHighlight />
 
         {/* Categories Section */}
         <section className="py-12 md:py-16">
@@ -180,6 +208,9 @@ const Index = () => {
 
         {/* Customer Reviews */}
         <CustomerReviews />
+
+        {/* Newsletter CTA - Before Footer */}
+        <NewsletterCTA />
       </main>
 
       <Footer />

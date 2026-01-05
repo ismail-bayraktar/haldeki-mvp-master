@@ -43,8 +43,9 @@ export const useAdminOffers = () => {
         status: offer.status as 'pending' | 'approved' | 'rejected'
       }));
       setOffers(typedOffers);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -91,8 +92,9 @@ export const useAdminOffers = () => {
       toast.success(status === 'approved' ? 'Teklif onaylandı' : 'Teklif reddedildi');
       await fetchOffers();
       return true;
-    } catch (err: any) {
-      toast.error(`İşlem başarısız: ${err.message}`);
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(`İşlem başarısız: ${error.message}`);
       return false;
     }
   };

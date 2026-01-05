@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -36,7 +36,7 @@ export const useSupplierOffers = (supplierId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchOffers = async () => {
+  const fetchOffers = useCallback(async () => {
     if (!supplierId) {
       setIsLoading(false);
       return;
@@ -60,12 +60,13 @@ export const useSupplierOffers = (supplierId?: string) => {
         status: offer.status as 'pending' | 'approved' | 'rejected'
       }));
       setOffers(typedOffers);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supplierId]);
 
   const createOffer = async (data: CreateOfferData) => {
     try {
@@ -78,8 +79,9 @@ export const useSupplierOffers = (supplierId?: string) => {
       toast.success('Teklif başarıyla oluşturuldu');
       await fetchOffers();
       return true;
-    } catch (err: any) {
-      toast.error(`Teklif oluşturulamadı: ${err.message}`);
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(`Teklif oluşturulamadı: ${error.message}`);
       return false;
     }
   };
@@ -96,15 +98,16 @@ export const useSupplierOffers = (supplierId?: string) => {
       toast.success('Teklif silindi');
       await fetchOffers();
       return true;
-    } catch (err: any) {
-      toast.error(`Teklif silinemedi: ${err.message}`);
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(`Teklif silinemedi: ${error.message}`);
       return false;
     }
   };
 
   useEffect(() => {
     fetchOffers();
-  }, [supplierId]);
+  }, [fetchOffers]);
 
   return {
     offers,

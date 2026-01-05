@@ -37,6 +37,7 @@ const productSchema = z.object({
   previous_price: z.coerce.number().nullable().optional(),
   images: z.string().min(1, "En az bir resim URL'i gerekli"),
   description: z.string().optional(),
+  variants: z.string().optional(),
   is_active: z.boolean(),
 });
 
@@ -66,11 +67,23 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
       previous_price: product?.previous_price ?? null,
       images: product?.images?.join(", ") ?? "",
       description: product?.description ?? "",
+      variants: product?.variants ? JSON.stringify(product.variants, null, 2) : "",
       is_active: product?.is_active ?? true,
     },
   });
 
   const handleSubmit = (values: ProductFormValues) => {
+    let parsedVariants = null;
+    if (values.variants && values.variants.trim()) {
+      try {
+        parsedVariants = JSON.parse(values.variants);
+      } catch (e) {
+        console.error("Invalid JSON for variants:", e);
+        // Return early to let zod handle validation
+        return;
+      }
+    }
+
     const productData: ProductInsert = {
       name: values.name,
       slug: values.slug,
@@ -87,7 +100,7 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
       description: values.description || null,
       arrival_date: new Date().toISOString().split("T")[0],
       is_active: values.is_active,
-      variants: product?.variants ?? null,
+      variants: parsedVariants,
     };
 
     onSubmit(productData);
@@ -330,6 +343,28 @@ export function ProductForm({ product, onSubmit, onCancel, isLoading }: ProductF
                 <Textarea {...field} placeholder="Ürün açıklaması..." />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="variants"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Varyasyonlar (JSON - Opsiyonel)</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder='[{"id":"500g","label":"500g","quantity":0.5,"unit":"kg","priceMultiplier":1,"isDefault":true}]'
+                  className="font-mono text-xs"
+                  rows={6}
+                />
+              </FormControl>
+              <FormMessage />
+              <p className="text-xs text-muted-foreground">
+                Ürün varyasyonları için JSON formatında giriş. Örnek: {`[{"id":"500g","label":"500g","quantity":0.5,"unit":"kg","priceMultiplier":1}]`}
+              </p>
             </FormItem>
           )}
         />

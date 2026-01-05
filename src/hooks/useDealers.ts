@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useEmailService } from "./useEmailService";
@@ -67,29 +68,28 @@ export interface UpdateDealerData {
 }
 
 export const useDealers = () => {
-  const [dealers, setDealers] = useState<Dealer[]>([]);
-  const [pendingInvites, setPendingInvites] = useState<PendingDealerInvite[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const { sendDealerInvite, sendApplicationApproved, sendApplicationRejected } = useEmailService();
 
-  const fetchDealers = useCallback(async () => {
-    try {
+  // Fetch all dealers with React Query
+  const { data: dealers = [], isLoading: dealersLoading } = useQuery<Dealer[]>({
+    queryKey: ['admin-dealers'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('dealers')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDealers(data || []);
-    } catch (error) {
-      console.error('Error fetching dealers:', error);
-      toast.error('Bayiler yüklenirken hata oluştu');
-    }
-  }, []);
+      return data || [];
+    },
+  });
 
-  const fetchPendingInvites = useCallback(async () => {
-    try {
-      // 1. pending_invites'ları al - used_at IS NULL kontrolü zaten query'de var
+  // Fetch pending invites with React Query
+  const { data: pendingInvites = [], isLoading: invitesLoading } = useQuery<PendingDealerInvite[]>({
+    queryKey: ['admin-pending-dealer-invites'],
+    queryFn: async () => {
+      // 1. Get pending invites
       const { data: invitesData, error: invitesError } = await supabase
         .from('pending_invites')
         .select('*')
@@ -99,51 +99,46 @@ export const useDealers = () => {
         .order('created_at', { ascending: false });
 
       if (invitesError) throw invitesError;
-      if (!invitesData || invitesData.length === 0) {
-        setPendingInvites([]);
-        return;
-      }
+      if (!invitesData || invitesData.length === 0) return [];
 
-      // 2. Kayıtlı dealer'ları al (user_id ile)
+      // 2. Get registered dealers for filtering
       const { data: dealersData, error: dealersError } = await supabase
         .from('dealers')
         .select('user_id, contact_email');
-      
+
       if (dealersError) {
         console.error('Error fetching dealers for filtering:', dealersError);
-        // Continue with invites even if dealers fetch fails
+        return invitesData.map(inv => ({
+          id: inv.id,
+          email: inv.email,
+          dealer_data: inv.dealer_data as PendingDealerInvite['dealer_data'],
+          expires_at: inv.expires_at,
+          created_at: inv.created_at,
+          used_at: inv.used_at,
+        }));
       }
 
-      // 3. Filtreleme: used_at zaten NULL, şimdi user_id ve email kontrolü
-      // user_id varsa, o dealer zaten kayıt olmuş demektir
+      // 3. Filter out already registered
       const registeredUserIds = new Set(
         (dealersData || [])
           .filter(d => d.user_id)
           .map(d => d.user_id)
       );
 
-      // Email kontrolü - dealers tablosundaki contact_email'ler
       const registeredEmails = new Set(
         (dealersData || [])
           .map(d => d.contact_email?.toLowerCase())
           .filter(Boolean)
       );
-      
-      // Kayıtlı olanları filtrele
-      const filteredData = (invitesData || []).filter(inv => {
+
+      const filteredData = invitesData.filter(inv => {
         const emailLower = inv.email.toLowerCase();
-        // Email ile kayıtlı kullanıcı var mı kontrol et
-        if (registeredEmails.has(emailLower)) {
-          return false;
-        }
-        // used_at kontrolü zaten query'de yapılıyor ama double-check
-        if (inv.used_at) {
-          return false;
-        }
+        if (registeredEmails.has(emailLower)) return false;
+        if (inv.used_at) return false;
         return true;
       });
-      
-      const invites: PendingDealerInvite[] = filteredData.map(inv => ({
+
+      return filteredData.map(inv => ({
         id: inv.id,
         email: inv.email,
         dealer_data: inv.dealer_data as PendingDealerInvite['dealer_data'],
@@ -151,26 +146,14 @@ export const useDealers = () => {
         created_at: inv.created_at,
         used_at: inv.used_at,
       }));
-      
-      setPendingInvites(invites);
-    } catch (error) {
-      console.error('Error fetching pending invites:', error);
-      toast.error('Bekleyen davetler yüklenirken hata oluştu');
-    }
-  }, []);
+    },
+  });
 
-  const fetchAll = useCallback(async () => {
-    setIsLoading(true);
-    await Promise.all([fetchDealers(), fetchPendingInvites()]);
-    setIsLoading(false);
-  }, [fetchDealers, fetchPendingInvites]);
+  const isLoading = dealersLoading || invitesLoading;
 
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
-
-  const createInvite = async (data: CreateDealerInviteData): Promise<boolean> => {
-    try {
+  // Create invite mutation
+  const createInviteMutation = useMutation({
+    mutationFn: async (data: CreateDealerInviteData): Promise<boolean> => {
       // Validation
       if (!data.email || !data.email.includes('@')) {
         toast.error('Geçerli bir email adresi giriniz');
@@ -234,8 +217,7 @@ export const useDealers = () => {
 
       if (error) {
         console.error('Create invite error details:', error);
-        
-        // Spesifik hata mesajları
+
         if (error.code === '23505') {
           toast.error('Bu email adresi için zaten bekleyen bir davet var');
         } else if (error.code === '42501') {
@@ -255,7 +237,7 @@ export const useDealers = () => {
         return false;
       }
 
-      // Email gönder - invite ID ile özel kayıt sayfasına yönlendir
+      // Email gönder
       const emailResult = await sendDealerInvite(
         data.email,
         data.name,
@@ -263,79 +245,49 @@ export const useDealers = () => {
         data.region_ids,
         inviteData.id
       );
-      
+
       if (emailResult.success) {
         toast.success('Bayi daveti oluşturuldu ve email gönderildi');
       } else {
         toast.success('Bayi daveti oluşturuldu (email gönderilemedi)');
         console.warn('Email sending failed:', emailResult.error);
       }
-      
-      await fetchPendingInvites();
-      return true;
-    } catch (error) {
-      console.error('Error creating dealer invite:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
-      toast.error(`Davet oluşturulurken hata oluştu: ${errorMessage}`);
-      return false;
-    }
-  };
 
-  const updateDealer = async (id: string, data: UpdateDealerData): Promise<boolean> => {
-    try {
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-dealer-invites'] });
+    },
+    onError: (error: Error) => {
+      console.error('Error creating dealer invite:', error);
+      toast.error(`Davet oluşturulurken hata oluştu: ${error.message}`);
+    },
+  });
+
+  // Update dealer mutation
+  const updateDealerMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateDealerData }): Promise<boolean> => {
       const { error } = await supabase
         .from('dealers')
         .update(data)
         .eq('id', id);
 
       if (error) throw error;
-
-      toast.success('Bayi güncellendi');
-      await fetchDealers();
       return true;
-    } catch (error) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-dealers'] });
+      toast.success('Bayi güncellendi');
+    },
+    onError: (error: Error) => {
       console.error('Error updating dealer:', error);
       toast.error('Bayi güncellenirken hata oluştu');
-      return false;
-    }
-  };
+    },
+  });
 
-  const toggleDealerActive = async (id: string, isActive: boolean): Promise<boolean> => {
-    return updateDealer(id, { is_active: !isActive });
-  };
-
-  const cancelInvite = async (id: string): Promise<boolean> => {
-    try {
-      // Önce daveti kontrol et
-      const { data: inviteData, error: checkError } = await supabase
-        .from('pending_invites')
-        .select('id, email, role')
-        .eq('id', id)
-        .single();
-
-      if (checkError) {
-        console.error('Error checking invite:', checkError);
-        if (checkError.code === 'PGRST116') {
-          toast.error('Davet bulunamadı');
-        } else {
-          toast.error('Davet kontrol edilirken hata oluştu');
-        }
-        return false;
-      }
-
-      if (!inviteData) {
-        toast.error('Davet bulunamadı');
-        return false;
-      }
-
-      // RLS kontrolü - admin yetkisi kontrolü için auth kontrolü
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        toast.error('Oturum bulunamadı');
-        return false;
-      }
-
-      // DELETE işlemi - select olmadan yap (RLS select'i engelliyor olabilir)
+  // Cancel invite mutation
+  const cancelInviteMutation = useMutation({
+    mutationFn: async (id: string): Promise<boolean> => {
       const { error: deleteError } = await supabase
         .from('pending_invites')
         .delete()
@@ -343,43 +295,36 @@ export const useDealers = () => {
 
       if (deleteError) {
         console.error('Delete error details:', deleteError);
-        console.error('Delete error code:', deleteError.code);
-        console.error('Delete error message:', deleteError.message);
-        console.error('Delete error details:', deleteError.details);
-        console.error('Delete error hint:', deleteError.hint);
-        
-        // Spesifik hata mesajları
+
         if (deleteError.code === '42501') {
           toast.error('Bu işlem için yetkiniz yok. Lütfen admin olarak giriş yapın.');
         } else if (deleteError.code === 'PGRST301' || deleteError.message.includes('permission') || deleteError.message.includes('policy')) {
           toast.error('RLS politikası hatası: Bu işlem için yetkiniz yok');
         } else if (deleteError.code === 'PGRST116') {
           toast.error('Davet bulunamadı');
-          await fetchPendingInvites(); // Listeyi güncelle
         } else {
           toast.error(`Davet iptal edilirken hata oluştu: ${deleteError.message || deleteError.code || 'Bilinmeyen hata'}`);
         }
         return false;
       }
 
-      // DELETE başarılı, listeyi güncelle
-      await fetchPendingInvites();
-
-      toast.success('Davet iptal edildi');
-      await fetchPendingInvites();
       return true;
-    } catch (error) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-dealer-invites'] });
+      toast.success('Davet iptal edildi');
+    },
+    onError: (error: Error) => {
       console.error('Error canceling invite:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
-      toast.error(`Davet iptal edilirken hata oluştu: ${errorMessage}`);
-      return false;
-    }
-  };
+      toast.error(`Davet iptal edilirken hata oluştu: ${error.message}`);
+    },
+  });
 
-  const approveDealer = async (id: string, notes?: string): Promise<boolean> => {
-    try {
+  // Approve dealer mutation
+  const approveDealerMutation = useMutation({
+    mutationFn: async ({ id, notes }: { id: string; notes?: string }): Promise<boolean> => {
       const { data: userData } = await supabase.auth.getUser();
-      
+
       const { error } = await supabase
         .from('dealers')
         .update({
@@ -393,7 +338,7 @@ export const useDealers = () => {
       if (error) throw error;
 
       // Get dealer info for email
-      const dealer = dealers.find(d => d.id === id);
+      const dealer = dealers?.find(d => d.id === id);
       if (dealer?.contact_email && dealer?.contact_name) {
         await sendApplicationApproved(
           dealer.contact_email,
@@ -403,20 +348,23 @@ export const useDealers = () => {
         );
       }
 
-      toast.success('Bayi başvurusu onaylandı');
-      await fetchDealers();
       return true;
-    } catch (error) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-dealers'] });
+      toast.success('Bayi başvurusu onaylandı');
+    },
+    onError: (error: Error) => {
       console.error('Error approving dealer:', error);
       toast.error('Onaylama sırasında hata oluştu');
-      return false;
-    }
-  };
+    },
+  });
 
-  const rejectDealer = async (id: string, notes?: string): Promise<boolean> => {
-    try {
+  // Reject dealer mutation
+  const rejectDealerMutation = useMutation({
+    mutationFn: async ({ id, notes }: { id: string; notes?: string }): Promise<boolean> => {
       const { data: userData } = await supabase.auth.getUser();
-      
+
       const { error } = await supabase
         .from('dealers')
         .update({
@@ -430,7 +378,7 @@ export const useDealers = () => {
       if (error) throw error;
 
       // Get dealer info for email
-      const dealer = dealers.find(d => d.id === id);
+      const dealer = dealers?.find(d => d.id === id);
       if (dealer?.contact_email && dealer?.contact_name) {
         await sendApplicationRejected(
           dealer.contact_email,
@@ -441,18 +389,21 @@ export const useDealers = () => {
         );
       }
 
-      toast.success('Bayi başvurusu reddedildi');
-      await fetchDealers();
       return true;
-    } catch (error) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-dealers'] });
+      toast.success('Bayi başvurusu reddedildi');
+    },
+    onError: (error: Error) => {
       console.error('Error rejecting dealer:', error);
       toast.error('Reddetme sırasında hata oluştu');
-      return false;
-    }
-  };
+    },
+  });
 
-  const createDirectDealer = async (data: CreateDirectDealerData): Promise<{ success: boolean; userId?: string; password?: string }> => {
-    try {
+  // Create direct dealer mutation
+  const createDirectDealerMutation = useMutation({
+    mutationFn: async (data: CreateDirectDealerData): Promise<{ success: boolean; userId?: string; password?: string }> => {
       // Validation
       if (!data.email || !data.email.includes('@')) {
         toast.error('Geçerli bir email adresi giriniz');
@@ -475,7 +426,7 @@ export const useDealers = () => {
         return { success: false };
       }
 
-      // Check if user already exists - check by email first
+      // Check if user already exists
       const { data: existingDealerByEmail } = await supabase
         .from('dealers')
         .select('id, user_id, contact_email')
@@ -496,7 +447,6 @@ export const useDealers = () => {
       }
 
       // Call Edge Function to create user
-      // Manually add Authorization header to ensure it's sent
       const { data: functionData, error: functionError } = await supabase.functions.invoke('create-user', {
         body: {
           email: data.email.toLowerCase().trim(),
@@ -528,45 +478,45 @@ export const useDealers = () => {
         return { success: false };
       }
 
-      toast.success('Bayi direkt kayıt edildi');
-      
-      // Store password in localStorage for later viewing
+      // Store password in localStorage
       if (functionData.userId && data.password) {
         const { storeTemporaryPassword } = await import('@/utils/passwordUtils');
         storeTemporaryPassword(functionData.userId, data.password);
       }
-      
-      await fetchDealers();
-      await fetchPendingInvites();
 
       return {
         success: true,
         userId: functionData.userId,
-        password: data.password, // Return password for display
+        password: data.password,
       };
-    } catch (error) {
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-dealers'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-dealer-invites'] });
+      if (data.success) {
+        toast.success('Bayi direkt kayıt edildi');
+      }
+    },
+    onError: (error: Error) => {
       console.error('Error creating direct dealer:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
-      toast.error(`Direkt kayıt sırasında hata oluştu: ${errorMessage}`);
-      return { success: false };
-    }
-  };
+      toast.error(`Direkt kayıt sırasında hata oluştu: ${error.message}`);
+    },
+  });
 
-  // Filter pending applications
-  const pendingApplications = dealers.filter(d => d.approval_status === 'pending');
+  // Computed value for pending applications
+  const pendingApplications = dealers?.filter(d => d.approval_status === 'pending') || [];
 
   return {
     dealers,
     pendingInvites,
     pendingApplications,
     isLoading,
-    fetchAll,
-    createInvite,
-    createDirectDealer,
-    updateDealer,
-    toggleDealerActive,
-    cancelInvite,
-    approveDealer,
-    rejectDealer,
+    createInvite: (data: CreateDealerInviteData) => createInviteMutation.mutateAsync(data),
+    createDirectDealer: (data: CreateDirectDealerData) => createDirectDealerMutation.mutateAsync(data),
+    updateDealer: (id: string, data: UpdateDealerData) => updateDealerMutation.mutateAsync({ id, data }),
+    toggleDealerActive: (id: string, isActive: boolean) => updateDealerMutation.mutateAsync({ id, data: { is_active: !isActive } }),
+    cancelInvite: (id: string) => cancelInviteMutation.mutateAsync(id),
+    approveDealer: (id: string, notes?: string) => approveDealerMutation.mutateAsync({ id, notes }),
+    rejectDealer: (id: string, notes?: string) => rejectDealerMutation.mutateAsync({ id, notes }),
   };
 };

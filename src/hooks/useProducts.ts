@@ -80,7 +80,7 @@ export function useProductsByCategory(categoryId: string) {
       const { data, error } = await supabase
         .from("products")
         .select("*")
-        .eq("category_id", categoryId)
+        .eq("category", categoryId)
         .eq("is_active", true)
         .order("name");
       

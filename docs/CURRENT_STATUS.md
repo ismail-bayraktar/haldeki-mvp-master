@@ -1,13 +1,13 @@
 # Haldeki.com - Mevcut Durum Raporu
 
-> Tarih: 2025-12-27 (Son güncelleme: 17:45)
+> Tarih: 2026-01-07 (Son güncelleme: 10:00)
 > Bu doküman projenin güncel durumunu, eksikleri ve yapılması gerekenleri içerir.
 
 ---
 
 ## 🎯 Özet
 
-Proje Lovable.dev'den local'e taşındı ve yeni Supabase hesabına migrate edildi. Faz 5 (Onay Sistemi) ve Faz 6 (Sipariş ve Teslimat) tamamlandı. Admin paneli, bayi ve tedarikçi panelleri çalışır durumda.
+Proje Lovable.dev'den local'e taşındı ve yeni Supabase hesabına migrate edildi. Faz 5 (Onay Sistemi), Faz 6 (Sipariş ve Teslimat), Faz 7 (Ödeme Sistemi), Faz 8 (İşletme B2B Paneli), Faz 9 (Tedarikçi Mobil Ürün Yönetimi) tamamlandı. Faz 10 (Excel/CSV İçe/Dışa Aktarma Sistemi) tamamlandı - tedarikçiler artık ürünlerini toplu olarak içe/dışa aktarabilir.
 
 ---
 
@@ -16,77 +16,69 @@ Proje Lovable.dev'den local'e taşındı ve yeni Supabase hesabına migrate edil
 ### Frontend
 - [x] Ana sayfa ve ürün listesi
 - [x] Ürün detay sayfası
-- [x] Sepet ve favoriler
+- [x] Sepet ve favoriler (Bölge ve Auth bazlı persistence eklendi)
 - [x] Bölge seçimi
 - [x] Kayıt ve giriş
 - [x] Responsive tasarım
+- [x] Vitest ile birim test altyapısı
+- [x] Ana sayfa yeni section'lar (Nasıl Çalışır, Mevsim Tazeleri, Trust Metrikleri, Newsletter CTA)
+- [x] Tedarikçi mobil alt navigasyon (Phase 9)
+- [x] Tedarikçi ürün yönetim sayfası (Phase 9)
+- [x] Tedarikçi Excel/CSV import/export (Phase 10)
 
 ### Backend (Supabase)
-- [x] Auth sistemi
+- [x] Auth sistemi (Business rolü eklendi)
 - [x] Regions tablosu
-- [x] Products tablosu (güncellenmiş şema)
-- [x] Region_products tablosu
+- [x] Products tablosu
+- [x] Region_products tablosu (business_price eklendi)
 - [x] User_roles tablosu
 - [x] Dealers tablosu
 - [x] Suppliers tablosu
+- [x] Businesses tablosu (Yeni)
 - [x] Pending_invites tablosu
+- [x] Product_imports tablosu (Yeni - Phase 10)
 - [x] RLS policies
-- [x] Edge Functions (email)
+- [x] Edge Functions (email, create-user)
+- [x] Product images storage bucket (Phase 9)
+- [x] Supplier product management permissions (Phase 9)
+- [x] Import/Export audit log (Phase 10)
 
 ### Admin Panel
 - [x] Dashboard
 - [x] Ürün yönetimi (CRUD)
-- [x] Bölge-ürün yönetimi
+- [x] Bölge-ürün yönetimi (İşletme fiyatı dahil)
 - [x] Bayi yönetimi (davet, onay/red)
 - [x] Tedarikçi yönetimi (davet, onay/red)
+- [x] İşletme yönetimi (Yeni - direkt kayıt ve onay)
 - [x] Bekleyen davetler listesi
 - [x] Onay bekleyen başvurular listesi
+- [x] Import/Export geçmişini görüntüleme (Phase 10)
 
-### Bayi/Tedarikçi Sistemi
-- [x] Token bazlı davet akışı
-- [x] Özel kayıt formları (/bayi-kayit, /tedarikci-kayit)
-- [x] dealers/suppliers tablosuna otomatik kayıt
-- [x] Onay bekleme sayfası (/beklemede)
-- [x] Onay/Red email bildirimleri
-- [x] Approval status kontrolü
-
-### Faz 6: Sipariş ve Teslimat
-- [x] Orders tablosu genişletildi (dealer_id, payment_status, vb.)
-- [x] Bayi sipariş yönetimi (onay, iptal, durum güncelleme)
-- [x] Teslimat kanıtı (fotoğraf + not)
-- [x] Tahsilat durumu (Ödendi/Ödenmedi)
-- [x] Bayi müşteri yönetimi (/bayi/musteriler)
-- [x] Müşteri sipariş takibi (/hesabim/siparisler)
-- [x] Tedarikçi "Bugün Hazırlanacaklar" listesi
+### Ödeme ve Sipariş
+- [x] Kapıda ödeme (Nakit/Kart)
+- [x] EFT/Havale sistemi ve bildirim formu
+- [x] Sipariş durumu takibi (pending -> delivered)
+- [x] Teslimat kanıtı (not + fotoğraf)
+- [x] Tekrar sipariş (İşletme ve Müşteri için)
+- [x] Sipariş validasyonu (stok, bölge, fiyat kontrolü)
+- [x] Fiyat değişikliği uyarıları
+- [x] Mevcut olmayan ürünler bildirimi
 
 ---
 
 ## ⚠️ Bilinen Sorunlar (Çözüldü)
 
-### 1. Admin Erişimi ✅
-**Durum**: Çözüldü  
-Script ile superadmin rolü atandı.
+### 7. Cart Hydration Hatası ✅
+**Durum**: Çözüldü
+Sayfa yenilendiğinde veya auth durumu değiştiğinde sepetin localStorage'dan yüklenmemesi sorunu `CartContext` içindeki bağımlılık dizisi güncellenerek çözüldü.
 
-### 2. Products Beyaz Ekran ✅
-**Durum**: Çözüldü  
-`product.price` → `product.base_price` değiştirildi.
+### 8. Kategori Filtreleme Hatası ✅
+**Durum**: Çözüldü
+`useProductsByCategory` hook'undaki yanlış kolon ismi (`category_id` -> `category`) düzeltildi.
 
-### 3. Bekleyen Davetler Filtresi ✅
-**Durum**: Çözüldü  
-Kayıtlı kullanıcılar artık "Bekleyen Davetler"de görünmüyor.
-
-### 4. Badge Hover Renkleri ✅
-**Durum**: Çözüldü  
-Onaylandı/Aktif badge'lerinde hover text rengi düzeltildi.
-
-### 5. Bölge Ürünleri 400 Hatası ✅
-**Durum**: Çözüldü  
-- `category_name` → `category` düzeltildi
-- Join sorgusu ayrı sorgular olarak refactor edildi (FK ilişkisi gerekmez)
-
-### 6. RLS Policy Duplicate Hatası ✅
-**Durum**: Çözüldü  
-Migration'lara `DROP POLICY IF EXISTS` eklendi.
+### 9. Lint Hataları ✅
+**Durum**: Çözüldü
+UI bileşenlerindeki boş interface'ler ve hook'lardaki `any` tipleri temizlendi.
 
 ---
 
@@ -95,39 +87,9 @@ Migration'lara `DROP POLICY IF EXISTS` eklendi.
 | Panel | URL | Rol | Durum |
 |-------|-----|-----|-------|
 | Admin Dashboard | `/admin` | superadmin, admin | ✅ Çalışıyor |
-| Admin Siparişler | `/admin/orders` | superadmin, admin | ✅ Çalışıyor |
-| Admin Ürünler | `/admin/products` | superadmin, admin | ✅ Çalışıyor |
-| Admin Bölge Ürünleri | `/admin/region-products` | superadmin, admin | ✅ Çalışıyor |
-| Admin Bayiler | `/admin/dealers` | superadmin, admin | ✅ Çalışıyor |
-| Admin Tedarikçiler | `/admin/suppliers` | superadmin, admin | ✅ Çalışıyor |
 | Bayi Dashboard | `/dealer` | dealer (approved) | ✅ Çalışıyor |
 | Tedarikçi Dashboard | `/supplier` | supplier (approved) | ✅ Çalışıyor |
-
----
-
-## 📊 Tablo Durumları
-
-| Tablo | Veri | Durum |
-|-------|------|-------|
-| regions | 5 bölge | ✅ Seed edildi |
-| products | 39 ürün | ✅ Seed edildi |
-| region_products | 195 kayıt | ✅ Seed edildi |
-| profiles | Mevcut | ✅ Çalışıyor |
-| user_roles | Mevcut | ✅ Çalışıyor |
-| orders | Mevcut | ✅ Çalışıyor |
-| dealers | Mevcut | ✅ Çalışıyor |
-| suppliers | Mevcut | ✅ Çalışıyor |
-| pending_invites | Mevcut | ✅ Çalışıyor |
-
----
-
-## 🧪 Test Hesapları
-
-| Hesap | Email | Şifre | Rol |
-|-------|-------|-------|-----|
-| Admin | bayraktarismail00@gmail.com | (kendi şifren) | superadmin |
-| Test Bayi | test.bayi@haldeki.com | Test1234! | dealer |
-| Test Tedarikçi | test.tedarikci@haldeki.com | Test1234! | supplier |
+| İşletme Dashboard | `/business` | business (approved) | ✅ Çalışıyor |
 
 ---
 
@@ -135,94 +97,29 @@ Migration'lara `DROP POLICY IF EXISTS` eklendi.
 
 ### Kısa Vadeli (Bu Hafta)
 
-1. **Faz 6 - Sipariş Sistemi** ✅ (Tamamlandı)
-   - [x] Sipariş akışını tamamla
-   - [x] Bayi sipariş yönetimi
-   - [x] Sipariş durumu takibi
-   - [x] Teslimat kanıtı
-   - [x] Tahsilat durumu
+1. **Faz 10 - Excel/CSV İçe/Dışa Aktarma Sistemi** (Tamamlandı)
+   - [x] Database migration (product_imports tablosu)
+   - [x] Excel parser (XLSX library)
+   - [x] CSV parser (PapaParse)
+   - [x] Product validator (validasyon & normalizasyon)
+   - [x] Import hook (useProductImport)
+   - [x] Export hook (useProductExport)
+   - [x] UI components (ProductExportButton, ImportPreview)
+   - [x] Audit log & rollback sistemi
+   - [x] Unit tests (Vitest)
+   - [x] Integration tests (142/155 passing = %91.6)
 
-2. **Faz 7 - Ödeme Sistemi** ✅ (Tamamlandı)
-   - [x] Kapıda ödeme entegrasyonu (Nakit/Kart)
-   - [x] EFT/Havale ödeme sistemi
-   - [x] Ödeme bildirim formu
-   - [x] Admin IBAN ayarları
-   - [x] Email bildirimleri
-   - [ ] Online ödeme (iyzico/Stripe) - Sonraki fazlarda
-   - [ ] Fatura oluşturma - Sonraki fazlarda
-
-### Orta Vadeli (Bu Ay)
-
-3. **Faz 8 - İşletme (B2B) Paneli**
-   - [ ] İşletme rolü ve davet sistemi
-   - [ ] B2B sipariş paneli
-   - [ ] Bugün Halde fırsatları görünümü
-
-4. **Tedarikçi Dashboard İyileştirmeleri**
-   - [ ] Teklif oluşturma
-   - [ ] Teklif yönetimi
-   - [ ] Stok güncelleme
+2. **Stabilizasyon ve Test**
+   - [x] Vitest kurulumu
+   - [x] Utility fonksiyonları testleri
+   - [x] Tekrar sipariş birim testleri
+   - [x] Tekrar sipariş E2E testleri
+   - [x] Import/Export birim testleri
+   - [x] Import/Export entegrasyon testleri
+   - [ ] Faz 10 kalan testleri (13/155 failing)
+   - [ ] Checkout akışı E2E testleri
+   - [ ] Image upload (teslimat kanıtı) doğrulama
 
 ---
 
-## 📁 Önemli Dosyalar
-
-### SQL Scripts
-| Dosya | Açıklama |
-|-------|----------|
-| `docs/scripts/full-schema.sql` | Tüm veritabanı şeması |
-| `docs/scripts/seed-data.sql` | Örnek veriler (39 ürün, 5 bölge) |
-| `docs/scripts/fix-products-schema.sql` | Products tablosu düzeltmesi |
-
-### Rehberler
-| Dosya | Açıklama |
-|-------|----------|
-| `docs/guides/01-supabase-migration.md` | Supabase kurulum rehberi |
-| `docs/guides/02-supabase-auth-setup.md` | Auth ayarları rehberi |
-
-### Utility Scripts
-| Dosya | Açıklama |
-|-------|----------|
-| `scripts/setup-users.js` | Admin ve test kullanıcıları oluşturma |
-| `scripts/fix-existing-dealers.js` | Eksik dealer kayıtlarını düzeltme |
-| `scripts/fix-existing-suppliers.js` | Eksik supplier kayıtlarını düzeltme |
-
----
-
-## 🔒 Güvenlik Kontrol Listesi
-
-| Kontrol | Durum |
-|---------|-------|
-| RLS tüm tablolarda aktif | ✅ |
-| has_role() fonksiyonu var | ✅ |
-| Admin route koruması var | ✅ |
-| Bayi route koruması var | ✅ |
-| Tedarikçi route koruması var | ✅ |
-| Approval kontrolü var | ✅ |
-
----
-
-## 🛠️ Geliştirme Ortamı
-
-### Gereksinimler
-- Node.js 18+
-- npm veya yarn
-- Supabase hesabı
-
-### Başlatma
-```powershell
-cd F:\donusum\haldeki-love\haldeki-market
-npm install
-npm run dev
-```
-
-### Environment Variables
-```env
-VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbG...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbG... (sadece scripts için)
-```
-
----
-
-Son güncelleme: 2025-12-27
+Son güncelleme: 2026-01-07

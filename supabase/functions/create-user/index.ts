@@ -134,6 +134,7 @@ serve(async (req) => {
       role,
       dealerData,
       supplierData,
+      businessData,
       sendEmail,
     } = body;
 
@@ -148,7 +149,7 @@ serve(async (req) => {
       );
     }
 
-    if (role !== "dealer" && role !== "supplier") {
+    if (role !== "dealer" && role !== "supplier" && role !== "business") {
       return new Response(
         JSON.stringify({ error: "Invalid role" }),
         {
@@ -212,7 +213,7 @@ serve(async (req) => {
         email_confirm: true,
         user_metadata: {
           must_change_password: true,
-          full_name: dealerData?.contact_name || supplierData?.contact_name || "",
+          full_name: dealerData?.contact_name || supplierData?.contact_name || businessData?.contact_name || "",
         },
       });
 
@@ -249,7 +250,7 @@ serve(async (req) => {
       // Continue even if role assignment fails - can be fixed manually
     }
 
-    // Create dealer or supplier record
+    // Create dealer, supplier or business record
     if (role === "dealer" && dealerData) {
       const { error: dealerError } = await supabaseAdmin
         .from("dealers")
@@ -267,7 +268,6 @@ serve(async (req) => {
 
       if (dealerError) {
         console.error("Dealer creation error:", dealerError);
-        // Continue - user is created, dealer record can be fixed manually
       }
     } else if (role === "supplier" && supplierData) {
       const { error: supplierError } = await supabaseAdmin
@@ -285,7 +285,25 @@ serve(async (req) => {
 
       if (supplierError) {
         console.error("Supplier creation error:", supplierError);
-        // Continue - user is created, supplier record can be fixed manually
+      }
+    } else if (role === "business" && businessData) {
+      const { error: businessError } = await supabaseAdmin
+        .from("businesses")
+        .insert({
+          user_id: userId,
+          company_name: businessData.company_name || businessData.name,
+          contact_name: businessData.contact_name || "",
+          contact_phone: businessData.contact_phone || "",
+          contact_email: businessData.contact_email || email,
+          business_type: businessData.business_type || null,
+          tax_number: businessData.tax_number || null,
+          region_ids: businessData.region_ids || [],
+          approval_status: "approved",
+          is_active: true,
+        });
+
+      if (businessError) {
+        console.error("Business creation error:", businessError);
       }
     }
 

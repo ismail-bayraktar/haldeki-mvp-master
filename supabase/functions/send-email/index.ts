@@ -19,7 +19,7 @@ interface EmailRequest {
   subject?: string;
   htmlContent?: string;
   textContent?: string;
-  templateType?: 'dealer_invite' | 'supplier_invite' | 'order_notification' | 'offer_status' | 'order_confirmation' | 'admin_new_application' | 'application_approved' | 'application_rejected' | 'order_confirmed' | 'order_delivered' | 'order_cancelled' | 'payment_notification_received' | 'payment_notification_verified';
+  templateType?: 'dealer_invite' | 'supplier_invite' | 'business_invite' | 'order_notification' | 'offer_status' | 'order_confirmation' | 'admin_new_application' | 'application_approved' | 'application_rejected' | 'order_confirmed' | 'order_delivered' | 'order_cancelled' | 'payment_notification_received' | 'payment_notification_verified';
   templateData?: Record<string, any>;
 }
 
@@ -41,6 +41,7 @@ const getEmailTemplate = (type: string, data: Record<string, any>) => {
     contactName: escapeHtml(data.contactName),
     dealerName: escapeHtml(data.dealerName),
     supplierName: escapeHtml(data.supplierName),
+    businessName: escapeHtml(data.businessName || data.firm_name),
     productName: escapeHtml(data.productName),
     regions: escapeHtml(data.regions),
     regionName: escapeHtml(data.regionName),
@@ -128,6 +129,65 @@ const getEmailTemplate = (type: string, data: Record<string, any>) => {
               <div class="footer">
                 <p>Bu email Haldeki platformu tarafından gönderilmiştir.</p>
                 <p>© 2025 Haldeki. Tüm hakları saklıdır.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+    case 'business_invite':
+      return {
+        subject: 'Haldeki - Kurumsal İşletme Daveti',
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 35px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e2e8f0; }
+              .button { display: inline-block; background: #22c55e; color: #ffffff !important; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 25px 0; }
+              .footer { text-align: center; color: #64748b; font-size: 12px; margin-top: 25px; }
+              .info-box { background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0f172a; }
+              .badge { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Haldeki <span style="color: #22c55e;">B2B</span></h1>
+                <p>İşletmelere Özel Tedarik Çözümleri</p>
+              </div>
+              <div class="content">
+                <h2>Sayın İşletme Yetkilisi,</h2>
+                <p><strong>${safeData.businessName}</strong> olarak Haldeki B2B platformuna davet edildiniz. Halden taze ürünlere, işletmenize özel fiyatlarla ulaşmanın en kolay yolu!</p>
+                
+                <div class="info-box">
+                  <span class="badge">Kurumsal Üyelik Avantajları</span>
+                  <ul style="margin-top: 15px; padding-left: 20px;">
+                    <li>İşletmelere özel indirimli fiyatlar</li>
+                    <li>Öncelikli teslimat slotları</li>
+                    <li>Düzenli faturalandırma</li>
+                    <li>Kolay tekrar sipariş verme</li>
+                  </ul>
+                </div>
+                
+                <p>Kurumsal hesabınızı aktif hale getirmek için aşağıdaki butona tıklayarak kaydınızı tamamlayabilirsiniz:</p>
+                
+                <center>
+                  <a href="${safeData.signupUrl}" class="button" style="color: #ffffff;">İşletme Kaydını Tamamla</a>
+                </center>
+                
+                <p style="color: #64748b; font-size: 14px; text-align: center;">
+                  Bu davet email adresi (<strong>${safeData.email}</strong>) için özel olarak oluşturulmuştur ve 7 gün geçerlidir.
+                </p>
+              </div>
+              <div class="footer">
+                <p>Sorularınız için bizimle iletişime geçebilirsiniz.</p>
+                <p>© 2025 Haldeki B2B. Tüm hakları saklıdır.</p>
               </div>
             </div>
           </body>

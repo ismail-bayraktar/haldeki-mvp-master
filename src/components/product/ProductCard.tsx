@@ -8,6 +8,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useRegion } from "@/contexts/RegionContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { getPriceChangeLabel } from "@/lib/productUtils";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -23,6 +24,7 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { isInCompare, addToCompare, removeFromCompare } = useCompare();
   const { selectedRegion } = useRegion();
+  const { isBusiness } = useAuth();
   const inWishlist = isInWishlist(product.id);
   const inCompare = isInCompare(product.id);
 
@@ -35,19 +37,22 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(defaultVariant);
 
   // Bölge bilgisi durumları
-  const isInRegion = regionInfo?.isInRegion ?? false;
+  // regionInfo null = bölgede özel fiyat YOK, ama ürün varsayılan fiyatla satılıyor
+  const isInRegion = regionInfo?.isInRegion ?? true;  // null varsayılan olarak "region'da var" demek
   const isOutOfStock = regionInfo ? regionInfo.stockQuantity === 0 : false;
-  const canAddToCart = selectedRegion && isInRegion && !isOutOfStock && regionInfo?.isAvailable;
+  const canAddToCart = selectedRegion && isInRegion && !isOutOfStock && (regionInfo?.isAvailable ?? true);
 
   // Fiyat: Bölge varsa bölge fiyatı, yoksa master fiyat
   const displayPrice = useMemo(() => {
-    const basePrice = regionInfo?.price ?? product.price;
+    const basePrice = (isBusiness && regionInfo?.businessPrice) 
+      ? regionInfo.businessPrice 
+      : (regionInfo?.price ?? product.price);
     const multiplier = selectedVariant?.priceMultiplier ?? 1;
     return basePrice * multiplier;
-  }, [regionInfo, product.price, selectedVariant]);
+  }, [regionInfo, product.price, selectedVariant, isBusiness]);
 
   // Önceki fiyat (kampanya gösterimi için)
-  const previousPrice = regionInfo?.previousPrice ?? product.previousPrice;
+  const previousPrice = isBusiness ? (regionInfo?.price ?? product.price) : (regionInfo?.previousPrice ?? product.previousPrice);
 
   const getAvailabilityLabel = () => {
     // Bölgede yoksa
@@ -97,7 +102,11 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
       return;
     }
     
-    addToCart(product, 1, selectedVariant);
+    const unitPrice = (isBusiness && regionInfo?.businessPrice) 
+      ? regionInfo.businessPrice 
+      : (regionInfo?.price ?? product.price);
+      
+    addToCart(product, 1, selectedVariant, unitPrice);
   };
 
   const handleNotifyStock = (e: React.MouseEvent) => {

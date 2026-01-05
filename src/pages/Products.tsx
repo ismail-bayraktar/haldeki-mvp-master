@@ -10,6 +10,7 @@ import { RegionBanner } from "@/components/region";
 import { useActiveProducts, DbProduct } from "@/hooks/useProducts";
 import { useRegionProducts } from "@/hooks/useRegionProducts";
 import { useRegion } from "@/contexts/RegionContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { mergeProductsWithRegion, sortByAvailability } from "@/lib/productUtils";
 import { categories } from "@/data/categories";
 import { Product, ProductWithRegionInfo } from "@/types";
@@ -45,6 +46,7 @@ const Products = () => {
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   
   const { selectedRegion } = useRegion();
+  const { isBusiness } = useAuth();
   const { data: dbProducts, isLoading: isProductsLoading } = useActiveProducts();
   const { data: regionProducts, isLoading: isRegionLoading } = useRegionProducts(selectedRegion?.id ?? null);
 
@@ -98,15 +100,15 @@ const Products = () => {
         break;
       case "price-asc":
         filtered.sort((a, b) => {
-          const aPrice = a.regionInfo?.price ?? a.price;
-          const bPrice = b.regionInfo?.price ?? b.price;
+          const aPrice = (isBusiness && a.regionInfo?.businessPrice) ? a.regionInfo.businessPrice : (a.regionInfo?.price ?? a.price);
+          const bPrice = (isBusiness && b.regionInfo?.businessPrice) ? b.regionInfo.businessPrice : (b.regionInfo?.price ?? b.price);
           return aPrice - bPrice;
         });
         break;
       case "price-desc":
         filtered.sort((a, b) => {
-          const aPrice = a.regionInfo?.price ?? a.price;
-          const bPrice = b.regionInfo?.price ?? b.price;
+          const aPrice = (isBusiness && a.regionInfo?.businessPrice) ? a.regionInfo.businessPrice : (a.regionInfo?.price ?? a.price);
+          const bPrice = (isBusiness && b.regionInfo?.businessPrice) ? b.regionInfo.businessPrice : (b.regionInfo?.price ?? b.price);
           return bPrice - aPrice;
         });
         break;
@@ -116,7 +118,7 @@ const Products = () => {
     }
 
     return filtered;
-  }, [productsWithRegion, searchQuery, selectedCategory, sortBy]);
+  }, [productsWithRegion, searchQuery, selectedCategory, sortBy, isBusiness]);
 
   const handleCategoryClick = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);

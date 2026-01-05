@@ -2,7 +2,7 @@
 
 > Bu doküman, Haldeki projesinin teknik yol haritasını, faz durumlarını ve gelecek planlarını içerir.
 
-Son güncelleme: 2025-12-27
+Son güncelleme: 2026-01-04
 
 ---
 
@@ -149,34 +149,92 @@ Haldeki.com, taze meyve-sebze tedarik zincirini dijitalleştiren, bölge bazlı 
 
 ---
 
-### Faz 8: İşletme (B2B) Paneli 📋
+### Faz 8: İşletme (B2B) Paneli ✅
 
-**Durum**: Planlandı
-
-| Görev | Durum | Öncelik |
-|-------|-------|---------|
-| İşletme rolü (business) | 📋 | Yüksek |
-| İşletme davet ve kayıt sistemi | 📋 | Yüksek |
-| B2B sipariş paneli | 📋 | Yüksek |
-| Bugün Halde fırsatları görünümü | 📋 | Orta |
-| Sipariş geçmişi ve tekrar sipariş | 📋 | Orta |
-| Bayi → İşletme kayıt akışı | 📋 | Orta |
-
----
-
-### Faz 9: Tedarikçi Gelişmiş Özellikler 📋
-
-**Durum**: Planlandı
+**Durum**: Tamamlandı (2026-01-04)
 
 | Görev | Durum | Öncelik |
 |-------|-------|---------|
-| Tedarikçi performans metrikleri | 📋 | Orta |
-| Otomatik stok uyarıları | 📋 | Orta |
-| Tedarikçi raporları | 📋 | Düşük |
+| İşletme rolü (business) | ✅ | Yüksek |
+| DB Şeması ve Businesses tablosu | ✅ | Yüksek |
+| B2B Özel Fiyatlandırma Altyapısı | ✅ | Yüksek |
+| Admin İşletme Yönetim Paneli | ✅ | Yüksek |
+| İşletme davet ve kayıt sistemi | ✅ | Yüksek |
+| B2B sipariş paneli (Dashboard) | ✅ | Yüksek |
+| Bugün Halde fırsatları görünümü | ✅ | Orta |
+| Sipariş geçmişi ve tekrar sipariş | ✅ | Orta |
+| Tekrar sipariş validasyonu | ✅ | Yüksek |
+| Fiyat değişikliği uyarıları | ✅ | Yüksek |
+| Mevcut olmayan ürünler bildirimi | ✅ | Yüksek |
+| Birim testler (Vitest) | ✅ | Orta |
+| E2E testler (Playwright) | ✅ | Orta |
 
 ---
 
-### Faz 10: Gelişmiş Özellikler 📋
+### Faz 8.5: Ana Sayfa İyileştirmeleri ✅
+
+**Durum**: Tamamlandı (2026-01-04)
+
+| Görev | Durum | Öncelik |
+|-------|-------|---------|
+| Nasıl Çalışır section (3 adımlı süreç) | ✅ | Orta |
+| Mevsim Tazeleri spotlight section | ✅ | Orta |
+| Trust Metrikleri section (istatistikler) | ✅ | Orta |
+| Newsletter CTA section | ✅ | Orta |
+| Responsive tasarım ve mobile-first | ✅ | Yüksek |
+| Design system tutarlılığı | ✅ | Orta |
+
+**Notasyon**: Yeni section'lar ana sayfada "Premium Products" ile "Categories" arasına eklendi. Tüm component'ler `src/components/home/` altında oluşturuldu.
+
+---
+
+### Faz 9: Tedarikçi Mobil Ürün Yönetimi ✅
+
+**Durum**: Tamamlandı (2026-01-04)
+**Döküman**: [phases/phase-9-supplier-panel.md](./phases/phase-9-supplier-panel.md)
+
+| Görev | Durum | Öncelik |
+|-------|-------|---------|
+| Mobile-first supplier dashboard | ✅ | Yüksek |
+| Supplier product management (CRUD) | ✅ | Yüksek |
+| Image upload with camera integration | ✅ | Yüksek |
+| Inline price editing | ✅ | Orta |
+| Smart/advanced search | ✅ | Orta |
+| Database migration (Phase 9) | ✅ | Yüksek |
+| Supplier types & hooks | ✅ | Yüksek |
+| Supplier UI components | ✅ | Yüksek |
+| Unit tests | ✅ | Orta |
+| E2E tests | 📋 | Orta |
+
+**Notation**: Faz 9, tedarikçilerin doğrudan ürün ekleyip düzenleyebileceği mobil öncelikli bir panel olarak yeniden tasarlandı. Tedarikçi = Hal konsepti (tedarikçiler toptancı market kaynağıdır).
+
+---
+
+### Faz 10: Excel/CSV İçe/Dışa Aktarma Sistemi ✅
+
+**Durum**: Tamamlandı (2026-01-07)
+**Döküman**: [phases/phase-10-import-export.md](./phases/phase-10-import-export.md)
+
+| Görev | Durum | Öncelik |
+|-------|-------|---------|
+| Database migration (product_imports tablosu) | ✅ | Yüksek |
+| Excel parser (XLSX library integration) | ✅ | Yüksek |
+| CSV parser (PapaParse integration) | ✅ | Yüksek |
+| Product validator (validation & normalization) | ✅ | Yüksek |
+| Import hook (useProductImport) | ✅ | Yüksek |
+| Export hook (useProductExport) | ✅ | Yüksek |
+| Import/Export UI components | ✅ | Orta |
+| Audit log & rollback system | ✅ | Yüksek |
+| Unit tests (Vitest) | ✅ | Orta |
+| Integration tests (import/export flow) | ✅ | Orta |
+| Business price isolation policy | ✅ | Yüksek |
+
+**Test Coverage**: 142/155 tests passing (%91.6)
+**Notation**: Faz 10, tedarikçilerin ürünlerini Excel/CSV formatında toplu olarak içe ve dışa aktarabilmesi için kapsamlı bir sistemdir. Validasyon, hata takibi, toplu işleme ve rollback özelliklerini içerir.
+
+---
+
+### Faz 12: Gelişmiş Özellikler 📋
 
 **Durum**: Planlandı
 
@@ -319,6 +377,12 @@ supabase/
 | 2025-12-27 | 6 | Bayi müşteri yönetimi (dealer_customers) |
 | 2025-12-27 | 6 | Müşteri sipariş takibi sayfası |
 | 2025-12-27 | 6 | Tedarikçi hazırlanacaklar listesi |
+| 2025-12-28 | 7 | Ödeme Sistemi tamamlandı (EFT/Kapıda Ödeme) |
+| 2025-12-28 | 8 | İşletme (B2B) Paneli altyapısı kuruldu |
+| 2025-12-28 | - | Vitest ile birim test altyapısı kuruldu |
+| 2026-01-04 | 8 | Faz 8 tamamlandı - Tekrar sipariş özelliği eklendi |
+| 2026-01-04 | 8 | Birim testler (orderUtils, useRepeatOrder) eklendi |
+| 2026-01-04 | 8 | E2E testler (business/customer repeat order) eklendi |
 
 ---
 
@@ -345,5 +409,5 @@ supabase/
 
 ---
 
-Son güncelleme: 2025-12-27
+Son güncelleme: 2026-01-04
 

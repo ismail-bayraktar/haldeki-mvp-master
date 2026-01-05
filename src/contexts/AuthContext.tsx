@@ -1,10 +1,10 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PasswordChangeModal } from "@/components/auth/PasswordChangeModal";
 
-type AppRole = 'superadmin' | 'admin' | 'dealer' | 'supplier' | 'user';
+type AppRole = 'superadmin' | 'admin' | 'dealer' | 'supplier' | 'business' | 'user';
 type ApprovalStatus = 'pending' | 'approved' | 'rejected' | null;
 
 interface AuthContextType {
@@ -16,6 +16,7 @@ interface AuthContextType {
   isSuperAdmin: boolean;
   isDealer: boolean;
   isSupplier: boolean;
+  isBusiness: boolean;
   roles: AppRole[];
   isRolesChecked: boolean;
   approvalStatus: ApprovalStatus;
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAdmin = roles.includes('admin') || roles.includes('superadmin');
   const isDealer = roles.includes('dealer');
   const isSupplier = roles.includes('supplier');
+  const isBusiness = roles.includes('business');
 
   const hasRole = (role: AppRole): boolean => {
     if (role === 'admin') {
@@ -56,15 +58,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return roles.includes(role);
   };
 
-  const checkApprovalStatus = async (userId: string, userRoles: AppRole[]) => {
+  const checkApprovalStatus = useCallback(async (userId: string, userRoles: AppRole[]) => {
     try {
-      // Only check for dealers and suppliers
+      // Only check for dealers, suppliers, and businesses
       if (userRoles.includes('dealer')) {
         const { data } = await supabase
           .from('dealers')
           .select('approval_status')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
         
         if (data) {
           setApprovalStatus(data.approval_status as ApprovalStatus);
@@ -74,13 +76,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .from('suppliers')
           .select('approval_status')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
+        
+        if (data) {
+          setApprovalStatus(data.approval_status as ApprovalStatus);
+        }
+      } else if (userRoles.includes('business')) {
+        const { data } = await supabase
+          .from('businesses')
+          .select('approval_status')
+          .eq('user_id', userId)
+          .maybeSingle();
         
         if (data) {
           setApprovalStatus(data.approval_status as ApprovalStatus);
         }
       } else {
-        // Not a dealer or supplier, no approval needed
+        // Not a dealer, supplier or business, no approval needed
         setApprovalStatus(null);
       }
     } catch (e) {
@@ -89,9 +101,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsApprovalChecked(true);
     }
-  };
+  }, []);
 
-  const checkUserRoles = async (userId: string) => {
+  const checkUserRoles = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -110,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsRolesChecked(true);
     }
-  };
+  }, [checkApprovalStatus]);
 
   const checkMustChangePassword = (user: User) => {
     const mustChange = user.user_metadata?.must_change_password === true;
@@ -156,7 +168,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkUserRoles]);
 
   const openAuthDrawer = () => setIsAuthDrawerOpen(true);
   const closeAuthDrawer = () => setIsAuthDrawerOpen(false);
@@ -255,6 +267,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isSuperAdmin,
         isDealer,
         isSupplier,
+        isBusiness,
         roles,
         isRolesChecked,
         approvalStatus,

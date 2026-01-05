@@ -154,6 +154,7 @@ export interface RegionProductInfo {
   region_id: string;
   product_id: string;
   price: number;
+  business_price: number | null;
   previous_price: number | null;
   price_change: PriceChange;
   availability: AvailabilityStatus;
@@ -164,6 +165,7 @@ export interface RegionProductInfo {
 // UI için basitleştirilmiş bölge fiyat bilgisi
 export interface RegionPriceInfo {
   price: number;
+  businessPrice: number | null;
   previousPrice: number | null;
   priceChange: PriceChange;
   availability: AvailabilityStatus;
@@ -174,5 +176,86 @@ export interface RegionPriceInfo {
 
 // Master product + region bilgisi birleşik
 export interface ProductWithRegionInfo extends Product {
-  regionInfo: RegionPriceInfo | null;  // null = bölgede yok
+  regionInfo: RegionPriceInfo | null;  // null = bölgede varsayılan fiyat kullanılır (ürün satışa açıktır)
 }
+
+// ==========================================
+// ORDER TYPES (Faz 6)
+// ==========================================
+
+// Sipariş öğesi (orders.items JSONB field)
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unit: ProductUnit;
+  unitPrice: number;
+  totalPrice: number;
+  businessUnitPrice?: number;  // B2B için özel fiyat
+  variant?: string;  // Variant bilgisi (opsiyonel)
+}
+
+// Teslimat adresi (orders.shipping_address JSONB field)
+export interface ShippingAddress {
+  title: string;
+  fullName: string;
+  phone: string;
+  district: string;
+  fullAddress: string;
+  instructions?: string;
+}
+
+// ==========================================
+// REPEAT ORDER TYPES (Faz 8)
+// ==========================================
+
+export interface RepeatOrderValidationResult {
+  canRepeat: boolean;
+  availableItems: Array<{
+    productId: string;
+    productName: string;
+    quantity: number;
+    price: number;
+    oldPrice: number;
+    priceChanged: boolean;
+    businessPrice?: number;  // B2B için
+  }>;
+  unavailableItems: Array<{
+    productId: string;
+    productName: string;
+    reason: 'not_found' | 'not_in_region' | 'out_of_stock' | 'inactive' | 'region_changed';
+  }>;
+  totalOldPrice: number;
+  totalNewPrice: number;
+  priceDifference: number;
+  priceIncreased: boolean;
+}
+
+export interface RepeatOrderResult {
+  success: boolean;
+  addedToCartCount: number;
+  skippedCount: number;
+  message: string;
+  warnings?: string[];
+}
+
+// ==========================================
+// SUPPLIER TYPES (Faz 9)
+// ==========================================
+
+// Re-export supplier types for convenience
+export type {
+  ProductStatus,
+  SupplierProduct,
+  ProductFormData,
+  ImageUploadProgress,
+  ProductSearchFilters,
+  ProductSortOption,
+  ProductListParams,
+  ProductListResponse,
+  RecentSearch,
+  PriceEditState,
+  ProductActionResult,
+  BulkProductResult,
+  ImageValidationResult,
+} from './supplier';

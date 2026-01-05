@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Plus, RefreshCw, Search, Copy, Check, Power, PowerOff, Clock, Mail, MapPin, Phone, User, Edit, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Search, Copy, Check, Power, PowerOff, Clock, Mail, MapPin, Phone, User, Edit, CheckCircle, XCircle, AlertCircle, Key, Users, Landmark, Eye, EyeOff } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -17,79 +17,59 @@ import { useRegions } from "@/hooks/useRegions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordGenerator } from "@/components/admin/PasswordGenerator";
 import { PasswordDisplayModal } from "@/components/admin/PasswordDisplayModal";
-import { generatePassword, getTemporaryPassword } from "@/utils/passwordUtils";
-import { Eye, EyeOff, Key } from "lucide-react";
+import { getTemporaryPassword } from "@/utils/passwordUtils";
 
 const AdminDealers = () => {
-  const { 
-    dealers, 
-    pendingInvites, 
+  const {
+    dealers,
+    pendingInvites,
     pendingApplications,
-    isLoading, 
-    fetchAll, 
+    isLoading,
     createInvite,
     createDirectDealer,
-    toggleDealerActive, 
-    cancelInvite, 
+    toggleDealerActive,
+    cancelInvite,
     updateDealer,
     approveDealer,
-    rejectDealer 
+    rejectDealer
   } = useDealers();
+  
   const regionsQuery = useRegions();
   const regions = regionsQuery.data || [];
+  
+  const [activeTab, setActiveTab] = useState("pending");
   const [searchTerm, setSearchTerm] = useState("");
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
-  const [inviteForm, setInviteForm] = useState<CreateDealerInviteData>({
-    email: "",
-    name: "",
-    contact_name: "",
-    contact_phone: "",
-    contact_email: "",
-    region_ids: [],
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
-  
-  // Registration mode: 'invite' or 'direct'
   const [registrationMode, setRegistrationMode] = useState<'invite' | 'direct'>('invite');
   
-  // Direct registration form
-  const [directForm, setDirectForm] = useState<CreateDirectDealerData>({
-    email: "",
-    password: "",
-    name: "",
-    contact_name: "",
-    contact_phone: "",
-    contact_email: "",
-    region_ids: [],
-    tax_number: "",
-    send_email: false,
-  });
+  // Forms
+  const [inviteForm, setInviteForm] = useState<CreateDealerInviteData>({ email: "", name: "", contact_name: "", contact_phone: "", contact_email: "", region_ids: [] });
+  const [directForm, setDirectForm] = useState<CreateDirectDealerData>({ email: "", password: "", name: "", contact_name: "", contact_phone: "", contact_email: "", region_ids: [], tax_number: "", send_email: false });
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Password display modal
+  // Password display
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [tempPassword, setTempPassword] = useState("");
   const [tempEmail, setTempEmail] = useState("");
   const [tempUserName, setTempUserName] = useState("");
   
-  // Region edit state
+  // Edit/Approval
   const [editingDealer, setEditingDealer] = useState<Dealer | null>(null);
   const [editRegionIds, setEditRegionIds] = useState<string[]>([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-
-  // Approval state
   const [approvalDealer, setApprovalDealer] = useState<Dealer | null>(null);
   const [approvalNotes, setApprovalNotes] = useState("");
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
 
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+  // Tab counts
+  const pendingCount = pendingApplications.length;
+  const approvedCount = dealers.filter(d => d.approval_status === 'approved').length;
+  const inviteCount = pendingInvites.length;
 
   const filteredDealers = dealers.filter(dealer =>
     dealer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,698 +78,257 @@ const AdminDealers = () => {
   );
 
   const handleCreateInvite = async () => {
-    if (!inviteForm.email || !inviteForm.name) {
-      toast.error('Email ve isim zorunludur');
-      return;
-    }
-
+    if (!inviteForm.email || !inviteForm.name) { toast.error('Email ve isim zorunludur'); return; }
     setIsSubmitting(true);
     const success = await createInvite(inviteForm);
     setIsSubmitting(false);
-
     if (success) {
       setIsInviteDialogOpen(false);
-      setInviteForm({
-        email: "",
-        name: "",
-        contact_name: "",
-        contact_phone: "",
-        contact_email: "",
-        region_ids: [],
-      });
-      setRegistrationMode('invite');
+      setInviteForm({ email: "", name: "", contact_name: "", contact_phone: "", contact_email: "", region_ids: [] });
     }
   };
 
   const handleCreateDirect = async () => {
-    if (!directForm.email || !directForm.name) {
-      toast.error('Email ve isim zorunludur');
-      return;
-    }
-
-    if (!directForm.password || directForm.password.length < 6) {
-      toast.error('Şifre en az 6 karakter olmalıdır');
-      return;
-    }
-
+    if (!directForm.email || !directForm.name) { toast.error('Email ve isim zorunludur'); return; }
+    if (!directForm.password || directForm.password.length < 6) { toast.error('Şifre en az 6 karakter olmalıdır'); return; }
     setIsSubmitting(true);
     const result = await createDirectDealer(directForm);
     setIsSubmitting(false);
-
     if (result.success) {
-      // Close the invite dialog first
       setIsInviteDialogOpen(false);
-      
-      // Show password modal
       setTempPassword(result.password || directForm.password);
       setTempEmail(directForm.email);
       setTempUserName(directForm.name);
       setPasswordModalOpen(true);
-      
-      // Reset form
-      setDirectForm({
-        email: "",
-        password: "",
-        name: "",
-        contact_name: "",
-        contact_phone: "",
-        contact_email: "",
-        region_ids: [],
-        tax_number: "",
-        send_email: false,
-      });
-      setShowPassword(false);
-      setRegistrationMode('invite');
-      
-      // Fetch updated list (already called in createDirectDealer, but ensure it's done)
-      await fetchAll();
+      setDirectForm({ email: "", password: "", name: "", contact_name: "", contact_phone: "", contact_email: "", region_ids: [], tax_number: "", send_email: false });
     }
-  };
-
-  const handlePasswordGenerated = (password: string) => {
-    setDirectForm(prev => ({ ...prev, password }));
-  };
-
-  const handleCopyInviteInfo = (invite: typeof pendingInvites[0]) => {
-    const signupUrl = `${window.location.origin}/bayi-kayit?token=${invite.id}`;
-    const text = `Merhaba,\n\nHaldeki platformuna bayi olarak davet edildiniz.\n\nKayıt için: ${signupUrl}\nEmail: ${invite.email}\n\nBu davet 7 gün geçerlidir.`;
-    
-    navigator.clipboard.writeText(text);
-    setCopiedInviteId(invite.id);
-    toast.success('Davet bilgileri kopyalandı');
-    
-    setTimeout(() => setCopiedInviteId(null), 2000);
-  };
-
-  const handleOpenApprovalDialog = (dealer: Dealer, action: 'approve' | 'reject') => {
-    setApprovalDealer(dealer);
-    setApprovalAction(action);
-    setApprovalNotes("");
-    setIsApprovalDialogOpen(true);
   };
 
   const handleApprovalAction = async () => {
     if (!approvalDealer) return;
-    
     setIsProcessing(true);
-    let success = false;
-    
-    if (approvalAction === 'approve') {
-      success = await approveDealer(approvalDealer.id, approvalNotes);
-    } else {
-      success = await rejectDealer(approvalDealer.id, approvalNotes);
-    }
-    
+    const success = approvalAction === 'approve' ? await approveDealer(approvalDealer.id, approvalNotes) : await rejectDealer(approvalDealer.id, approvalNotes);
     setIsProcessing(false);
-    
-    if (success) {
-      setIsApprovalDialogOpen(false);
-      setApprovalDealer(null);
-      setApprovalNotes("");
-    }
-  };
-
-  const getApprovalBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200 hover:text-yellow-900">Onay Bekliyor</Badge>;
-      case 'approved':
-        return <Badge variant="default" className="bg-green-600 text-white hover:bg-green-700">Onaylandı</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive" className="hover:text-white">Reddedildi</Badge>;
-      default:
-        return null;
-    }
+    if (success) { setIsApprovalDialogOpen(false); setApprovalDealer(null); }
   };
 
   const getRegionNames = (regionIds: string[]) => {
     if (!regionIds || regionIds.length === 0) return '-';
-    return regionIds
-      .map(id => regions.find(r => r.id === id)?.name)
-      .filter(Boolean)
-      .join(', ') || '-';
-  };
-
-  const toggleRegion = (regionId: string) => {
-    setInviteForm(prev => ({
-      ...prev,
-      region_ids: prev.region_ids?.includes(regionId)
-        ? prev.region_ids.filter(id => id !== regionId)
-        : [...(prev.region_ids || []), regionId]
-    }));
-  };
-
-  const handleOpenEditDialog = (dealer: Dealer) => {
-    setEditingDealer(dealer);
-    setEditRegionIds(dealer.region_ids || []);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleUpdateRegions = async () => {
-    if (!editingDealer) return;
-    
-    setIsUpdating(true);
-    const success = await updateDealer(editingDealer.id, { region_ids: editRegionIds });
-    setIsUpdating(false);
-    
-    if (success) {
-      setIsEditDialogOpen(false);
-      setEditingDealer(null);
-    }
-  };
-
-  const toggleEditRegion = (regionId: string) => {
-    setEditRegionIds(prev => 
-      prev.includes(regionId)
-        ? prev.filter(id => id !== regionId)
-        : [...prev, regionId]
-    );
+    return regionIds.map(id => regions.find(r => r.id === id)?.name).filter(Boolean).join(', ') || '-';
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Bayiler</h1>
-          <p className="text-muted-foreground">Bayi hesaplarını görüntüleyin ve yönetin</p>
+          <h1 className="text-2xl font-bold text-foreground">Bayi Yönetimi</h1>
+          <p className="text-muted-foreground">Sistemdeki tüm bayileri ve başvuruları buradan yönetin</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={fetchAll} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Yenile
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled>
+            <RefreshCw className="h-4 w-4 mr-2" /> Yenile
           </Button>
           <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Bayi Davet Et
-              </Button>
+              <Button size="sm"><Plus className="h-4 w-4 mr-2" /> Bayi Ekle</Button>
             </DialogTrigger>
-            <DialogContent 
-              className="max-w-md max-h-[90vh] overflow-y-auto"
-              onKeyDown={(e) => {
-                // Prevent form submission on Enter key
-                if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
-                  e.preventDefault();
-                }
-              }}
-            >
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Yeni Bayi Ekle</DialogTitle>
-                <DialogDescription>
-                  Davet göndererek veya direkt kayıt yaparak yeni bayi ekleyebilirsiniz.
-                </DialogDescription>
+                <DialogTitle>Yeni Bayi Kaydı</DialogTitle>
+                <DialogDescription>Davet göndererek veya direkt profil oluşturarak bayi ekleyebilirsiniz.</DialogDescription>
               </DialogHeader>
-              <Tabs 
-                value={registrationMode} 
-                onValueChange={(v) => {
-                  setRegistrationMode(v as 'invite' | 'direct');
-                }} 
-                className="w-full"
-              >
+              <Tabs value={registrationMode} onValueChange={(v: any) => setRegistrationMode(v)}>
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="invite">Davet Gönder</TabsTrigger>
                   <TabsTrigger value="direct">Direkt Kayıt</TabsTrigger>
                 </TabsList>
                 <TabsContent value="invite" className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="bayi@example.com"
-                    value={inviteForm.email}
-                    onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="name">Firma Adı *</Label>
-                  <Input
-                    id="name"
-                    placeholder="Bayi Firma Adı"
-                    value={inviteForm.name}
-                    onChange={(e) => setInviteForm(prev => ({ ...prev, name: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contact_name">Yetkili Adı</Label>
-                  <Input
-                    id="contact_name"
-                    placeholder="Ad Soyad"
-                    value={inviteForm.contact_name}
-                    onChange={(e) => setInviteForm(prev => ({ ...prev, contact_name: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contact_phone">Telefon</Label>
-                  <Input
-                    id="contact_phone"
-                    placeholder="0555 555 55 55"
-                    value={inviteForm.contact_phone}
-                    onChange={(e) => setInviteForm(prev => ({ ...prev, contact_phone: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Servis Bölgeleri</Label>
-                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                    {regions.map(region => (
-                      <div key={region.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`region-${region.id}`}
-                          checked={inviteForm.region_ids?.includes(region.id)}
-                          onCheckedChange={() => toggleRegion(region.id)}
-                        />
-                        <label htmlFor={`region-${region.id}`} className="text-sm cursor-pointer">
-                          {region.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                </TabsContent>
-                <TabsContent value="direct" className="space-y-4 py-4">
+                  <div className="space-y-2"><Label>Email *</Label><Input type="email" value={inviteForm.email} onChange={e => setInviteForm({...inviteForm, email: e.target.value})} /></div>
+                  <div className="space-y-2"><Label>Firma Adı *</Label><Input value={inviteForm.name} onChange={e => setInviteForm({...inviteForm, name: e.target.value})} /></div>
+                  <div className="space-y-2"><Label>Yetkili Adı</Label><Input value={inviteForm.contact_name} onChange={e => setInviteForm({...inviteForm, contact_name: e.target.value})} /></div>
                   <div className="space-y-2">
-                    <Label htmlFor="direct-email">Email *</Label>
-                    <Input
-                      id="direct-email"
-                      type="email"
-                      placeholder="bayi@example.com"
-                      value={directForm.email}
-                      onChange={(e) => setDirectForm(prev => ({ ...prev, email: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="direct-name">Firma Adı *</Label>
-                    <Input
-                      id="direct-name"
-                      placeholder="Bayi Firma Adı"
-                      value={directForm.name}
-                      onChange={(e) => setDirectForm(prev => ({ ...prev, name: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="direct-password">Geçici Şifre *</Label>
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <Input
-                          id="direct-password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="En az 6 karakter"
-                          value={directForm.password}
-                          onChange={(e) => setDirectForm(prev => ({ ...prev, password: e.target.value }))}
-                          minLength={6}
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                      <PasswordGenerator onPasswordGenerated={handlePasswordGenerated} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="direct-contact_name">Yetkili Adı</Label>
-                    <Input
-                      id="direct-contact_name"
-                      placeholder="Ad Soyad"
-                      value={directForm.contact_name}
-                      onChange={(e) => setDirectForm(prev => ({ ...prev, contact_name: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="direct-contact_phone">Telefon</Label>
-                    <Input
-                      id="direct-contact_phone"
-                      placeholder="0555 555 55 55"
-                      value={directForm.contact_phone}
-                      onChange={(e) => setDirectForm(prev => ({ ...prev, contact_phone: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="direct-tax_number">Vergi Numarası</Label>
-                    <Input
-                      id="direct-tax_number"
-                      placeholder="Vergi Numarası"
-                      value={directForm.tax_number}
-                      onChange={(e) => setDirectForm(prev => ({ ...prev, tax_number: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Servis Bölgeleri</Label>
+                    <Label>Hizmet Bölgeleri</Label>
                     <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                      {regions.map(region => (
-                        <div key={region.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`direct-region-${region.id}`}
-                            checked={directForm.region_ids?.includes(region.id)}
-                            onCheckedChange={() => {
-                              setDirectForm(prev => ({
-                                ...prev,
-                                region_ids: prev.region_ids?.includes(region.id)
-                                  ? prev.region_ids.filter(id => id !== region.id)
-                                  : [...(prev.region_ids || []), region.id]
-                              }));
-                            }}
-                          />
-                          <label htmlFor={`direct-region-${region.id}`} className="text-sm cursor-pointer">
-                            {region.name}
-                          </label>
+                      {regions.map(r => (
+                        <div key={r.id} className="flex items-center space-x-2">
+                          <Checkbox id={`r-${r.id}`} checked={inviteForm.region_ids.includes(r.id)} onCheckedChange={c => setInviteForm({...inviteForm, region_ids: c ? [...inviteForm.region_ids, r.id] : inviteForm.region_ids.filter(id => id !== r.id)})} />
+                          <label htmlFor={`r-${r.id}`} className="text-sm">{r.name}</label>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="send-email"
-                      checked={directForm.send_email}
-                      onCheckedChange={(checked) => setDirectForm(prev => ({ ...prev, send_email: checked === true }))}
-                    />
-                    <label htmlFor="send-email" className="text-sm cursor-pointer">
-                      Email gönder (geçici şifre ve giriş bilgileri)
-                    </label>
+                </TabsContent>
+                <TabsContent value="direct" className="space-y-4 py-4">
+                  <div className="space-y-2"><Label>Email *</Label><Input type="email" value={directForm.email} onChange={e => setDirectForm({...directForm, email: e.target.value})} /></div>
+                  <div className="space-y-2"><Label>Firma Adı *</Label><Input value={directForm.name} onChange={e => setDirectForm({...directForm, name: e.target.value})} /></div>
+                  <div className="space-y-2">
+                    <Label>Geçici Şifre *</Label>
+                    <div className="relative">
+                      <Input type={showPassword ? "text" : "password"} value={directForm.password} onChange={e => setDirectForm({...directForm, password: e.target.value})} />
+                      <Button variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</Button>
+                    </div>
+                    <PasswordGenerator onPasswordGenerated={p => setDirectForm({...directForm, password: p})} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2"><Label>Yetkili</Label><Input value={directForm.contact_name} onChange={e => setDirectForm({...directForm, contact_name: e.target.value})} /></div>
+                    <div className="space-y-2"><Label>Vergi No</Label><Input value={directForm.tax_number} onChange={e => setDirectForm({...directForm, tax_number: e.target.value})} /></div>
                   </div>
                 </TabsContent>
               </Tabs>
               <DialogFooter>
-                <Button variant="outline" onClick={() => {
-                  setIsInviteDialogOpen(false);
-                  setRegistrationMode('invite');
-                }}>
-                  İptal
-                </Button>
-                <Button 
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (registrationMode === 'invite') {
-                      handleCreateInvite();
-                    } else {
-                      handleCreateDirect();
-                    }
-                  }} 
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {registrationMode === 'invite' ? 'Davet Oluştur' : 'Kayıt Oluştur'}
+                <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>İptal</Button>
+                <Button onClick={registrationMode === 'invite' ? handleCreateInvite : handleCreateDirect} disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} {registrationMode === 'invite' ? 'Davet Oluştur' : 'Kayıt Oluştur'}
                 </Button>
               </DialogFooter>
             </DialogContent>
-            <PasswordDisplayModal
-              open={passwordModalOpen}
-              onOpenChange={(open) => {
-                setPasswordModalOpen(open);
-                if (!open) {
-                  // Refresh list when modal closes
-                  fetchAll();
-                }
-              }}
-              password={tempPassword}
-              email={tempEmail}
-              userName={tempUserName}
-            />
           </Dialog>
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="İsim veya email ile ara..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9"
-        />
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-yellow-50/50 border-yellow-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-yellow-700 flex items-center gap-2">
+              <Clock className="h-4 w-4" /> Bekleyen Başvurular
+            </CardTitle>
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold text-yellow-800">{pendingCount}</div></CardContent>
+        </Card>
+        <Card className="bg-green-50/50 border-green-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-green-700 flex items-center gap-2">
+              <Users className="h-4 w-4" /> Aktif Bayiler
+            </CardTitle>
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold text-green-800">{approvedCount}</div></CardContent>
+        </Card>
+        <Card className="bg-blue-50/50 border-blue-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-blue-700 flex items-center gap-2">
+              <MapPin className="h-4 w-4" /> Hizmet Verilen Bölgeler
+            </CardTitle>
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold text-blue-800">{regions.length}</div></CardContent>
+        </Card>
       </div>
 
-      {/* Pending Applications */}
-      {pendingApplications.length > 0 && (
-        <Card className="border-yellow-200 bg-yellow-50/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-yellow-700">
-              <AlertCircle className="h-5 w-5" />
-              Onay Bekleyen Başvurular
-              <Badge variant="outline" className="ml-2 bg-yellow-100 text-yellow-700">
-                {pendingApplications.length}
-              </Badge>
-            </CardTitle>
-            <CardDescription>
-              Kayıt olmuş ve onay bekleyen bayi başvuruları
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {pendingApplications.map(dealer => (
-                <div key={dealer.id} className="flex items-center justify-between p-4 border rounded-lg bg-white">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-lg">{dealer.name}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {dealer.contact_name || '-'}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {dealer.contact_email || '-'}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
-                        {dealer.contact_phone || '-'}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {getRegionNames(dealer.region_ids)}
-                      </div>
-                    </div>
-                    {dealer.tax_number && (
-                      <p className="text-xs text-muted-foreground">
-                        Vergi No: {dealer.tax_number}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-green-600 border-green-300 hover:bg-green-50"
-                      onClick={() => handleOpenApprovalDialog(dealer, 'approve')}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Onayla
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600 border-red-300 hover:bg-red-50"
-                      onClick={() => handleOpenApprovalDialog(dealer, 'reject')}
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Reddet
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Main Tabs Structure */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full justify-start bg-transparent border-b rounded-none h-auto p-0 gap-6">
+          <TabsTrigger value="pending" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-2 border-transparent rounded-none px-2 pb-3 pt-0 font-semibold relative">
+            Onay Bekleyenler {pendingCount > 0 && <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">{pendingCount}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="active" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-2 border-transparent rounded-none px-2 pb-3 pt-0 font-semibold">
+            Tüm Bayiler
+          </TabsTrigger>
+          <TabsTrigger value="invites" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-2 border-transparent rounded-none px-2 pb-3 pt-0 font-semibold text-muted-foreground">
+            Davetler {inviteCount > 0 && <Badge variant="outline" className="ml-2">{inviteCount}</Badge>}
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Pending Invites */}
-      {pendingInvites.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Bekleyen Davetler
-            </CardTitle>
-            <CardDescription>
-              Henüz kayıt olmamış bayi davetleri
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {pendingInvites.map(invite => (
-                <div key={invite.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{invite.email}</span>
-                      <Badge variant="outline">
-                        {invite.dealer_data?.name || 'İsimsiz'}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Geçerlilik: {format(new Date(invite.expires_at), 'dd MMM yyyy HH:mm', { locale: tr })}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleCopyInviteInfo(invite)}
-                    >
-                      {copiedInviteId === invite.id ? (
-                        <Check className="h-4 w-4" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={async () => {
-                        const success = await cancelInvite(invite.id);
-                        if (success) {
-                          await fetchAll();
-                        }
-                      }}
-                    >
-                      İptal
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        <div className="py-4">
+          <div className="relative max-w-sm mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Ara..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-9" />
+          </div>
 
-      {/* Dealers Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Bayi Listesi</CardTitle>
-          <CardDescription>
-            Toplam {filteredDealers.length} bayi
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredDealers.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              {dealers.length === 0 ? "Henüz bayi yok" : "Aramayla eşleşen bayi bulunamadı"}
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
+          <TabsContent value="pending" className="m-0">
+            {pendingApplications.length === 0 ? (
+              <div className="text-center py-12 bg-muted/20 border border-dashed rounded-lg">
+                <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">Bekleyen yeni başvuru bulunmuyor</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {pendingApplications.map(dealer => (
+                  <Card key={dealer.id} className="border-l-4 border-l-yellow-500 shadow-sm overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="flex flex-col md:flex-row items-center">
+                        <div className="flex-1 p-6 space-y-3">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-bold">{dealer.name}</h3>
+                            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Onay Bekliyor</Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-y-2 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2"><User className="h-4 w-4" /> {dealer.contact_name || '-'}</div>
+                            <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> {dealer.contact_email}</div>
+                            <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> {dealer.contact_phone || '-'}</div>
+                            <div className="flex items-center gap-2 md:col-span-3 pt-1"><MapPin className="h-4 w-4" /> {getRegionNames(dealer.region_ids)}</div>
+                          </div>
+                        </div>
+                        <div className="w-full md:w-auto bg-muted/30 md:bg-transparent border-t md:border-t-0 md:border-l p-6 flex flex-row md:flex-col gap-2">
+                          <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => { setApprovalDealer(dealer); setApprovalAction('approve'); setIsApprovalDialogOpen(true); }}>
+                            <CheckCircle className="h-4 w-4 mr-2" /> Onayla
+                          </Button>
+                          <Button variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setApprovalDealer(dealer); setApprovalAction('reject'); setIsApprovalDialogOpen(true); }}>
+                            <XCircle className="h-4 w-4 mr-2" /> Reddet
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="active" className="m-0">
+            <Card>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Firma Adı</TableHead>
-                    <TableHead>Yetkili</TableHead>
+                    <TableHead>Firma</TableHead>
                     <TableHead>İletişim</TableHead>
                     <TableHead>Bölgeler</TableHead>
                     <TableHead>Durum</TableHead>
-                    <TableHead>Kayıt Tarihi</TableHead>
-                    <TableHead>İşlem</TableHead>
+                    <TableHead className="text-right">İşlemler</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDealers.map((dealer) => (
+                  {filteredDealers.filter(d => d.approval_status !== 'pending').map((dealer) => (
                     <TableRow key={dealer.id}>
-                      <TableCell className="font-medium">{dealer.name}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3 text-muted-foreground" />
-                          {dealer.contact_name || '-'}
+                        <div className="font-bold">{dealer.name}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {format(new Date(dealer.created_at), 'dd MMM yyyy', { locale: tr })}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div className="font-medium">{dealer.contact_name}</div>
+                          <div className="text-muted-foreground text-xs">{dealer.contact_email}</div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-1 text-sm">
-                          {dealer.contact_email && (
-                            <div className="flex items-center gap-1">
-                              <Mail className="h-3 w-3 text-muted-foreground" />
-                              {dealer.contact_email}
-                            </div>
-                          )}
-                          {dealer.contact_phone && (
-                            <div className="flex items-center gap-1">
-                              <Phone className="h-3 w-3 text-muted-foreground" />
-                              {dealer.contact_phone}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">{getRegionNames(dealer.region_ids)}</span>
-                        </div>
+                        <Badge variant="outline" className="font-normal text-xs">{getRegionNames(dealer.region_ids)}</Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
-                          {getApprovalBadge(dealer.approval_status)}
-                          <Badge 
-                            variant={dealer.is_active ? "default" : "secondary"} 
-                            className={`text-xs ${dealer.is_active ? 'bg-green-700 text-white hover:bg-green-800' : 'hover:text-foreground'}`}
-                          >
-                            {dealer.is_active ? "Aktif" : "Pasif"}
+                          <Badge variant={dealer.approval_status === 'approved' ? 'default' : 'destructive'} className={dealer.approval_status === 'approved' ? 'bg-green-600' : ''}>
+                            {dealer.approval_status === 'approved' ? 'Onaylı' : 'Reddedildi'}
+                          </Badge>
+                          <Badge variant={dealer.is_active ? 'secondary' : 'outline'} className={dealer.is_active ? 'bg-green-100 text-green-800 border-green-200' : ''}>
+                            {dealer.is_active ? 'Aktif' : 'Pasif'}
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {format(new Date(dealer.created_at), 'dd MMM yyyy', { locale: tr })}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenEditDialog(dealer)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Bölge
-                          </Button>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
                           {dealer.user_id && getTemporaryPassword(dealer.user_id) && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const password = getTemporaryPassword(dealer.user_id!);
-                                if (password) {
-                                  setTempPassword(password);
-                                  setTempEmail(dealer.contact_email || dealer.email || '');
-                                  setTempUserName(dealer.name);
-                                  setPasswordModalOpen(true);
-                                }
-                              }}
-                            >
-                              <Key className="h-4 w-4 mr-1" />
-                              Şifre Gör
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Şifre Gör" onClick={() => { const p = getTemporaryPassword(dealer.user_id!); if (p) { setTempPassword(p); setTempEmail(dealer.contact_email || ''); setTempUserName(dealer.name); setPasswordModalOpen(true); } }}>
+                              <Key className="h-4 w-4 text-amber-600" />
                             </Button>
                           )}
-                          <Button
-                            variant={dealer.is_active ? "destructive" : "outline"}
-                            size="sm"
-                            onClick={() => toggleDealerActive(dealer.id, dealer.is_active)}
-                          >
-                            {dealer.is_active ? (
-                              <>
-                                <PowerOff className="h-4 w-4 mr-1" />
-                                Pasifleştir
-                              </>
-                            ) : (
-                              <>
-                                <Power className="h-4 w-4 mr-1" />
-                                Aktifleştir
-                              </>
-                            )}
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Düzenle" onClick={() => { setEditingDealer(dealer); setEditRegionIds(dealer.region_ids || []); setIsEditDialogOpen(true); }}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className={`h-8 w-8 p-0 ${dealer.is_active ? 'text-red-500' : 'text-green-500'}`} title={dealer.is_active ? 'Pasifleştir' : 'Aktifleştir'} onClick={() => toggleDealerActive(dealer.id, dealer.is_active)}>
+                            {dealer.is_active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
                           </Button>
                         </div>
                       </TableCell>
@@ -797,108 +336,82 @@ const AdminDealers = () => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </Card>
+          </TabsContent>
 
-      {/* Edit Region Dialog */}
+          <TabsContent value="invites" className="m-0">
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Firma</TableHead>
+                    <TableHead>Geçerlilik</TableHead>
+                    <TableHead className="text-right">İşlemler</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingInvites.map((inv) => (
+                    <TableRow key={inv.id}>
+                      <TableCell className="font-medium">{inv.email}</TableCell>
+                      <TableCell>{inv.dealer_data?.name}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{format(new Date(inv.expires_at), 'dd MMM yyyy HH:mm', { locale: tr })}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => {
+                            const signupUrl = `${window.location.origin}/bayi-kayit?token=${inv.id}`;
+                            navigator.clipboard.writeText(`Davet Linki: ${signupUrl}`);
+                            toast.success('Davet linki kopyalandı');
+                          }}><Copy className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500" onClick={async () => { await cancelInvite(inv.id); }}><XCircle className="h-4 w-4" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </TabsContent>
+        </div>
+      </Tabs>
+
+      {/* Modals */}
+      <PasswordDisplayModal open={passwordModalOpen} onOpenChange={setPasswordModalOpen} password={tempPassword} email={tempEmail} userName={tempUserName} />
+      
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Bölge Düzenle</DialogTitle>
-            <DialogDescription>
-              {editingDealer?.name} için bölge atamalarını güncelleyin.
-            </DialogDescription>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Bölge Düzenle</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
             <Label>Servis Bölgeleri</Label>
             <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-md p-2">
-              {regions.map(region => (
-                <div key={region.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`edit-region-${region.id}`}
-                    checked={editRegionIds.includes(region.id)}
-                    onCheckedChange={() => toggleEditRegion(region.id)}
-                  />
-                  <label htmlFor={`edit-region-${region.id}`} className="text-sm cursor-pointer">
-                    {region.name}
-                  </label>
+              {regions.map(r => (
+                <div key={r.id} className="flex items-center space-x-2">
+                  <Checkbox id={`edit-r-${r.id}`} checked={editRegionIds.includes(r.id)} onCheckedChange={c => setEditRegionIds(c ? [...editRegionIds, r.id] : editRegionIds.filter(id => id !== r.id))} />
+                  <label htmlFor={`edit-r-${r.id}`} className="text-sm">{r.name}</label>
                 </div>
               ))}
             </div>
-            {editRegionIds.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {editRegionIds.map(id => {
-                  const region = regions.find(r => r.id === id);
-                  return region ? (
-                    <Badge key={id} variant="secondary">{region.name}</Badge>
-                  ) : null;
-                })}
-              </div>
-            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button onClick={handleUpdateRegions} disabled={isUpdating}>
-              {isUpdating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Kaydet
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>İptal</Button>
+            <Button onClick={async () => { if(editingDealer) { setIsUpdating(true); if(await updateDealer(editingDealer.id, { region_ids: editRegionIds })) setIsEditDialogOpen(false); setIsUpdating(false); } }} disabled={isUpdating}>
+              {isUpdating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Kaydet
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Approval Dialog */}
       <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className={approvalAction === 'approve' ? 'text-green-700' : 'text-red-700'}>
-              {approvalAction === 'approve' ? 'Başvuruyu Onayla' : 'Başvuruyu Reddet'}
-            </DialogTitle>
-            <DialogDescription>
-              <span className="font-semibold">{approvalDealer?.name}</span> firmasının başvurusunu{' '}
-              {approvalAction === 'approve' ? 'onaylamak' : 'reddetmek'} istediğinizden emin misiniz?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {approvalDealer && (
-              <div className="bg-muted rounded-lg p-3 text-sm space-y-1">
-                <p><strong>Yetkili:</strong> {approvalDealer.contact_name || '-'}</p>
-                <p><strong>Email:</strong> {approvalDealer.contact_email || '-'}</p>
-                <p><strong>Telefon:</strong> {approvalDealer.contact_phone || '-'}</p>
-                {approvalDealer.tax_number && (
-                  <p><strong>Vergi No:</strong> {approvalDealer.tax_number}</p>
-                )}
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="approval-notes">
-                {approvalAction === 'approve' ? 'Not (opsiyonel)' : 'Red Sebebi (opsiyonel)'}
-              </Label>
-              <Textarea
-                id="approval-notes"
-                placeholder={approvalAction === 'approve' 
-                  ? 'Onay ile ilgili not ekleyin...' 
-                  : 'Red sebebini belirtin...'}
-                value={approvalNotes}
-                onChange={(e) => setApprovalNotes(e.target.value)}
-                rows={3}
-              />
-            </div>
+        <DialogContent>
+          <DialogHeader><DialogTitle className={approvalAction === 'approve' ? 'text-green-700' : 'text-red-700'}>{approvalAction === 'approve' ? 'Başvuruyu Onayla' : 'Başvuruyu Reddet'}</DialogTitle></DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm"><strong>{approvalDealer?.name}</strong> için işlem yapmak üzeresiniz.</p>
+            <Textarea placeholder="Notlar..." value={approvalNotes} onChange={e => setApprovalNotes(e.target.value)} />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsApprovalDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button 
-              onClick={handleApprovalAction} 
-              disabled={isProcessing}
-              variant={approvalAction === 'approve' ? 'default' : 'destructive'}
-            >
-              {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {approvalAction === 'approve' ? 'Onayla' : 'Reddet'}
+            <Button variant="outline" onClick={() => setIsApprovalDialogOpen(false)}>İptal</Button>
+            <Button onClick={handleApprovalAction} disabled={isProcessing} variant={approvalAction === 'approve' ? 'default' : 'destructive'}>
+              {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Tamamla
             </Button>
           </DialogFooter>
         </DialogContent>

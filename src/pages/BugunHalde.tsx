@@ -10,6 +10,7 @@ import { useBugunHaldeProducts, DbProduct } from "@/hooks/useProducts";
 import { useRegionProducts } from "@/hooks/useRegionProducts";
 import { useRegion } from "@/contexts/RegionContext";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { mergeProductsWithRegion, sortByAvailability, getPriceChangeLabel } from "@/lib/productUtils";
 import { cn } from "@/lib/utils";
 import { Product, ProductWithRegionInfo } from "@/types";
@@ -38,6 +39,7 @@ const convertDbProduct = (dbProduct: DbProduct): Product => ({
 const BugunHalde = () => {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const { selectedRegion } = useRegion();
+  const { isBusiness } = useAuth();
   const { data: dbProducts, isLoading: isProductsLoading } = useBugunHaldeProducts();
   const { data: regionProducts, isLoading: isRegionLoading } = useRegionProducts(selectedRegion?.id ?? null);
   const { addToCart } = useCart();
@@ -68,7 +70,13 @@ const BugunHalde = () => {
         return;
       }
     }
-    addToCart(product);
+    
+    // 2A.3: Add to cart with correct price based on role
+    const price = (isBusiness && product.regionInfo?.businessPrice) 
+      ? product.regionInfo.businessPrice 
+      : (product.regionInfo?.price ?? product.price);
+      
+    addToCart(product, 1, undefined, price);
   };
 
   const handleNotifyStock = (productName: string) => {
@@ -86,10 +94,10 @@ const BugunHalde = () => {
           <div className="container">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
               <Tag className="h-8 w-8 text-primary" />
-              Bugün Halde
+              {isBusiness ? "İşletme Özel Fiyatları" : "Bugün Halde"}
             </h1>
             <p className="text-muted-foreground mt-2">
-              Günün en taze ürünleri ve özel fiyatları
+              {isBusiness ? "İşletmenize özel avantajlı fiyatlar" : "Günün en taze ürünleri ve özel fiyatları"}
             </p>
           </div>
         </section>
@@ -159,7 +167,10 @@ const BugunHalde = () => {
                   </TableHeader>
                   <TableBody>
                     {productsWithRegion.map((product) => {
-                      const displayPrice = product.regionInfo?.price ?? product.price;
+                      const regularPrice = product.regionInfo?.price ?? product.price;
+                      const businessPrice = product.regionInfo?.businessPrice;
+                      const displayPrice = (isBusiness && businessPrice) ? businessPrice : regularPrice;
+                      
                       const isInRegion = product.regionInfo?.isInRegion ?? false;
                       const isOutOfStock = product.regionInfo?.stockQuantity === 0;
                       const canAdd = !selectedRegion || (isInRegion && !isOutOfStock);
@@ -195,13 +206,24 @@ const BugunHalde = () => {
                           </TableCell>
                           <TableCell className="text-muted-foreground">{product.origin}</TableCell>
                           <TableCell className="text-right">
-                            <span className="font-bold">{displayPrice.toFixed(2)}₺</span>
-                            <span className="text-muted-foreground">/{product.unit}</span>
-                            {product.regionInfo?.previousPrice && product.regionInfo.previousPrice > displayPrice && (
-                              <span className="block text-xs text-muted-foreground line-through">
-                                {product.regionInfo.previousPrice.toFixed(2)}₺
-                              </span>
-                            )}
+                            <div className="flex flex-col items-end">
+                              <div className="flex items-center gap-1">
+                                <span className={cn("font-bold", isBusiness && businessPrice && "text-primary")}>
+                                  {displayPrice.toFixed(2)}₺
+                                </span>
+                                <span className="text-muted-foreground text-xs">/{product.unit}</span>
+                              </div>
+                              {isBusiness && businessPrice && regularPrice > businessPrice && (
+                                <span className="text-[10px] text-muted-foreground line-through">
+                                  {regularPrice.toFixed(2)}₺
+                                </span>
+                              )}
+                              {!isBusiness && product.regionInfo?.previousPrice && product.regionInfo.previousPrice > displayPrice && (
+                                <span className="block text-[10px] text-muted-foreground line-through">
+                                  {product.regionInfo.previousPrice.toFixed(2)}₺
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-center">
                             {selectedRegion && !isInRegion ? (

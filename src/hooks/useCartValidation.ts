@@ -29,8 +29,8 @@ export async function validateCartForRegion(
 
   // Map oluştur: product_id -> region product info
   const regionProductMap = new Map<string, RegionProductInfo>();
-  (regionProducts || []).forEach((rp: any) => {
-    regionProductMap.set(rp.product_id, rp as RegionProductInfo);
+  (regionProducts || []).forEach((rp) => {
+    regionProductMap.set(rp.product_id, rp as unknown as RegionProductInfo);
   });
 
   const invalidItems: CartValidationResult["invalidItems"] = [];

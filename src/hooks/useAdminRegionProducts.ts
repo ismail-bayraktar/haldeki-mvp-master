@@ -84,6 +84,7 @@ export function useCreateRegionProduct() {
       region_id: string;
       product_id: string;
       price: number;
+      business_price?: number | null;
       stock_quantity: number;
       availability: "plenty" | "limited" | "last";
       is_active: boolean;
@@ -116,6 +117,7 @@ export function useUpdateRegionProduct() {
       id: string;
       regionId: string;
       price?: number;
+      business_price?: number | null;
       previous_price?: number | null;
       price_change?: "up" | "down" | "stable";
       stock_quantity?: number;

@@ -5,7 +5,7 @@ interface SendEmailParams {
   toName?: string;
   subject?: string;
   htmlContent?: string;
-  templateType?: 'dealer_invite' | 'supplier_invite' | 'order_notification' | 'offer_status' | 'order_confirmation' | 'admin_new_application' | 'application_approved' | 'application_rejected' | 'order_confirmed' | 'order_delivered' | 'order_cancelled' | 'payment_notification_received' | 'payment_notification_verified';
+  templateType?: 'dealer_invite' | 'supplier_invite' | 'business_invite' | 'order_notification' | 'offer_status' | 'order_confirmation' | 'admin_new_application' | 'application_approved' | 'application_rejected' | 'order_confirmed' | 'order_delivered' | 'order_cancelled' | 'payment_notification_received' | 'payment_notification_verified';
   templateData?: Record<string, any>;
 }
 
@@ -32,6 +32,29 @@ export const useEmailService = () => {
       console.error('[useEmailService] Exception:', err);
       return { success: false, error: err.message };
     }
+  };
+
+  const sendBusinessInvite = async (
+    email: string,
+    businessName: string,
+    contactName: string,
+    inviteId?: string
+  ) => {
+    const signupUrl = inviteId
+      ? `${window.location.origin}/isletme-kayit?token=${inviteId}`
+      : `${window.location.origin}/giris`;
+      
+    return sendEmail({
+      to: email,
+      toName: contactName,
+      templateType: 'business_invite',
+      templateData: {
+        email,
+        businessName,
+        contactName,
+        signupUrl
+      }
+    });
   };
 
   const sendDealerInvite = async (
@@ -172,21 +195,25 @@ export const useEmailService = () => {
   // Yeni başvuru admin bildirimi
   const sendNewApplicationNotification = async (
     adminEmail: string,
-    applicationType: 'dealer' | 'supplier',
+    applicationType: 'dealer' | 'supplier' | 'business',
     applicantName: string,
     applicantEmail: string,
     firmName: string
   ) => {
     const dashboardUrl = applicationType === 'dealer' 
       ? `${window.location.origin}/admin/dealers`
-      : `${window.location.origin}/admin/suppliers`;
+      : applicationType === 'supplier'
+        ? `${window.location.origin}/admin/suppliers`
+        : `${window.location.origin}/admin/businesses`;
       
+    const typeLabel = applicationType === 'dealer' ? 'Bayi' : applicationType === 'supplier' ? 'Tedarikçi' : 'İşletme';
+
     return sendEmail({
       to: adminEmail,
       toName: 'Admin',
       templateType: 'admin_new_application',
       templateData: {
-        applicationType: applicationType === 'dealer' ? 'Bayi' : 'Tedarikçi',
+        applicationType: typeLabel,
         applicantName,
         applicantEmail,
         firmName,
@@ -199,20 +226,24 @@ export const useEmailService = () => {
   const sendApplicationApproved = async (
     email: string,
     name: string,
-    applicationType: 'dealer' | 'supplier',
+    applicationType: 'dealer' | 'supplier' | 'business',
     firmName: string
   ) => {
     const dashboardUrl = applicationType === 'dealer'
       ? `${window.location.origin}/bayi`
-      : `${window.location.origin}/tedarikci`;
+      : applicationType === 'supplier'
+        ? `${window.location.origin}/tedarikci`
+        : `${window.location.origin}/business`;
       
+    const typeLabel = applicationType === 'dealer' ? 'Bayi' : applicationType === 'supplier' ? 'Tedarikçi' : 'İşletme';
+
     return sendEmail({
       to: email,
       toName: name,
       templateType: 'application_approved',
       templateData: {
         name,
-        applicationType: applicationType === 'dealer' ? 'Bayi' : 'Tedarikçi',
+        applicationType: typeLabel,
         firmName,
         dashboardUrl
       }
@@ -223,11 +254,12 @@ export const useEmailService = () => {
   const sendApplicationRejected = async (
     email: string,
     name: string,
-    applicationType: 'dealer' | 'supplier',
+    applicationType: 'dealer' | 'supplier' | 'business',
     firmName: string,
     reason?: string
   ) => {
     const contactUrl = `${window.location.origin}/iletisim`;
+    const typeLabel = applicationType === 'dealer' ? 'Bayi' : applicationType === 'supplier' ? 'Tedarikçi' : 'İşletme';
     
     return sendEmail({
       to: email,
@@ -235,7 +267,7 @@ export const useEmailService = () => {
       templateType: 'application_rejected',
       templateData: {
         name,
-        applicationType: applicationType === 'dealer' ? 'Bayi' : 'Tedarikçi',
+        applicationType: typeLabel,
         firmName,
         reason,
         contactUrl

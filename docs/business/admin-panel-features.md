@@ -2,7 +2,7 @@
 
 ## Genel Bakış
 
-Admin panelinde bayi ve tedarikçi yönetimi için kapsamlı özellikler ve kullanıcı dostu arayüz iyileştirmeleri bulunmaktadır.
+Admin panelinde bayi, tedarikçi ve işletme yönetimi için kapsamlı özellikler ve kullanıcı dostu arayüz iyileştirmeleri bulunmaktadır. Faz 10 ile birlikte tedarikçilerin ürün içe/dışa aktarma işlemlerini takip edebileceği audit log sistemi eklenmiştir.
 
 ## Liste Yönetimi
 
@@ -13,25 +13,18 @@ Admin panelinde bayi ve tedarikçi yönetimi için kapsamlı özellikler ve kull
 - `useEffect` hook'u ile ilk yükleme yapılır
 - Manuel yenileme butonu da mevcuttur
 
-**Kod:**
-```typescript
-useEffect(() => {
-  fetchAll();
-}, [fetchAll]);
-```
+### Sekmeli (Tabbed) Yönetim Yapısı (YENİ)
+
+Admin panelinde Bayi, Tedarikçi ve İşletme yönetimi için üç aşamalı sekmeli yapıya geçilmiştir:
+
+1. **Onay Bekleyenler (Action Inbox):** Yeni kayıt olan ancak henüz onaylanmamış başvurular burada kart bazlı, yüksek vurgulu ve direkt "Onayla/Reddet" butonlarıyla listelenir.
+2. **Aktif Liste:** Onaylanmış veya reddedilmiş tüm kayıtların bulunduğu, detaylı arama ve filtreleme destekli ana tablodur.
+3. **Bekleyen Davetler:** Henüz kayıt formunu doldurmamış, sadece email daveti gönderilmiş kayıtlar burada izlenir.
 
 **Avantajlar:**
-- Sayfa açıldığında veriler otomatik yüklenir
-- Kullanıcı manuel yenileme yapmak zorunda kalmaz
-- Güncel veriler her zaman görüntülenir
-
-### Liste Güncelleme Mekanizması
-
-**Durumlar:**
-1. Direkt kayıt sonrası: Dialog kapanır, password modal açılır, modal kapandığında liste güncellenir
-2. Davet iptali sonrası: Liste otomatik güncellenir
-3. Onay/Red sonrası: Liste otomatik güncellenir
-4. Aktif/Pasif toggle sonrası: Liste otomatik güncellenir
+- Operasyonel odaklanma: Admin direkt olarak bekleyen işleri görür.
+- Temiz UI: Veri kalabalığı sekmelerle ayrıştırılmıştır.
+- Hızlı Aksiyon: Onay ve red işlemleri için minimum tıklama hedeflenmiştir.
 
 ## Şifre Görme Özelliği
 
@@ -46,68 +39,28 @@ Direkt kayıt yapılan bayi/tedarikçiler için geçici şifreler localStorage'd
 - Şifre XOR encryption ile şifrelenir (basit obfuscation)
 - Key: `haldeki-temp-password-key` (varsayılan)
 
-**Kod:**
-```typescript
-// useDealers.ts / useSuppliers.ts
-if (functionData.userId && data.password) {
-  const { storeTemporaryPassword } = await import('@/utils/passwordUtils');
-  storeTemporaryPassword(functionData.userId, data.password);
-}
-```
-
 ### Şifre Görüntüleme
 
 **UI:**
-- Tabloda "Şifre Gör" butonu sadece direkt kayıt yapılanlar için görünür
-- Buton tıklandığında `PasswordDisplayModal` açılır
-- Şifre kopyalama butonu ile kolayca kopyalanabilir
-
-**Kod:**
-```typescript
-{supplier.user_id && getTemporaryPassword(supplier.user_id) && (
-  <Button
-    variant="outline"
-    size="sm"
-    onClick={() => {
-      const password = getTemporaryPassword(supplier.user_id!);
-      if (password) {
-        setTempPassword(password);
-        setTempEmail(supplier.contact_email || supplier.email || '');
-        setTempUserName(supplier.name);
-        setPasswordModalOpen(true);
-      }
-    }}
-  >
-    <Key className="h-4 w-4 mr-1" />
-    Şifre Gör
-  </Button>
-)}
-```
-
-**Güvenlik Notları:**
-- Şifreler sadece admin panelinde görüntülenebilir
-- localStorage'da şifrelenmiş olarak saklanır
-- Şifre görüntüleme için kullanıcı ID kontrolü yapılır
+- Tabloda "Şifre Gör" butonu (Anahtar ikonu) sadece direkt kayıt yapılanlar için görünür.
+- Buton tıklandığında `PasswordDisplayModal` açılır.
+- Şifre kopyalama butonu ile kolayca kopyalanabilir.
 
 ## UI/UX İyileştirmeleri
 
-### Tablo Formatı
+### Liste Tasarımı
 
-**Kolonlar:**
-- Firma Adı
-- Yetkili (contact_name)
-- İletişim (email, telefon)
-- Bölgeler/Kategoriler
-- Durum (Onay durumu + Aktif/Pasif badge'leri)
-- Kayıt Tarihi
-- İşlemler (Bölge Düzenle, Şifre Gör, Aktif/Pasif Toggle)
+**Aksiyonlar:**
+- **Onayla/Reddet:** Bekleyen başvurular için hızlı karar butonları.
+- **Bölge Düzenle (Bayi):** Bayinin hizmet verdiği bölgeleri anında güncelleme.
+- **Aktif/Pasif:** Kayıtlı kullanıcıları sistemden anında devre dışı bırakma.
+- **Şifre Gör:** Kayıt sonrası unutulan geçici şifreleri kurtarma.
 
-**Durum Badge'leri:**
-- Onay Bekliyor: Sarı (yellow-100, yellow-800)
-- Onaylandı: Yeşil (green-600, white)
-- Reddedildi: Kırmızı (destructive variant)
-- Aktif: Yeşil (green-700, white)
-- Pasif: Gri (secondary variant)
+**Görsel Göstergeler:**
+- **Status Badge'leri:** Onaylı (Yeşil), Bekliyor (Sarı), Reddedildi (Kırmızı).
+- **Aktiflik Badge'leri:** Aktif (Koyu Yeşil), Pasif (Gri).
+- **Kategori Badge'leri (Tedarikçi):** Uzmanlık alanlarını gösteren mor/yeşil etiketler.
+- **Özet Kartları:** Sayfanın en üstünde toplam sayıları gösteren renkli istatistik kartları.
 
 ### Bölge Ürünleri Toggle
 
@@ -252,10 +205,77 @@ if (result.success) {
 />
 ```
 
+## Tedarikçi İçe/Dışa Aktarma Yönetimi (Faz 10)
+
+### Import Geçmişi
+
+Admin panelinde tedarikçilerin ürün içe aktarma işlemlerini takip edebilirsiniz:
+
+**Görüntülenen Bilgiler:**
+- Dosya adı ve boyutu
+- Toplam satır sayısı
+- Başarılı/başarısız satır sayısı
+- İçe aktarma durumu (pending, processing, completed, failed, rolled_back)
+- Hata detayları (errors JSONB)
+- İşlem tarihi
+
+**Özellikler:**
+- [x] Tüm tedarikçi import kayıtlarını görüntüleme
+- [x] Durum bazlı filtreleme
+- [x] Hata detaylarını görüntüleme
+- [x] Rollback işlemlerini izleme
+- [x] Performans metrikleri (ortalama işlem süresi)
+
+**RLS Politikası:**
+```sql
+-- Admin tüm import kayıtlarını görebilir
+CREATE POLICY "Admins can view all imports"
+ON product_imports FOR SELECT
+TO authenticated
+USING (has_role(auth.uid(), 'admin'));
+```
+
+### Audit Log
+
+Tüm içe aktarma işlemleri `product_imports` tablosunda kayıt altına alınır:
+
+**Kayıt Edilen Veriler:**
+```json
+{
+  "id": "uuid",
+  "supplier_id": "uuid",
+  "file_name": "urunler-2026-01-07.xlsx",
+  "file_size": 15360,
+  "total_rows": 100,
+  "successful_rows": 95,
+  "failed_rows": 5,
+  "errors": [
+    {"row": 10, "field": "name", "error": "Ürün adı boş", "value": ""},
+    {"row": 25, "field": "basePrice", "error": "Fiyat 0'dan küçük", "value": -5}
+  ],
+  "status": "completed",
+  "created_at": "2026-01-07T10:00:00Z",
+  "completed_at": "2026-01-07T10:02:30Z"
+}
+```
+
+### Rollback Mekanizması
+
+İçe aktarma sırasında hata oluşursa:
+1. Oluşturulan tüm ürünler silinir
+2. Import kaydı `rolled_back` olarak işaretlenir
+3. Admin hatayı detaylarıyla birlikte görür
+
+---
+
 ## Önemli Notlar
 
 1. **Şifre Görme:** Sadece direkt kayıt yapılanlar için mevcuttur
 2. **Liste Yükleme:** Otomatik yüklenir, manuel yenileme de mevcuttur
 3. **Sepet Persistence:** localStorage ile korunur, visibility sync ile güncellenir
 4. **UI İyileştirmeleri:** Tablo formatı, badge'ler, toggle switch'ler ile kullanıcı deneyimi iyileştirildi
+5. **Import Audit:** Tüm içe/dışa aktarma işlemleri loglanır ve rollback desteklenir (Faz 10)
+
+
+
 

@@ -23,6 +23,7 @@ export function mergeProductsWithRegion(
       regionInfo: regionRow
         ? {
             price: regionRow.price,
+            businessPrice: regionRow.business_price,
             previousPrice: regionRow.previous_price,
             priceChange: regionRow.price_change,
             availability: regionRow.availability,
@@ -72,6 +73,7 @@ export function getRegionPriceInfo(
 
   return {
     price: regionProduct.price,
+    businessPrice: regionProduct.business_price,
     previousPrice: regionProduct.previous_price,
     priceChange: regionProduct.price_change,
     availability: regionProduct.availability,

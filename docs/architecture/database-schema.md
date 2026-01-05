@@ -12,16 +12,19 @@ erDiagram
     AUTH_USERS ||--o| SUPPLIERS : becomes
     AUTH_USERS ||--o{ ORDERS : places
     AUTH_USERS ||--o{ PENDING_INVITES : invited_by
-    
+
     REGIONS ||--o{ REGION_PRODUCTS : contains
     REGIONS ||--o{ ORDERS : delivers_to
-    
+
     PRODUCTS ||--o{ REGION_PRODUCTS : priced_in
-    
+
     DEALERS ||--o{ ORDERS : fulfills
-    
+
     SUPPLIERS ||--o{ SUPPLIER_OFFERS : submits
-    
+    SUPPLIERS ||--o{ PRODUCT_IMPORTS : imports
+
+    AUTH_USERS ||--o| BUSINESSES : becomes
+
     REGIONS {
         uuid id PK
         text name
@@ -52,11 +55,27 @@ erDiagram
         uuid region_id FK
         uuid product_id FK
         numeric price
+        numeric business_price
         integer stock
         quality_grade quality_grade
         availability_status availability_status
         price_change price_change
         boolean is_available
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    BUSINESSES {
+        uuid id PK
+        uuid user_id FK_UK
+        text company_name
+        text contact_name
+        text contact_phone
+        text contact_email
+        text business_type
+        text tax_number
+        uuid_array region_ids
+        approval_status approval_status
         timestamp created_at
         timestamp updated_at
     }
@@ -156,6 +175,20 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
+
+    PRODUCT_IMPORTS {
+        uuid id PK
+        uuid supplier_id FK
+        text file_name
+        integer file_size
+        integer total_rows
+        integer successful_rows
+        integer failed_rows
+        jsonb errors
+        text status
+        timestamp created_at
+        timestamp completed_at
+    }
 ```
 
 ---
@@ -180,7 +213,9 @@ erDiagram
 | `pending_invites` | Bayi/Tedarikçi davet sistemi |
 | `dealers` | Bayi bilgileri ve onay durumu |
 | `suppliers` | Tedarikçi bilgileri ve onay durumu |
+| `businesses` | İşletme (B2B) bilgileri ve onay durumu |
 | `supplier_offers` | Tedarikçi ürün teklifleri |
+| `product_imports` | Tedarikçi ürün içe aktarma kayıtları (audit log) |
 
 ---
 
@@ -194,6 +229,7 @@ erDiagram
 'superadmin' -- Süper yönetici (admin yetkilerini kapsar)
 'dealer'     -- Bölge bayisi
 'supplier'   -- Tedarikçi
+'business'   -- İşletme (B2B)
 ```
 
 ### approval_status
@@ -328,6 +364,9 @@ erDiagram
 | orders | `idx_orders_status` | Durum filtreleme |
 | dealers | `idx_dealers_approval_status` | Onay durumu filtreleme |
 | suppliers | `idx_suppliers_approval_status` | Onay durumu filtreleme |
+| product_imports | `idx_product_imports_supplier` | Tedarikçi import geçmişi |
+| product_imports | `idx_product_imports_status` | Durum filtreleme |
+| product_imports | `idx_product_imports_created_at` | Tarihe göre sıralama |
 
 ---
 
@@ -404,5 +443,5 @@ SELECT has_role(auth.uid(), 'admin'::app_role);
 
 ---
 
-Son güncelleme: 2025-12-26
+Son güncelleme: 2026-01-07
 

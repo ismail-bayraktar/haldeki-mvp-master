@@ -2,11 +2,30 @@
 
 > Bu klasör, Haldeki projesinin teknik ve iş dokümantasyonunu içerir.
 
+## Otomatik Dokümantasyon
+
+Bu projede dokümantasyon otomatik olarak kod ile senkronize edilir:
+
+```bash
+# Dokümantasyonu oluştur
+npm run docs:build
+
+# Sadece indeks güncelle
+npm run docs:generate
+
+# API dokümantasyonu (TypeDoc)
+npm run docs:api
+```
+
+Detaylı bilgi için: [Development - Documentation Sync](./development/documentation-sync.md)
+
 ## Dokümantasyon Yapısı
 
 ```
 docs/
 ├── README.md                           # Bu dosya - Giriş noktası
+├── INDEX.md                            # Otomatik oluşturulan ana indeks
+├── TREE.md                             # Otomatik oluşturulan yapı ağacı
 ├── ROADMAP.md                          # Genel yol haritası ve faz takibi
 │
 ├── guides/                             # Kullanıcı Rehberleri
@@ -38,6 +57,16 @@ docs/
 │   ├── phase-5-approval-system.md      # Onay sistemi
 │   ├── phase-6-order-delivery.md      # Sipariş ve teslimat sistemi
 │   └── phase-7-payment-system.md      # Ödeme sistemi
+│
+├── development/                        # Geliştirme Rehberleri
+│   ├── documentation-sync.md           # Dokümantasyon senkronizasyonu
+│   └── TEST_ACCOUNTS.md                # Test hesapları
+│
+├── api/                                # API Dokümantasyonu (JSDoc'tan)
+│   └── index.md                        # API fonksiyonları özeti
+│
+├── api-reference/                      # TypeDoc HTML çıktısı
+│   └── index.html                      # Detaylı API referansı
 │
 ├── scripts/                            # SQL ve Migration
 │   ├── full-schema.sql                 # Birleşik veritabanı şeması
@@ -87,6 +116,7 @@ docs/
 | 5 - Onay Sistemi | ✅ Tamamlandı | phases/phase-5-approval-system.md |
 | 6 - Sipariş & Teslimat | ✅ Tamamlandı | phases/phase-6-order-delivery.md |
 | 7 - Ödeme Sistemi | ✅ Tamamlandı | phases/phase-7-payment-system.md |
+| 8 - İşletme (B2B) Paneli | ⏳ Devam Ediyor | phases/phase-8-business-panel.md |
 
 ---
 
