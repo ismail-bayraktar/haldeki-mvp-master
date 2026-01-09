@@ -139,6 +139,8 @@ docs/
 │   ├── README.md
 │   └── test-data-attributes.md
 ├── architecture.md
+├── AUTH_400_ERROR_FIX.md
+├── AUTH_FIX_SUMMARY.md
 ├── BETA-TESTING-GUIDE.md
 ├── CURRENT_STATUS.md
 ├── DAILY_SUMMARY_2026-01-06.md
@@ -153,6 +155,9 @@ docs/
 ├── kendiyorumlar.md
 ├── MIGRATION_EXECUTION_GUIDE.md
 ├── MIGRATION_QUICK_START.md
+├── PASSWORD_RESET_GUIDE.md
+├── PASSWORD_RESET_REPORT.md
+├── PASSWORD_RESET_USER_GUIDE.md
 ├── PHASE12_COMPLETION_REPORT.md
 ├── PHASE12_FIX_IMPLEMENTATION_PLAN.md
 ├── prd.md
@@ -175,4 +180,4 @@ docs/
 └── UPDATE-TEST-ACCOUNTS.md
 ```
 
-**Son güncelleme:** 2026-01-09T13:06:29.647Z
+**Son güncelleme:** 2026-01-09T13:33:40.906Z

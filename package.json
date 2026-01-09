@@ -30,7 +30,10 @@
     "docs:full": "npm run docs:generate && npm run docs:api",
     "docs:watch": "typedoc --watch",
     "auth:verify": "npx tsx scripts/verify-auth-system.ts",
-    "auth:hash": "npx tsx scripts/generate-bcrypt-hash.ts"
+    "auth:hash": "npx tsx scripts/generate-bcrypt-hash.ts",
+    "auth:reset": "node scripts/fix-auth-credentials.js",
+    "auth:reset:verify": "node scripts/verify-password-reset.js",
+    "auth:reset:interactive": "npx tsx scripts/reset-passwords-interactive.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
