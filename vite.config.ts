@@ -19,8 +19,14 @@ export default defineConfig(({ mode }) => ({
     target: 'es2015',
     minify: 'esbuild',
     sourcemap: false,
+    // Add cache busting suffix
+    assetsDir: 'assets',
     rollupOptions: {
       output: {
+        // Add content hash to filenames for cache busting
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]',
         manualChunks: (id) => {
           // React core
           if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
