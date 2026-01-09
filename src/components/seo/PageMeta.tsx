@@ -5,6 +5,7 @@ interface PageMetaProps {
   description: string;
   keywords?: string;
   canonicalUrl?: string;
+  openGraphUrl?: string;
   ogImage?: string;
   ogType?: "website" | "product" | "article";
   noIndex?: boolean;
@@ -15,6 +16,7 @@ const PageMeta = ({
   description,
   keywords,
   canonicalUrl,
+  openGraphUrl,
   ogImage = "https://haldeki.com/og-image.jpg",
   ogType = "website",
   noIndex = false,
@@ -62,6 +64,9 @@ const PageMeta = ({
     updateMeta("og:image", ogImage, true);
     updateMeta("og:site_name", "Haldeki", true);
     updateMeta("og:locale", "tr_TR", true);
+    if (openGraphUrl) {
+      updateMeta("og:url", openGraphUrl, true);
+    }
 
     // Twitter Card tags
     updateMeta("twitter:card", "summary_large_image");
@@ -84,7 +89,7 @@ const PageMeta = ({
     return () => {
       // Reset title on unmount if needed
     };
-  }, [title, description, keywords, canonicalUrl, ogImage, ogType, noIndex]);
+  }, [title, description, keywords, canonicalUrl, openGraphUrl, ogImage, ogType, noIndex]);
 
   return null;
 };

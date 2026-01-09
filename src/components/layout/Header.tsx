@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Search, ShoppingCart, User, MapPin, Menu, LogOut, Heart, GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,47 +21,43 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCompare } from "@/contexts/CompareContext";
 
-const Header = () => {
+const Header = memo(() => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isRegionSelectorOpen, setIsRegionSelectorOpen] = useState(false);
-  
+
   const { user, isAuthenticated, openAuthDrawer, logout } = useAuth();
-  const { selectedRegion, openRegionModal } = useRegion();
+  const { selectedRegion } = useRegion();
   const { itemCount } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
   const { itemCount: compareCount } = useCompare();
 
-  const navLinks = [
+  const navLinks = useMemo(() => [
     { href: "/", label: "Ana Sayfa", badge: null },
     { href: "/bugun-halde", label: "Bugün Halde", badge: !isAuthenticated ? "Erken Erişim" : null },
     { href: "/urunler", label: "Ürünler", badge: !isAuthenticated ? "Erken Erişim" : null },
     { href: "/nasil-calisir", label: "Nasıl Çalışır?", badge: null },
-  ];
+  ], [isAuthenticated]);
 
-  const handleRegionClick = () => {
+  const handleRegionClick = useCallback(() => {
     setIsRegionSelectorOpen(true);
-  };
+  }, []);
 
-  const handleProtectedNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    // Check if this is a protected route and user is not authenticated
+  const handleProtectedNavClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     const isProtectedRoute = href === "/bugun-halde" || href === "/urunler";
 
     if (isProtectedRoute && !isAuthenticated) {
       e.preventDefault();
 
-      // If on homepage, scroll to form
       if (window.location.pathname === "/" || window.location.pathname === "/izmir-cagri") {
         document.getElementById("whitelist-form")?.scrollIntoView({
           behavior: "smooth",
           block: "start",
         });
       } else {
-        // Navigate to homepage first, then scroll
         window.location.href = "/#whitelist-form";
       }
     }
-    // If authenticated or not protected, let default Link behavior happen
-  };
+  }, [isAuthenticated]);
 
   return (
     <>
@@ -69,7 +65,7 @@ const Header = () => {
         <div className="container flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img src={logotype} alt="Haldeki" className="h-8 md:h-10" />
+            <img src={logotype} alt="Haldeki" loading="eager" decoding="async" width="120" height="40" className="h-8 md:h-10" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -313,6 +309,8 @@ const Header = () => {
       <AuthDrawer />
     </>
   );
-};
+});
+
+Header.displayName = "Header";
 
 export default Header;

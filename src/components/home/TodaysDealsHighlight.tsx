@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, memo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,13 +27,13 @@ const convertDbProduct = (dbProduct: DbProduct): Product => ({
   description: dbProduct.description ?? undefined,
 });
 
-const TodaysDealsHighlight = () => {
+const TodaysDealsHighlight = memo(() => {
   const { data: dbProducts, isLoading } = useBugunHaldeProducts();
   const { addToCart } = useCart();
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = useCallback((product: Product) => {
     addToCart(product, 1, undefined, undefined, undefined);
-  };
+  }, [addToCart]);
 
   // Convert DB products to frontend type
   const products = useMemo(() => {
@@ -104,9 +104,13 @@ const TodaysDealsHighlight = () => {
                     <img
                       src={product.images?.[0] || '/placeholder.svg'}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
+                      width="208"
+                      height="208"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    
+
                     {/* Freshness Badge */}
                     <div className="absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium bg-accent text-accent-foreground">
                       Bugun Halde
@@ -114,20 +118,20 @@ const TodaysDealsHighlight = () => {
 
                     {/* Stock Indicator */}
                     <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-card/90 backdrop-blur-sm rounded-full px-2 py-1">
-                      <Circle 
+                      <Circle
                         className={`h-2 w-2 fill-current ${
-                          product.availability === "plenty" 
-                            ? "text-stock-plenty" 
-                            : product.availability === "limited" 
-                            ? "text-stock-limited" 
+                          product.availability === "plenty"
+                            ? "text-stock-plenty"
+                            : product.availability === "limited"
+                            ? "text-stock-limited"
                             : "text-stock-last"
-                        }`} 
+                        }`}
                       />
                       <span className="text-xs text-foreground/70">
-                        {product.availability === "plenty" 
-                          ? "Stokta" 
-                          : product.availability === "limited" 
-                          ? "Sinirli" 
+                        {product.availability === "plenty"
+                          ? "Stokta"
+                          : product.availability === "limited"
+                          ? "Sinirli"
                           : "Son"}
                       </span>
                     </div>
@@ -177,6 +181,8 @@ const TodaysDealsHighlight = () => {
       </div>
     </section>
   );
-};
+});
+
+TodaysDealsHighlight.displayName = "TodaysDealsHighlight";
 
 export default TodaysDealsHighlight;

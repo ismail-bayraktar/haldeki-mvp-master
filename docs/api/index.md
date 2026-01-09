@@ -463,4 +463,4 @@ SECURITY NOTICE:
 
 ---
 
-**Son güncelleme:** 2026-01-09T14:28:01.074Z
+**Son güncelleme:** 2026-01-09T16:18:53.240Z

@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { icons, LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -7,8 +8,10 @@ interface CategoryCardProps {
   category: Category;
 }
 
-const CategoryCard = ({ category }: CategoryCardProps) => {
-  const IconComponent = icons[category.iconName as keyof typeof icons] as LucideIcon;
+const CategoryCard = memo(({ category }: CategoryCardProps) => {
+  const IconComponent = useMemo(() => {
+    return icons[category.iconName as keyof typeof icons] as LucideIcon;
+  }, [category.iconName]);
 
   return (
     <Link to={`/urunler?kategori=${category.slug}`}>
@@ -17,6 +20,10 @@ const CategoryCard = ({ category }: CategoryCardProps) => {
           <img
             src={category.image}
             alt={category.name}
+            loading="lazy"
+            decoding="async"
+            width="400"
+            height="300"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -37,6 +44,8 @@ const CategoryCard = ({ category }: CategoryCardProps) => {
       </Card>
     </Link>
   );
-};
+});
+
+CategoryCard.displayName = "CategoryCard";
 
 export default CategoryCard;

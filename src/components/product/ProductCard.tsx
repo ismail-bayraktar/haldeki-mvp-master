@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Plus, Minus, Heart, Leaf, Award, GitCompare, Ban, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ interface ProductCardProps {
   variant?: "default" | "bugunHalde";
 }
 
-const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardProps) => {
+const ProductCard = memo(({ product, regionInfo, variant = "default" }: ProductCardProps) => {
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { isInCompare, addToCompare, removeFromCompare } = useCompare();
@@ -90,12 +90,13 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
   const isToday = product.arrivalDate === new Date().toISOString().split("T")[0];
   const availability = getAvailabilityLabel();
 
-  // Fiyat değişim etiketi (kampanya dili)
-  const priceChangeLabel = regionInfo?.priceChange 
-    ? getPriceChangeLabel(regionInfo.priceChange) 
-    : getPriceChangeLabel(product.priceChange);
+  const priceChangeLabel = useMemo(() => {
+    return regionInfo?.priceChange
+      ? getPriceChangeLabel(regionInfo.priceChange)
+      : getPriceChangeLabel(product.priceChange);
+  }, [regionInfo?.priceChange, product.priceChange]);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -110,13 +111,10 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
       return;
     }
 
-    // Phase 12: Use cart price info (supplier > region > product)
-    // Business users still get business price from region
     const finalPrice = (isBusiness && regionInfo?.businessPrice)
       ? regionInfo.businessPrice
       : (cartPriceInfo?.price ?? regionInfo?.price ?? product.price);
 
-    // Phase 12: Pass supplier info to cart for tracking
     const supplierInfo = cartPriceInfo ? {
       supplierId: cartPriceInfo.supplierId,
       supplierProductId: cartPriceInfo.supplierProductId,
@@ -125,23 +123,23 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
     } : undefined;
 
     addToCart(product, 1, selectedVariant, finalPrice, supplierInfo);
-  };
+  }, [canAddToCart, selectedRegion, isInRegion, isOutOfStock, isBusiness, regionInfo, cartPriceInfo, product, selectedVariant, addToCart]);
 
-  const handleNotifyStock = (e: React.MouseEvent) => {
+  const handleNotifyStock = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     toast.success("Ürün stoğa girdiğinde size haber vereceğiz!", {
       description: product.name,
     });
-  };
+  }, [product.name]);
 
-  const handleToggleWishlist = (e: React.MouseEvent) => {
+  const handleToggleWishlist = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     toggleWishlist(product);
-  };
+  }, [product, toggleWishlist]);
 
-  const handleToggleCompare = (e: React.MouseEvent) => {
+  const handleToggleCompare = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (inCompare) {
@@ -149,13 +147,13 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
     } else {
       addToCompare(product);
     }
-  };
+  }, [inCompare, product, removeFromCompare, addToCompare]);
 
-  const handleVariantSelect = (e: React.MouseEvent, variantItem: ProductVariant) => {
+  const handleVariantSelect = useCallback((e: React.MouseEvent, variantItem: ProductVariant) => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedVariant(variantItem);
-  };
+  }, []);
 
   return (
     <Card
@@ -170,6 +168,10 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
           <img
             src={product.images?.[0] || '/placeholder.svg'}
             alt={product.name}
+            loading="lazy"
+            decoding="async"
+            width="400"
+            height="400"
             className={cn(
               "w-full h-full object-cover transition-transform duration-500",
               canAddToCart && "group-hover:scale-105"
@@ -340,6 +342,8 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
       </div>
     </Card>
   );
-};
+});
+
+ProductCard.displayName = "ProductCard";
 
 export default ProductCard;

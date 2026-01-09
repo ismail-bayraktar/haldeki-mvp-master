@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, memo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Star, Users, Truck, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getBugunHaldeProducts } from "@/data/products";
 
-const HeroSection = () => {
+const HeroSection = memo(() => {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
-  const products = getBugunHaldeProducts()
-    .sort((a, b) => a.price - b.price)
-    .slice(0, 8);
+
+  const products = useMemo(() => {
+    return getBugunHaldeProducts()
+      .sort((a, b) => a.price - b.price)
+      .slice(0, 8);
+  }, []);
 
   // Calculate time until 18:00 (6 PM) cutoff for same-day delivery
   useEffect(() => {
@@ -34,16 +37,16 @@ const HeroSection = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const trustSignals = [
+  const trustSignals = useMemo(() => [
     { icon: Star, value: "4.8", label: "Puan" },
     { icon: Users, value: "12,000+", label: "Musteri" },
     { icon: Truck, value: "Ayni Gun", label: "Teslimat" },
-  ];
+  ], []);
 
-  const formatTime = (num: number) => num.toString().padStart(2, "0");
+  const formatTime = useCallback((num: number) => num.toString().padStart(2, "0"), []);
 
   // Duplicate products for seamless infinite scroll
-  const scrollProducts = [...products, ...products];
+  const scrollProducts = useMemo(() => [...products, ...products], [products]);
 
   return (
     <section className="relative min-h-[70vh] md:min-h-[85vh] flex items-stretch overflow-hidden">
@@ -140,6 +143,10 @@ const HeroSection = () => {
                   <img
                     src={product.images?.[0] || '/placeholder.svg'}
                     alt={product.name}
+                    loading="lazy"
+                    decoding="async"
+                    width="160"
+                    height="112"
                     className="w-full h-28 object-cover"
                   />
                   {product.previousPrice && product.priceChange === "down" && (
@@ -185,6 +192,10 @@ const HeroSection = () => {
                       <img
                         src={product.images?.[0] || '/placeholder.svg'}
                         alt={product.name}
+                        loading="lazy"
+                        decoding="async"
+                        width="80"
+                        height="80"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                     </div>
@@ -225,6 +236,8 @@ const HeroSection = () => {
       </div>
     </section>
   );
-};
+});
+
+HeroSection.displayName = "HeroSection";
 
 export default HeroSection;

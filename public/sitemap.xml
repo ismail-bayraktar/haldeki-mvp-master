@@ -4,7 +4,7 @@
   <!-- Homepage -->
   <url>
     <loc>https://haldeki-market.vercel.app/</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/"/>
@@ -13,7 +13,7 @@
   <!-- Landing Pages -->
   <url>
     <loc>https://haldeki-market.vercel.app/izmir-cagri</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/izmir-cagri"/>
@@ -21,7 +21,7 @@
 
   <url>
     <loc>https://haldeki-market.vercel.app/menemen-taze-sebze-meyve</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/menemen-taze-sebze-meyve"/>
@@ -29,7 +29,7 @@
 
   <url>
     <loc>https://haldeki-market.vercel.app/aliaga-taze-sebze-meyve</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/aliaga-taze-sebze-meyve"/>
@@ -38,7 +38,7 @@
   <!-- Information Pages -->
   <url>
     <loc>https://haldeki-market.vercel.app/nasil-calisir</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/nasil-calisir"/>
@@ -46,7 +46,7 @@
 
   <url>
     <loc>https://haldeki-market.vercel.app/hakkimizda</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/hakkimizda"/>
@@ -54,16 +54,16 @@
 
   <url>
     <loc>https://haldeki-market.vercel.app/iletisim</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/iletisim"/>
   </url>
 
-  <!-- Registration Pages -->
+  <!-- Public Registration Pages -->
   <url>
     <loc>https://haldeki-market.vercel.app/bayi-kayit</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/bayi-kayit"/>
@@ -71,7 +71,7 @@
 
   <url>
     <loc>https://haldeki-market.vercel.app/tedarikci-kayit</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/tedarikci-kayit"/>
@@ -79,7 +79,7 @@
 
   <url>
     <loc>https://haldeki-market.vercel.app/isletme-kayit</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/isletme-kayit"/>
@@ -87,16 +87,16 @@
 
   <url>
     <loc>https://haldeki-market.vercel.app/giris</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/giris"/>
   </url>
 
-  <!-- Protected routes (indexed for search engines but require auth) -->
+  <!-- Public Product Pages -->
   <url>
     <loc>https://haldeki-market.vercel.app/urunler</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/urunler"/>
@@ -104,7 +104,7 @@
 
   <url>
     <loc>https://haldeki-market.vercel.app/bugun-halde</loc>
-    <lastmod>2025-01-09</lastmod>
+    <lastmod>2026-01-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="tr" href="https://haldeki-market.vercel.app/bugun-halde"/>

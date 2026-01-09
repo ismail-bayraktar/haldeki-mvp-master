@@ -1,0 +1,23 @@
+{
+  "name": "Haldeki - Taze Sebze & Meyve",
+  "short_name": "Haldeki",
+  "description": "İzmir'den taze sebze ve meyve toptan ve perakende satışı. Hal fiyatlarıyla kapınıza teslimat.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/haldeki-logo.svg",
+      "sizes": "450x362",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

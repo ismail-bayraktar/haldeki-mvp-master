@@ -97,6 +97,9 @@ export function ProductCard({
               alt={product.name}
               className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
               loading="lazy"
+              decoding="async"
+              width="400"
+              height="400"
             />
           ) : (
             <div className="flex items-center justify-center w-full h-full">

@@ -41,6 +41,7 @@ const WhitelistLanding = () => {
         description="İzmir'in en taze sebze meyvesi kapınıza gelsin. Yerel çiftçilerden toptan fiyatlarla. İlk pilot kullanıcılar arasında yerinizi ayırtın."
         keywords="izmir meyve sebze, erken erişim, whitelist, yerel çiftçi, toptan fiyat, aynı gün teslimat"
         canonicalUrl="https://haldeki.com/izmir-cagri"
+        openGraphUrl="https://haldeki-market.vercel.app/izmir-cagri"
       />
 
       <Header />
@@ -172,6 +173,10 @@ const WhitelistLanding = () => {
                           <img
                             src={product.images?.[0] || "/placeholder.svg"}
                             alt={product.name}
+                            loading="lazy"
+                            decoding="async"
+                            width="80"
+                            height="80"
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                         </div>
@@ -223,6 +228,10 @@ const WhitelistLanding = () => {
                       <img
                         src={product.images?.[0] || "/placeholder.svg"}
                         alt={product.name}
+                        loading="lazy"
+                        decoding="async"
+                        width="160"
+                        height="112"
                         className="w-full h-28 object-cover"
                       />
                       {product.previousPrice && product.priceChange === "down" && (

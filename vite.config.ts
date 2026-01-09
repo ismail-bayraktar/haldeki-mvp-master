@@ -16,47 +16,55 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    target: 'esnext',
+    minify: 'esbuild',
+    sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
+        manualChunks: (id) => {
           // React core
-          'react-core': ['react', 'react-dom', 'react-router-dom'],
-
-          // UI libraries
-          'ui-vendor': [
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-          ],
-
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            return 'react-core';
+          }
+          // Radix UI components
+          if (id.includes('@radix-ui')) {
+            return 'ui-vendor';
+          }
           // Data & forms
-          'data-vendor': [
-            '@tanstack/react-query',
-            'react-hook-form',
-            '@hookform/resolvers',
-            'zod',
-          ],
-
+          if (id.includes('@tanstack') || id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+            return 'data-vendor';
+          }
           // Charts & visualization
-          'charts': ['recharts', 'embla-carousel-react'],
-
+          if (id.includes('recharts') || id.includes('embla-carousel')) {
+            return 'charts';
+          }
+          // Icons - smaller chunks for better tree-shaking
+          if (id.includes('lucide-react')) {
+            return 'icons';
+          }
+          // Supabase
+          if (id.includes('@supabase')) {
+            return 'supabase';
+          }
           // Utilities
-          'utils': [
-            'date-fns',
-            'clsx',
-            'tailwind-merge',
-            'class-variance-authority',
-          ],
-
-          // Icons (lucide-react is tree-shakeable, but keep separate)
-          'icons': ['lucide-react'],
+          if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance')) {
+            return 'utils';
+          }
         },
       },
     },
     chunkSizeWarningLimit: 1000,
+    // Enable compression for better build output
+    reportCompressedSize: true,
+  },
+  // Optimize dependencies
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      'lucide-react',
+    ],
   },
 }));

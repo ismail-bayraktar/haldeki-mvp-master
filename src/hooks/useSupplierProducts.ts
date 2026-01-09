@@ -354,13 +354,20 @@ export function useCreateProduct() {
       // Step 1: Get supplier ID from user
       const { data: supplier, error: supplierError } = await supabase
         .from('suppliers')
-        .select('id')
+        .select('id, approval_status')
         .eq('user_id', user.id)
-        .eq('approval_status', 'approved')
-        .single();
+        .maybeSingle();
 
-      if (supplierError || !supplier) {
-        return { success: false, error: 'Tedarikçi bulunamadı. Lütfen önce tedarikçi başvurusu yapın.' };
+      if (supplierError) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen iletişime geçin.' };
+      }
+
+      if (!supplier) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen önce tedarikçi başvurusu yapın.' };
+      }
+
+      if (supplier.approval_status !== 'approved') {
+        return { success: false, error: 'Tedarikçi başvurunuz henüz onaylanmadı. Onay bekleniyor.' };
       }
 
       // Step 2: Create product in products table (without supplier_id)
@@ -381,8 +388,18 @@ export function useCreateProduct() {
         .select()
         .single();
 
-      if (productError || !product) {
-        return { success: false, error: productError?.message || 'Ürün oluşturulamadı' };
+      if (productError) {
+        if (productError.message.includes('network') || productError.message.includes('connection')) {
+          return { success: false, error: 'Network hatası: Lütfen internet bağlantınızı kontrol edin.' };
+        }
+        if (productError.message.includes('permission') || productError.message.includes('authorization')) {
+          return { success: false, error: 'Yetki hatası: Bu işlem için yetkiniz yok.' };
+        }
+        return { success: false, error: 'Ürün oluşturma hatası: ' + productError.message };
+      }
+
+      if (!product) {
+        return { success: false, error: 'Ürün oluşturulamadı. Lütfen tekrar deneyin.' };
       }
 
       // Step 3: Link product to supplier via supplier_products junction table
@@ -473,13 +490,20 @@ export function useUpdateProduct() {
       // Get supplier ID
       const { data: supplier, error: supplierError } = await supabase
         .from('suppliers')
-        .select('id')
+        .select('id, approval_status')
         .eq('user_id', user.id)
-        .eq('approval_status', 'approved')
-        .single();
+        .maybeSingle();
 
-      if (supplierError || !supplier) {
-        return { success: false, error: 'Tedarikçi bulunamadı' };
+      if (supplierError) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen iletişime geçin.' };
+      }
+
+      if (!supplier) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen önce tedarikçi başvurusu yapın.' };
+      }
+
+      if (supplier.approval_status !== 'approved') {
+        return { success: false, error: 'Tedarikçi başvurunuz henüz onaylanmadı. Onay bekleniyor.' };
       }
 
       // Phase 12: productId is supplier_products.id, we need to get the actual product_id
@@ -493,7 +517,7 @@ export function useUpdateProduct() {
 
       if (fetchError || !supplierProduct) {
         console.error('❌ [DEBUG] Failed to fetch supplier_product:', fetchError);
-        return { success: false, error: 'Tedarikçi ürünü bulunamadı' };
+        return { success: false, error: 'Ürün bulunamadı veya bu ürünü düzenleme yetkiniz yok.' };
       }
 
       const actualProductId = supplierProduct.product_id;
@@ -528,7 +552,7 @@ export function useUpdateProduct() {
 
       if (productError) {
         console.error('❌ [DEBUG] Product update error:', productError);
-        return { success: false, error: productError.message };
+        return { success: false, error: 'Ürün güncellenemedi: Lütfen tekrar deneyin.' };
       }
       console.log('✅ [DEBUG] Product updated successfully:', product);
 
@@ -656,13 +680,20 @@ export function useUpdateProductPrice() {
       // Get supplier ID
       const { data: supplier, error: supplierError } = await supabase
         .from('suppliers')
-        .select('id')
+        .select('id, approval_status')
         .eq('user_id', user.id)
-        .eq('approval_status', 'approved')
-        .single();
+        .maybeSingle();
 
-      if (supplierError || !supplier) {
-        return { success: false, error: 'Tedarikçi bulunamadı' };
+      if (supplierError) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen iletişime geçin.' };
+      }
+
+      if (!supplier) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen önce tedarikçi başvurusu yapın.' };
+      }
+
+      if (supplier.approval_status !== 'approved') {
+        return { success: false, error: 'Tedarikçi başvurunuz henüz onaylanmadı. Onay bekleniyor.' };
       }
 
       // Update price in supplier_products junction table
@@ -745,13 +776,20 @@ export function useUpdateProductStock() {
       // Get supplier ID
       const { data: supplier, error: supplierError } = await supabase
         .from('suppliers')
-        .select('id')
+        .select('id, approval_status')
         .eq('user_id', user.id)
-        .eq('approval_status', 'approved')
-        .single();
+        .maybeSingle();
 
-      if (supplierError || !supplier) {
-        return { success: false, error: 'Tedarikçi bulunamadı' };
+      if (supplierError) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen iletişime geçin.' };
+      }
+
+      if (!supplier) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen önce tedarikçi başvurusu yapın.' };
+      }
+
+      if (supplier.approval_status !== 'approved') {
+        return { success: false, error: 'Tedarikçi başvurunuz henüz onaylanmadı. Onay bekleniyor.' };
       }
 
       // Update stock in supplier_products junction table
@@ -825,13 +863,20 @@ export function useUpdateProductStatus() {
       // Get supplier ID
       const { data: supplier, error: supplierError } = await supabase
         .from('suppliers')
-        .select('id')
+        .select('id, approval_status')
         .eq('user_id', user.id)
-        .eq('approval_status', 'approved')
-        .single();
+        .maybeSingle();
 
-      if (supplierError || !supplier) {
-        return { success: false, error: 'Tedarikçi bulunamadı' };
+      if (supplierError) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen iletişime geçin.' };
+      }
+
+      if (!supplier) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen önce tedarikçi başvurusu yapın.' };
+      }
+
+      if (supplier.approval_status !== 'approved') {
+        return { success: false, error: 'Tedarikçi başvurunuz henüz onaylanmadı. Onay bekleniyor.' };
       }
 
       // Update is_active in supplier_products junction table
@@ -898,13 +943,20 @@ export function useDeleteProduct() {
       // Get supplier ID
       const { data: supplier, error: supplierError } = await supabase
         .from('suppliers')
-        .select('id')
+        .select('id, approval_status')
         .eq('user_id', user.id)
-        .eq('approval_status', 'approved')
-        .single();
+        .maybeSingle();
 
-      if (supplierError || !supplier) {
-        return { success: false, error: 'Tedarikçi bulunamadı' };
+      if (supplierError) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen iletişime geçin.' };
+      }
+
+      if (!supplier) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen önce tedarikçi başvurusu yapın.' };
+      }
+
+      if (supplier.approval_status !== 'approved') {
+        return { success: false, error: 'Tedarikçi başvurunuz henüz onaylanmadı. Onay bekleniyor.' };
       }
 
       // Step 1: Delete from supplier_products junction table
@@ -915,7 +967,7 @@ export function useDeleteProduct() {
         .eq('supplier_id', supplier.id);
 
       if (junctionError) {
-        return { success: false, error: junctionError.message };
+        return { success: false, error: 'Ürün silinemedi: Lütfen tekrar deneyin.' };
       }
 
       // Step 2: Delete from products table
@@ -925,7 +977,7 @@ export function useDeleteProduct() {
         .eq('id', productId);
 
       if (productError) {
-        return { success: false, error: productError.message };
+        return { success: false, error: 'Ürün silinemedi: Lütfen tekrar deneyin.' };
       }
 
       // Invalidate queries
@@ -1647,13 +1699,20 @@ export function useUpdateProductVariations() {
       // Get supplier ID
       const { data: supplier, error: supplierError } = await supabase
         .from('suppliers')
-        .select('id')
+        .select('id, approval_status')
         .eq('user_id', user.id)
-        .eq('approval_status', 'approved')
-        .single();
+        .maybeSingle();
 
-      if (supplierError || !supplier) {
-        return { success: false, error: 'Tedarikçi bulunamadı' };
+      if (supplierError) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen iletişime geçin.' };
+      }
+
+      if (!supplier) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı. Lütfen önce tedarikçi başvurusu yapın.' };
+      }
+
+      if (supplier.approval_status !== 'approved') {
+        return { success: false, error: 'Tedarikçi başvurunuz henüz onaylanmadı. Onay bekleniyor.' };
       }
 
       // Get actual product_id from supplier_products

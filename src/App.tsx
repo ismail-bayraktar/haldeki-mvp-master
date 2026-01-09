@@ -76,8 +76,12 @@ const PageLoader = () => (
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+interface AppProps {
+  queryClient?: QueryClient;
+}
+
+const App = ({ queryClient: providedQueryClient }: AppProps) => (
+  <QueryClientProvider client={providedQueryClient || queryClient}>
     <TooltipProvider>
       <AuthProvider>
         <RegionProvider>

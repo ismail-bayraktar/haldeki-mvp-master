@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo, memo, useEffect } from "react";
 import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ interface ProductImageGalleryProps {
   productName: string;
 }
 
-const ProductImageGallery = ({ images, productName }: ProductImageGalleryProps) => {
+const ProductImageGallery = memo(({ images, productName }: ProductImageGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
@@ -28,47 +28,49 @@ const ProductImageGallery = ({ images, productName }: ProductImageGalleryProps) 
   }, [api]);
 
   // Set up the carousel api listener
-  useState(() => {
+  useEffect(() => {
     if (!api) return;
     api.on("select", onSelect);
     return () => {
       api.off("select", onSelect);
     };
-  });
+  }, [api, onSelect]);
 
-  const handleZoomToggle = () => {
-    setIsZoomed(!isZoomed);
+  const handleZoomToggle = useCallback(() => {
+    setIsZoomed(prev => !prev);
     setZoomPosition({ x: 50, y: 50 });
-  };
+  }, []);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!isZoomed || !imageRef.current) return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setZoomPosition({ x, y });
-  };
+  }, [isZoomed]);
 
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     if (!isZoomed || !imageRef.current) return;
-    
+
     const touch = e.touches[0];
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((touch.clientX - rect.left) / rect.width) * 100;
     const y = ((touch.clientY - rect.top) / rect.height) * 100;
     setZoomPosition({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
-  };
+  }, [isZoomed]);
 
-  const goToPrev = () => api?.scrollPrev();
-  const goToNext = () => api?.scrollNext();
+  const goToPrev = useCallback(() => api?.scrollPrev(), [api]);
+  const goToNext = useCallback(() => api?.scrollNext(), [api]);
 
   // Generate multiple images if only one exists (for demo purposes)
-  const displayImages = images.length > 1 ? images : [
-    images[0],
-    images[0].replace("w=400", "w=401"), // Slightly different URL for variety
-    images[0].replace("w=400", "w=402"),
-  ];
+  const displayImages = useMemo(() => {
+    return images.length > 1 ? images : [
+      images[0],
+      images[0].replace("w=400", "w=401"), // Slightly different URL for variety
+      images[0].replace("w=400", "w=402"),
+    ];
+  }, [images]);
 
   return (
     <div className="relative">
@@ -97,6 +99,10 @@ const ProductImageGallery = ({ images, productName }: ProductImageGalleryProps) 
                   ref={index === currentIndex ? imageRef : null}
                   src={image}
                   alt={`${productName} - ${index + 1}`}
+                  loading="eager"
+                  decoding="async"
+                  width="600"
+                  height="600"
                   className={cn(
                     "w-full h-full object-cover transition-transform duration-300",
                     isZoomed && "scale-[2.5]"
@@ -164,6 +170,10 @@ const ProductImageGallery = ({ images, productName }: ProductImageGalleryProps) 
               <img
                 src={image}
                 alt={`Thumbnail ${index + 1}`}
+                loading="lazy"
+                decoding="async"
+                width="56"
+                height="56"
                 className="w-full h-full object-cover"
               />
             </button>
@@ -177,6 +187,8 @@ const ProductImageGallery = ({ images, productName }: ProductImageGalleryProps) 
       </p>
     </div>
   );
-};
+});
+
+ProductImageGallery.displayName = "ProductImageGallery";
 
 export default ProductImageGallery;

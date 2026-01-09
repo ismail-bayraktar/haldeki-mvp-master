@@ -21,7 +21,7 @@ export async function validateImageFile(
   if (!ALLOWED_TYPES.includes(file.type)) {
     return {
       isValid: false,
-      error: 'Sadece JPEG, PNG ve WebP formatı destekleniyor',
+      error: 'Sadece PNG, JPG ve WebP dosyaları yüklenebilir.',
     };
   }
 
@@ -29,7 +29,7 @@ export async function validateImageFile(
   if (file.size > MAX_FILE_SIZE) {
     return {
       isValid: false,
-      error: `Dosya boyutu çok büyük (Maksimum ${MAX_FILE_SIZE / 1024 / 1024}MB)`,
+      error: 'Dosya boyutu çok büyük. Maksimum 5MB.',
     };
   }
 
@@ -192,13 +192,24 @@ export function useImageUpload() {
         return publicUrl;
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Bilinmeyen hata';
-        toast.error('Görsel yüklenirken hata: ' + message);
+
+        // Provide specific error messages
+        let userMessage = 'Görsel yüklenemedi. Lütfen tekrar deneyin.';
+        if (message.includes('network') || message.includes('connection')) {
+          userMessage = 'Network hatası: Lütfen internet bağlantınızı kontrol edin.';
+        } else if (message.includes('permission') || message.includes('authorization')) {
+          userMessage = 'Yetki hatası: Bu işlem için yetkiniz yok.';
+        } else if (message.includes('storage') || message.includes('bucket')) {
+          userMessage = 'Depolama hatası: Lütfen daha sonra tekrar deneyin.';
+        }
+
+        toast.error(userMessage);
 
         // Mark upload as failed
         setUploads((prev) =>
           prev.map((u) =>
             u.file.name === fileToUpload.name
-              ? { ...u, error: message }
+              ? { ...u, error: userMessage }
               : u
           )
         );
