@@ -251,15 +251,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast.success('Giriş başarılı!');
       closeAuthDrawer();
 
-      // Wait for roles to load properly (not arbitrary timeout)
+      // Wait for roles to load with timeout protection
       await new Promise<void>((resolve) => {
+        const maxWaitTime = 3000; // 3 seconds max wait
+        const startTime = Date.now();
+
         const checkInterval = setInterval(() => {
-          if (isRolesChecked) {
+          if (isRolesChecked || (Date.now() - startTime) >= maxWaitTime) {
             clearInterval(checkInterval);
             resolve();
           }
         }, 50);
       });
+
+      // Re-fetch user roles after login to ensure fresh data
+      if (data.user?.id) {
+        await checkUserRoles(data.user.id);
+      }
 
       // Get user phone from users table for whitelist check
       let userPhone: string | null = null;

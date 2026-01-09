@@ -180,4 +180,4 @@ docs/
 └── UPDATE-TEST-ACCOUNTS.md
 ```
 
-**Son güncelleme:** 2026-01-09T14:24:00.947Z
+**Son güncelleme:** 2026-01-09T14:27:49.648Z

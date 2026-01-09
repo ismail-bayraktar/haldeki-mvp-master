@@ -57,7 +57,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     priceSource: item.priceSource ?? 'product',
   });
 
-  // Load cart from localStorage on mount or when auth/region becomes available
+  // Load cart from localStorage on mount
   useEffect(() => {
     if (isHydrated) return;
 
@@ -70,17 +70,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         if (parsed.version === undefined || parsed.version < CART_VERSION) {
           const migratedItems = (parsed.items || parsed).map(migrateCartItem);
           setItems(migratedItems);
+          setIsHydrated(true);
           toast.info('Sepet güncellendi');
         } else if (parsed.version === CART_VERSION) {
           const items = parsed.items as CartItem[];
-          if (isAuthenticated && selectedRegion) {
-            setItems(items);
-            setIsHydrated(true);
-            return;
-          }
-        }
-
-        if (isAuthenticated && selectedRegion) {
+          setItems(items);
           setIsHydrated(true);
         }
       } else {
@@ -92,7 +86,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       toast.warning('Sepet hatası nedeniyle temizlendi');
       setIsHydrated(true);
     }
-  }, [isAuthenticated, selectedRegion, isHydrated]);
+  }, [isHydrated]);
 
   // Save cart to localStorage whenever items change (but only after hydration)
   useEffect(() => {
@@ -113,7 +107,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   // Sync cart when page becomes visible (user returns to tab)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isAuthenticated && selectedRegion) {
+      if (document.visibilityState === 'visible') {
         try {
           const stored = localStorage.getItem(CART_STORAGE_KEY);
           if (stored) {
@@ -140,7 +134,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [items, isAuthenticated, selectedRegion]);
+  }, [items]);
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   

@@ -176,45 +176,65 @@ const Checkout = () => {
       const selectedAddressData = addresses.find(a => a.id === selectedAddress);
       const selectedSlotData = deliverySlots.find(s => s.id === selectedSlot);
 
-      // SECURITY: Price validation to prevent cart manipulation
-      // In production, this should be validated server-side via RPC function
-      // For now, we add client-side validation as a first line of defense
-      const priceValidationErrors: string[] = [];
+      // SECURITY: Fetch current prices from server to prevent cart manipulation
+      const productIds = items.map(item => item.productId);
+
+      const { data: regionProducts, error: priceError } = await supabase
+        .from('region_products')
+        .select('product_id, price')
+        .eq('region_id', selectedRegion.id)
+        .in('product_id', productIds);
+
+      if (priceError) {
+        console.error('Error fetching server prices:', priceError);
+        toast.error('Fiyat bilgileri alınamadı. Lütfen tekrar deneyin.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Create price map: product_id -> current_price
+      const serverPriceMap = new Map(
+        (regionProducts || []).map(rp => [rp.product_id, rp.price])
+      );
+
+      // Calculate order totals using SERVER prices (security enforcement)
+      let orderTotal = 0;
+      const priceValidationWarnings: string[] = [];
 
       const orderItems = items.map(item => {
-        const serverPrice = item.product.price; // In future: fetch from server RPC
-        const clientPrice = item.unitPriceAtAdd || item.product.price;
+        const serverPrice = serverPriceMap.get(item.productId) ?? item.unitPriceAtAdd;
+        const clientPrice = item.unitPriceAtAdd;
         const priceDiff = Math.abs(serverPrice - clientPrice);
-        const priceDiffPercent = (priceDiff / serverPrice) * 100;
+        const priceDiffPercent = clientPrice > 0 ? (priceDiff / clientPrice) * 100 : 0;
 
-        // Warn if price changed more than 5%
-        if (priceDiffPercent > 5) {
-          priceValidationErrors.push(
-            `${item.product.name}: Fiyat değişti (${clientPrice.toFixed(2)} TL → ${serverPrice.toFixed(2)} TL)`
+        // Log warning if price changed significantly (don't block, just inform)
+        if (priceDiffPercent > 10) {
+          priceValidationWarnings.push(
+            `${item.product.name}: ${clientPrice.toFixed(2)} TL → ${serverPrice.toFixed(2)} TL`
           );
         }
+
+        const multiplier = item.selectedVariant?.priceMultiplier ?? 1;
+        const itemTotal = item.quantity * serverPrice * multiplier;
+        orderTotal += itemTotal;
 
         return {
           productId: item.productId,
           productName: item.product.name,
           quantity: item.quantity,
-          unitPrice: serverPrice, // Always use server price
-          totalPrice: item.quantity * serverPrice * (item.selectedVariant?.priceMultiplier ?? 1),
+          unitPrice: serverPrice,
+          totalPrice: itemTotal,
           variantId: item.selectedVariant?.id || null,
           variantLabel: item.selectedVariant?.label || null,
         };
       });
 
-      // Alert user if prices changed significantly
-      if (priceValidationErrors.length > 0) {
-        const errorMsg = priceValidationErrors.join('\n');
-        toast.error(
-          `Bazı ürünlerin fiyatları değişti:\n${errorMsg}\n\nLütfen sepetinizi kontrol edin.`,
-          { duration: 5000 }
-        );
-        setIsSubmitting(false);
-        return;
-      }
+      // Recalculate delivery fee and grand total using server prices
+      const calculatedDeliveryFee = canCalculateDelivery && freeDeliveryThreshold !== null && baseDeliveryFee !== null
+        ? (orderTotal >= freeDeliveryThreshold ? 0 : baseDeliveryFee)
+        : null;
+
+      const calculatedGrandTotal = calculatedDeliveryFee !== null ? orderTotal + calculatedDeliveryFee : null;
 
       const deliveryNote = selectedSlotData ? `${selectedSlotData.date} - ${selectedSlotData.label}` : undefined;
 
@@ -237,7 +257,7 @@ const Checkout = () => {
         user_id: user.id,
         region_id: selectedRegion.id,
         status: 'pending',
-        total_amount: grandTotal,
+        total_amount: calculatedGrandTotal,
         payment_method: paymentMethodValue,
         payment_method_details: paymentMethodDetails,
         shipping_address: {
@@ -270,7 +290,7 @@ const Checkout = () => {
             customerName,
             orderId,
             selectedRegion.name,
-            grandTotal || total,
+            calculatedGrandTotal || orderTotal,
             orderItems.map(item => ({
               productName: item.productName,
               quantity: item.quantity,
@@ -296,11 +316,19 @@ const Checkout = () => {
                 dealer.contact_email,
                 orderId,
                 selectedRegion.name,
-                grandTotal || total
+                calculatedGrandTotal || orderTotal
               );
               console.log(`[Checkout] Dealer notification sent to: ${dealer.contact_email}`);
             }
           }
+        }
+
+        // Show price change warning if any (but don't block order)
+        if (priceValidationWarnings.length > 0) {
+          toast.info(
+            `Bazı ürünlerin fiyatları güncellendi:\n${priceValidationWarnings.join('\n')}`,
+            { duration: 5000 }
+          );
         }
       } catch (emailError) {
         // Don't fail the order if emails fail
