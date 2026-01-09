@@ -33,7 +33,9 @@
     "auth:hash": "npx tsx scripts/generate-bcrypt-hash.ts",
     "auth:reset": "node scripts/fix-auth-credentials.js",
     "auth:reset:verify": "node scripts/verify-password-reset.js",
-    "auth:reset:interactive": "npx tsx scripts/reset-passwords-interactive.ts"
+    "auth:reset:interactive": "npx tsx scripts/reset-passwords-interactive.ts",
+    "auth:reset:supabase": "node scripts/reset-supabase-passwords.js",
+    "auth:reset:quick": "node scripts/reset-supabase-passwords-quick.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
