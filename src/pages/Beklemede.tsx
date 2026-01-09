@@ -37,11 +37,11 @@ const Beklemede = () => {
     }
 
     try {
-      // Get user phone from users table (not user_metadata)
+      // Get user phone from profiles table (not user_metadata)
       let userPhone: string | null = null;
       try {
         const { data: profile } = await supabase
-          .from('users')
+          .from('profiles')
           .select('phone')
           .eq('id', user.id)
           .maybeSingle();

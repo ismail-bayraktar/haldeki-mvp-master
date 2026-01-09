@@ -269,30 +269,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await checkUserRoles(data.user.id);
       }
 
-      // Get user phone from users table for whitelist check
+      // Get user phone from profiles table for whitelist check
       let userPhone: string | null = null;
       let whitelistStatus: WhitelistStatus = { status: null, applicationId: null };
 
       try {
         const { data: profile, error } = await supabase
-          .from('users')
+          .from('profiles')
           .select('phone')
           .eq('id', data.user.id)
           .maybeSingle();
 
         if (error) {
           console.error('Error fetching user phone:', error);
-          toast.error('Profil bilgileriniz yüklenirken bir hata oluştu');
-          await supabase.auth.signOut();
-          return { error: new Error('Failed to fetch user profile') };
+          // Non-fatal: continue without phone number
+          userPhone = null;
+        } else {
+          userPhone = profile?.phone || null;
         }
-
-        userPhone = profile?.phone || null;
       } catch (error) {
         console.error('Error fetching user phone:', error);
-        toast.error('Profil bilgileriniz yüklenirken bir hata oluştu');
-        await supabase.auth.signOut();
-        return { error: new Error('Failed to fetch user profile') };
+        // Non-fatal: continue without phone number
+        userPhone = null;
       }
 
       // Business users require phone number for whitelist
