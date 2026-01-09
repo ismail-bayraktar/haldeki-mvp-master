@@ -120,9 +120,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
               cartItems = (parsed.items || parsed).map(migrateCartItem);
             }
 
-            if (JSON.stringify(cartItems) !== JSON.stringify(items)) {
-              setItems(cartItems);
-            }
+            // Use functional update to avoid items dependency
+            setItems(prevItems => {
+              if (JSON.stringify(cartItems) !== JSON.stringify(prevItems)) {
+                return cartItems;
+              }
+              return prevItems;
+            });
           }
         } catch (error) {
           console.error('Error syncing cart on visibility change:', error);
@@ -134,7 +138,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [items]);
+  }, []); // Empty deps - listener never re-subscribes on cart changes
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   

@@ -61,6 +61,11 @@ export interface UpdateSupplierData {
   is_active?: boolean;
 }
 
+export interface BanSupplierData {
+  reason: string;
+  deactivateProducts?: boolean;
+}
+
 export const useSuppliers = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [pendingInvites, setPendingInvites] = useState<PendingSupplierInvite[]>([]);
@@ -409,7 +414,7 @@ export const useSuppliers = () => {
   const rejectSupplier = async (id: string, notes?: string): Promise<boolean> => {
     try {
       const { data: userData } = await supabase.auth.getUser();
-      
+
       const { error } = await supabase
         .from('suppliers')
         .update({
@@ -440,6 +445,45 @@ export const useSuppliers = () => {
     } catch (error) {
       console.error('Error rejecting supplier:', error);
       toast.error('Reddetme sırasında hata oluştu');
+      return false;
+    }
+  };
+
+  const banSupplier = async (id: string, data: BanSupplierData): Promise<boolean> => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+
+      // Step 1: Ban the supplier (set is_active = false and add ban reason)
+      const { error: supplierError } = await supabase
+        .from('suppliers')
+        .update({
+          is_active: false,
+          approval_notes: `YASAKLANDI: ${data.reason}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (supplierError) throw supplierError;
+
+      // Step 2: Optionally deactivate all their products
+      if (data.deactivateProducts) {
+        const { error: productsError } = await supabase
+          .from('supplier_products')
+          .update({ is_active: false })
+          .eq('supplier_id', id);
+
+        if (productsError) {
+          console.error('Error deactivating products:', productsError);
+          toast.warning('Tedarikçi yasaklandı ancak ürünler devre dışı bırakılamadı');
+        }
+      }
+
+      toast.success('Tedarikçi yasaklandı');
+      await fetchSuppliers();
+      return true;
+    } catch (error) {
+      console.error('Error banning supplier:', error);
+      toast.error('Tedarikçi yasaklanırken hata oluştu');
       return false;
     }
   };
@@ -560,5 +604,6 @@ export const useSuppliers = () => {
     cancelInvite,
     approveSupplier,
     rejectSupplier,
+    banSupplier,
   };
 };

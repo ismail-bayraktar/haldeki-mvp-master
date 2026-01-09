@@ -142,14 +142,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           checkMustChangePassword(session.user);
-          setIsRolesChecked(false);
-          setIsApprovalChecked(false);
-          setTimeout(() => {
+
+          // Only reset roles on actual auth changes, not token refresh
+          // TOKEN_REFRESHED fires on tab visibility change - don't reset roles
+          if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+            // Don't set isRolesChecked=false first to prevent race condition
+            // Let checkUserRoles handle its own state properly
             checkUserRoles(session.user.id);
-          }, 0);
+          } else if (event === 'TOKEN_REFRESHED' && !isRolesChecked) {
+            // Edge case recovery: only refresh if roles never loaded
+            checkUserRoles(session.user.id);
+          }
         } else {
           setRoles([]);
           setIsRolesChecked(true);
@@ -164,7 +170,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         checkMustChangePassword(session.user);
         checkUserRoles(session.user.id);
@@ -176,7 +182,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, [checkUserRoles]);
+  }, [checkUserRoles, isRolesChecked]);
 
   const openAuthDrawer = () => setIsAuthDrawerOpen(true);
   const closeAuthDrawer = () => setIsAuthDrawerOpen(false);

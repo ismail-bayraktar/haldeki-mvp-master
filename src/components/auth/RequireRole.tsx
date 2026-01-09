@@ -47,7 +47,16 @@ const RequireRole = ({
   // Check if user has any of the allowed roles
   const hasAccess = allowedRoles.some(role => hasRole(role));
 
-  if (!hasAccess) {
+  // SuperAdmin bypass: allow access to all routes for audit/management
+  const isSuperAdmin = hasRole('superadmin');
+
+  if (!hasAccess && !isSuperAdmin) {
+    // Log failed access attempt for debugging
+    console.warn('[AUTH] Access denied', {
+      path: location.pathname,
+      userRoles: { isSuperAdmin, hasAccess },
+      allowedRoles
+    });
     return <Navigate to={redirectTo} replace />;
   }
 

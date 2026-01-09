@@ -340,6 +340,36 @@ export function useSupplierProduct(productId: string) {
 }
 
 /**
+ * Check for duplicate products before creation
+ * Returns array of existing products with similar name in same category
+ */
+export async function checkDuplicateProducts(productName: string, category: string) {
+  const { data, error } = await supabase
+    .from('products')
+    .select(`
+      id,
+      name,
+      category,
+      supplier_products (
+        suppliers (
+          business_name
+        )
+      )
+    `)
+    .ilike('name', `%${productName}%`)
+    .eq('category', category)
+    .eq('is_active', true)
+    .limit(10);
+
+  if (error) {
+    console.error('Duplicate check error:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
  * Hook: Create product mutation
  * Phase 12: Creates product in products table and links to supplier via supplier_products junction
  */

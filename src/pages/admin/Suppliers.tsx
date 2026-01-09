@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Plus, RefreshCw, Search, Copy, Check, Power, PowerOff, Clock, Mail, Phone, User, Edit, CheckCircle, XCircle, AlertCircle, Key, Users, Truck, ShoppingBag, Eye, EyeOff } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Search, Copy, Check, Power, PowerOff, Clock, Mail, Phone, User, Edit, CheckCircle, XCircle, AlertCircle, Key, Users, Truck, ShoppingBag, Eye, EyeOff, Ban } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { useSuppliers, CreateSupplierInviteData, CreateDirectSupplierData, Supplier } from "@/hooks/useSuppliers";
+import { useSuppliers, CreateSupplierInviteData, CreateDirectSupplierData, Supplier, BanSupplierData } from "@/hooks/useSuppliers";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordGenerator } from "@/components/admin/PasswordGenerator";
 import { PasswordDisplayModal } from "@/components/admin/PasswordDisplayModal";
@@ -27,18 +27,19 @@ const CATEGORIES = [
 ];
 
 const AdminSuppliers = () => {
-  const { 
-    suppliers, 
-    pendingInvites, 
+  const {
+    suppliers,
+    pendingInvites,
     pendingApplications,
-    isLoading, 
-    fetchAll, 
+    isLoading,
+    fetchAll,
     createInvite,
     createDirectSupplier,
-    toggleSupplierActive, 
+    toggleSupplierActive,
     cancelInvite,
     approveSupplier,
-    rejectSupplier 
+    rejectSupplier,
+    banSupplier
   } = useSuppliers();
   
   const [activeTab, setActiveTab] = useState("pending");
@@ -65,6 +66,13 @@ const AdminSuppliers = () => {
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
   const [isProcessing, setIsProcessing] = useState(false);
   const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
+
+  // Ban dialog state
+  const [banSupplierState, setBanSupplierState] = useState<Supplier | null>(null);
+  const [isBanDialogOpen, setIsBanDialogOpen] = useState(false);
+  const [banReason, setBanReason] = useState("");
+  const [banDeactivateProducts, setBanDeactivateProducts] = useState(true);
+  const [isBanning, setIsBanning] = useState(false);
 
   useEffect(() => {
     fetchAll();
@@ -116,6 +124,26 @@ const AdminSuppliers = () => {
     if (success) { setIsApprovalDialogOpen(false); setApprovalSupplier(null); }
   };
 
+  const handleBanSupplier = async () => {
+    if (!banSupplierState) return;
+    if (!banReason.trim()) {
+      toast.error('Yasaklama sebebi zorunludur');
+      return;
+    }
+    setIsBanning(true);
+    const success = await banSupplier(banSupplierState.id, {
+      reason: banReason,
+      deactivateProducts: banDeactivateProducts,
+    });
+    setIsBanning(false);
+    if (success) {
+      setIsBanDialogOpen(false);
+      setBanSupplierState(null);
+      setBanReason('');
+      setBanDeactivateProducts(true);
+    }
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
@@ -141,7 +169,7 @@ const AdminSuppliers = () => {
                 <DialogTitle>Yeni Tedarikçi Kaydı</DialogTitle>
                 <DialogDescription>Sisteme yeni ürün sağlayıcı ekleyin.</DialogDescription>
               </DialogHeader>
-              <Tabs value={registrationMode} onValueChange={(v: any) => setRegistrationMode(v)}>
+              <Tabs value={registrationMode} onValueChange={(v) => setRegistrationMode(v)}>
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="invite">Davet Gönder</TabsTrigger>
                   <TabsTrigger value="direct">Direkt Kayıt</TabsTrigger>
@@ -325,6 +353,9 @@ const AdminSuppliers = () => {
                               <Key className="h-4 w-4 text-amber-600" />
                             </Button>
                           )}
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50" title="Tedarikçiyi Yasakla" onClick={() => { setBanSupplierState(supplier); setIsBanDialogOpen(true); }}>
+                            <Ban className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="sm" className={`h-8 w-8 p-0 ${supplier.is_active ? 'text-red-500' : 'text-green-500'}`} title={supplier.is_active ? 'Pasifleştir' : 'Aktifleştir'} onClick={() => toggleSupplierActive(supplier.id, supplier.is_active)}>
                             {supplier.is_active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
                           </Button>
@@ -375,7 +406,7 @@ const AdminSuppliers = () => {
 
       {/* Modals */}
       <PasswordDisplayModal open={passwordModalOpen} onOpenChange={setPasswordModalOpen} password={tempPassword} email={tempEmail} userName={tempUserName} />
-      
+
       <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle className={approvalAction === 'approve' ? 'text-green-700' : 'text-red-700'}>{approvalAction === 'approve' ? 'Başvuruyu Onayla' : 'Başvuruyu Reddet'}</DialogTitle></DialogHeader>
@@ -387,6 +418,57 @@ const AdminSuppliers = () => {
             <Button variant="outline" onClick={() => setIsApprovalDialogOpen(false)}>İptal</Button>
             <Button onClick={handleApprovalAction} disabled={isProcessing} variant={approvalAction === 'approve' ? 'default' : 'destructive'}>
               {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Tamamla
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ban Supplier Dialog */}
+      <Dialog open={isBanDialogOpen} onOpenChange={setIsBanDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-700 flex items-center gap-2">
+              <Ban className="h-5 w-5" />
+              Tedarikçiyi Yasakla
+            </DialogTitle>
+            <DialogDescription>
+              <strong>{banSupplierState?.name}</strong> tedarikçisini yasaklamak üzeresiniz.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div>
+              <Label htmlFor="ban-reason">Yasaklama Sebebi *</Label>
+              <Textarea
+                id="ban-reason"
+                placeholder="Tedarikçinin neden yasaklandığını açıklayın..."
+                value={banReason}
+                onChange={e => setBanReason(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="deactivate-products"
+                checked={banDeactivateProducts}
+                onCheckedChange={(checked) => setBanDeactivateProducts(checked as boolean)}
+              />
+              <Label htmlFor="deactivate-products" className="cursor-pointer">
+                Tedarikçinin tüm ürünlerini devre dışı bırak
+              </Label>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Yasaklanan tedarikçi sisteme giriş yapamayacak ve ürünleri görüntülenmeyecektir.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBanDialogOpen(false)}>İptal</Button>
+            <Button
+              onClick={handleBanSupplier}
+              disabled={isBanning || !banReason.trim()}
+              variant="destructive"
+            >
+              {isBanning && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Tedarikçiyi Yasakla
             </Button>
           </DialogFooter>
         </DialogContent>

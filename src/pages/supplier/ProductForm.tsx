@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,12 +16,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { ImageUpload } from '@/components/supplier/ImageUpload';
 import { VariationList } from '@/components/supplier/VariationList';
 import { SupplierMobileLayout } from '@/components/supplier/SupplierMobileLayout';
-import { useSupplierProduct } from '@/hooks/useSupplierProducts';
-import { useCreateProduct } from '@/hooks/useSupplierProducts';
-import { useUpdateProduct } from '@/hooks/useSupplierProducts';
+import { useSupplierProduct, useCreateProduct, useUpdateProduct, checkDuplicateProducts } from '@/hooks/useSupplierProducts';
 import { useProductImages } from '@/hooks/useImageUpload';
 import { toast } from 'sonner';
 import type { ProductFormData, ProductStatus } from '@/types/supplier';
@@ -38,6 +46,17 @@ const CATEGORIES = [
 ];
 
 const UNITS = ['kg', 'adet', 'demet', 'pak', 'litre', 'balya'];
+
+type DuplicateProduct = {
+  id: string;
+  name: string;
+  category: string;
+  supplier_products: Array<{
+    suppliers: {
+      business_name: string;
+    } | null;
+  } | null>;
+};
 
 export default function ProductForm() {
   const { id } = useParams<{ id?: string }>();
@@ -56,6 +75,9 @@ export default function ProductForm() {
 
   const [variations, setVariations] = useState<ProductVariationsGrouped[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicates, setDuplicates] = useState<DuplicateProduct[]>([]);
+  const [pendingSubmit, setPendingSubmit] = useState<ProductFormData | null>(null);
 
   // Load product data if editing
   const { data: product, isLoading: isLoadingProduct } = useSupplierProduct(id || '');
@@ -168,6 +190,23 @@ export default function ProductForm() {
 
     console.log('📤 [DEBUG] Submitting data with variations:', submitData.variations);
 
+    // Check for duplicates only when creating new products
+    if (!isEditing && submitData.name && submitData.category) {
+      const duplicateProducts = await checkDuplicateProducts(submitData.name, submitData.category);
+
+      if (duplicateProducts.length > 0) {
+        setDuplicates(duplicateProducts);
+        setPendingSubmit(submitData);
+        setShowDuplicateDialog(true);
+        return;
+      }
+    }
+
+    // No duplicates or user chose to continue
+    performSubmit(submitData);
+  };
+
+  const performSubmit = (submitData: ProductFormData) => {
     if (isEditing) {
       updateProduct(
         { productId: id!, formData: submitData },
@@ -186,6 +225,21 @@ export default function ProductForm() {
         },
       });
     }
+  };
+
+  const handleContinueAnyway = () => {
+    if (pendingSubmit) {
+      setShowDuplicateDialog(false);
+      performSubmit(pendingSubmit);
+      setPendingSubmit(null);
+      setDuplicates([]);
+    }
+  };
+
+  const handleCancelDuplicate = () => {
+    setShowDuplicateDialog(false);
+    setPendingSubmit(null);
+    setDuplicates([]);
   };
 
   if (isEditing && isLoadingProduct) {
@@ -437,6 +491,52 @@ export default function ProductForm() {
           </Button>
         </div>
       </form>
+
+      {/* Duplicate Warning Dialog */}
+      <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertDialogTitle>Benzer Ürünler Bulundu</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              "{formData.name}" isminde "{formData.category}" kategorisinde {duplicates.length} adet benzer ürün var.
+              Bu ürünlerin zaten mevcut olduğunu lütfen kontrol edin.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="my-4 max-h-60 overflow-y-auto">
+            <div className="space-y-2">
+              {duplicates.map((dup) => (
+                <div
+                  key={dup.id}
+                  className="flex items-center justify-between rounded-lg border p-3 text-sm"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium">{dup.name}</p>
+                    <p className="text-muted-foreground">
+                      {dup.supplier_products
+                        .filter((sp) => sp?.suppliers)
+                        .map((sp) => sp?.suppliers?.business_name)
+                        .join(', ')}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelDuplicate}>
+              İptal
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleContinueAnyway}>
+              Yine de Oluştur
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SupplierMobileLayout>
   );
 }

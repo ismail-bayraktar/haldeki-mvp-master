@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Haldeki Favicon Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+    h1 { color: #004631; }
+    .instructions { background: #e8f5e9; padding: 15px; border-radius: 4px; margin: 20px 0; }
+    canvas { border: 1px solid #ddd; margin: 10px; background: white; }
+    .download-btn { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+    .download-btn:hover { background: #16a34a; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Haldeki Favicon Generator</h1>
+    <div class="instructions">
+      <h3>Nasıl Kullanılır?</h3>
+      <ol>
+        <li>Aşağıdaki ikonlar otomatik olarak oluşturulur</li>
+        <li>Her "İndir" butonuna tıklayarak dosyaları kaydedin</li>
+        <li>Dosyaları <code>public/</code> klasörüne koyun</li>
+      </ol>
+    </div>
+    <div id="favicons"></div>
+  </div>
+
+  <script>
+    const svgContent = `<svg width="450" height="362" viewBox="0 0 450 362" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M382.092 92.1967C367.883 81.386 337.648 61.7117 294.299 56.2229C282.113 54.6838 242.121 50.8825 197.696 70.3528C177.848 79.0496 162.898 89.8603 152.77 98.4828C144.775 105.288 120.532 127.114 103.782 164.181C98.1245 176.717 94.7671 187.768 92.7453 195.723V0H0V362H93.784C95.0268 342.418 97.6237 314.437 103.541 281.059C109.477 247.681 112.611 230.584 121.404 210.725C129.046 193.442 143.236 162.475 176.921 138.351C212.516 112.854 248.947 109.98 260.614 109.479C270.501 109.052 319.007 107.958 363.209 142.616C387.026 161.289 400.01 182.817 406.502 195.705C399.064 205.199 384.095 221.647 359.852 232.606C351.616 236.333 310.715 254.709 267.088 235.702C241.843 224.706 227.3 205.941 220.567 195.705C232.049 190.55 247.5 184.987 266.327 181.816C291.684 177.551 313.256 179.275 327.984 181.686C316.577 175.048 295.394 164.886 267.329 163.625C217.97 161.381 183.32 188.269 174.157 195.872C181.41 208.054 194.932 227.247 217.729 244.214C237.428 258.863 256.478 266.243 269.295 270.081V362H359.87V270.137C371.779 266.707 390.55 259.679 409.619 244.77C431.97 227.302 444.083 207.331 450 195.705C445.752 179.146 430.653 129.116 382.092 92.1967Z" fill="#004631"/>
+    </svg>`;
+
+    function createFavicon(size, name) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      const img = new Image();
+      const svgBlob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      img.onload = function() {
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
+        URL.revokeObjectURL(url);
+
+        const container = document.getElementById('favicons');
+        const div = document.createElement('div');
+        div.style.margin = '20px 0';
+        div.innerHTML = `
+          <h3>${name} (${size}x${size})</h3>
+          <canvas id="${name}" width="${size}" height="${size}"></canvas>
+          <button class="download-btn" onclick="downloadFavicon('${name}')">İndir</button>
+        `;
+        container.appendChild(div);
+
+        const faviconCanvas = document.getElementById(name);
+        const faviconCtx = faviconCanvas.getContext('2d');
+        faviconCtx.drawImage(img, 0, 0, size, size);
+      };
+
+      img.src = url;
+    }
+
+    function downloadFavicon(name) {
+      const canvas = document.getElementById(name);
+      const link = document.createElement('a');
+      link.download = name + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    window.onload = function() {
+      createFavicon(180, 'apple-touch-icon');
+      createFavicon(32, 'favicon-32x32');
+      createFavicon(16, 'favicon-16x16');
+    };
+  </script>
+</body>
+</html>

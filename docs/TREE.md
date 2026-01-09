@@ -128,6 +128,9 @@ docs/
 ├── security/
 │   ├── TEST_ACCOUNTS_AUDIT.md
 │   └── TEST_ACCOUNTS_REPORT.md
+├── speed-test-sonuc/
+│   ├── haldeki-desktop-speed-test-result.pdf
+│   └── haldeki-mobil-speed-test-result.pdf
 ├── technical-debt/
 │   ├── CART_MIGRATION_DEBT.md
 │   └── README.md
@@ -162,6 +165,7 @@ docs/
 ├── PASSWORD_RESET_USER_GUIDE.md
 ├── PHASE12_COMPLETION_REPORT.md
 ├── PHASE12_FIX_IMPLEMENTATION_PLAN.md
+├── PLAN.md
 ├── prd.md
 ├── PRODUCTION_READINESS_REPORT_2026-01-09.md
 ├── README.md
@@ -180,9 +184,12 @@ docs/
 ├── SUPPLIER_PRODUCT_VISIBILITY_ANALYSIS.md
 ├── SUPPLIER_READINESS_IMPLEMENTATION_REPORT_2026-01-09.md
 ├── SUPPLIER_TRUST_BUT_VERIFY_IMPLEMENTATION_2026-01-09.md
+├── TAB_SWITCH_RELOAD_FIX_2026-01-09.md
 ├── TARGET_KEYWORDS.md
 ├── TEDARIKCI_KULLANIM_KILAVUZU.md
+├── TEDARIKCI_YASAM_DONGUSU_2026-01-09.md
 ├── tedarikci-paneli-toplam-urun-siparisi.png
+├── TEDIKCI_ROUTE_ACCESS_FIX_2026-01-09.md
 ├── TEST_ACCOUNTS_CLEAN.md
 ├── TEST_ACCOUNTS.md
 ├── TEST_BULGULARI_PHASE12.md
@@ -190,4 +197,4 @@ docs/
 └── UPDATE-TEST-ACCOUNTS.md
 ```
 
-**Son güncelleme:** 2026-01-09T16:39:11.524Z
+**Son güncelleme:** 2026-01-09T20:53:37.359Z
