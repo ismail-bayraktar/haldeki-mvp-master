@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Header, Footer, MobileNav } from "@/components/layout";
 import { ProductCard, ProductCardSkeleton } from "@/components/product";
 import { RegionBanner } from "@/components/region";
+import { BreadcrumbSchema } from "@/components/seo/SchemaMarkup";
 import { useActiveProducts, DbProduct } from "@/hooks/useProducts";
 import { useRegionProducts } from "@/hooks/useRegionProducts";
 import { useRegion } from "@/contexts/RegionContext";
@@ -140,6 +141,10 @@ const Products = () => {
 
   return (
     <div className="min-h-screen flex flex-col" data-testid="products-page">
+      <BreadcrumbSchema items={[
+        { name: "Ana Sayfa", url: "https://haldeki-market.vercel.app" },
+        { name: "Ürünler", url: "https://haldeki-market.vercel.app/urunler" }
+      ]} />
       <Header />
 
       <main className="flex-1 pb-20 lg:pb-0">

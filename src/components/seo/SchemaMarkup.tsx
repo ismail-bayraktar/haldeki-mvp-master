@@ -25,6 +25,24 @@ interface DeliveryAreaSchemaProps {
   areas: { name: string; locality: string; region: string }[];
 }
 
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+interface FAQSchemaProps {
+  faqs: FAQItem[];
+}
+
+interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
+interface BreadcrumbSchemaProps {
+  items: BreadcrumbItem[];
+}
+
 export const LocalBusinessSchema = ({
   name = "Haldeki",
   description = "İzmir Menemen ve Aliağa'ya taze meyve sebze teslimatı. Toptan hal fiyatlarına online sipariş.",
@@ -89,6 +107,7 @@ export const LocalBusinessSchema = ({
     return () => {
       script.remove();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, description, locality, region, areaServed]);
 
   return null;
@@ -158,7 +177,76 @@ export const ProductSchema = ({
     return () => {
       script.remove();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, description, image, price, availability, ratingValue, reviewCount]);
+
+  return null;
+};
+
+export const FAQSchema = ({ faqs }: FAQSchemaProps) => {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
+  useEffect(() => {
+    const existingScript = document.querySelector('script[data-schema="faq"]');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.setAttribute("data-schema", "faq");
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+
+    return () => {
+      script.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [faqs]);
+
+  return null;
+};
+
+export const BreadcrumbSchema = ({ items }: BreadcrumbSchemaProps) => {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+
+  useEffect(() => {
+    const existingScript = document.querySelector('script[data-schema="breadcrumb"]');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.setAttribute("data-schema", "breadcrumb");
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+
+    return () => {
+      script.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
 
   return null;
 };
@@ -204,6 +292,7 @@ export const DeliveryAreaSchema = ({ areas }: DeliveryAreaSchemaProps) => {
     return () => {
       script.remove();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [areas]);
 
   return null;

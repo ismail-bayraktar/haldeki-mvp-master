@@ -59,6 +59,6 @@ npm run docs:api
 
 ---
 
-**Son güncelleme:** 2026-01-09T11:01:25.093Z
+**Son güncelleme:** 2026-01-09T11:01:34.188Z
 
 **Otomatik oluşturuldu:** sync-docs.js tarafından

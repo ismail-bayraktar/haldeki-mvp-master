@@ -1,14 +1,28 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+# robots.txt for Haldeki Market
 
 User-agent: *
 Allow: /
+
+# Disallow admin and backend routes
+Disallow: /admin
+Disallow: /backend
+Disallow: /api
+Disallow: /bayi
+Disallow: /tedarikci
+Disallow: /isletme
+Disallow: /depo
+
+# Disallow protected routes
+Disallow: /hesabim
+Disallow: /sepet
+Disallow: /teslimat
+Disallow: /siparis-tamamlandi
+Disallow: /odeme-bildirimi
+Disallow: /favoriler
+Disallow: /karsilastir
+
+# Sitemap location
+Sitemap: https://haldeki-market.vercel.app/sitemap.xml
+
+# Crawl delay (optional, be respectful)
+Crawl-delay: 1
