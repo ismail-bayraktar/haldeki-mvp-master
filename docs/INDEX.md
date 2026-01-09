@@ -34,6 +34,8 @@
 ## 🔄 Fazlar
 
 - [phase 10 import export](./phases/phase-10-import-export.md)
+- [phase 11 warehouse mvp](./phases/phase-11-warehouse-mvp.md)
+- [phase 12 multi supplier](./phases/phase-12-multi-supplier.md)
 - [phase 2a1 regioncontext](./phases/phase-2a1-regioncontext.md)
 - [phase 2a2 region products](./phases/phase-2a2-region-products.md)
 - [phase 2a3 cart region](./phases/phase-2a3-cart-region.md)
@@ -44,6 +46,7 @@
 - [phase 6 order delivery](./phases/phase-6-order-delivery.md)
 - [phase 7 payment system](./phases/phase-7-payment-system.md)
 - [phase 8 business panel](./phases/phase-8-business-panel.md)
+- [phase 9 supplier panel](./phases/phase-9-supplier-panel.md)
 
 ## 🔌 API Dokümantasyonu
 
@@ -56,6 +59,6 @@ npm run docs:api
 
 ---
 
-**Son güncelleme:** 2026-01-05T09:44:19.369Z
+**Son güncelleme:** 2026-01-09T10:33:44.772Z
 
 **Otomatik oluşturuldu:** sync-docs.js tarafından

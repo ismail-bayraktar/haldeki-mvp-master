@@ -7,6 +7,7 @@
 
 import * as Papa from 'papaparse';
 import type { ProductImportRow } from '@/types/supplier';
+import { extractVariations, validateVariations, VARIATION_PATTERNS } from './excelParser';
 
 /**
  * Supported CSV file extensions
@@ -77,8 +78,9 @@ const COLUMN_MAP: Record<string, string> = {
 
 /**
  * Required columns
+ * Phase 12: basePrice is optional, price is sufficient
  */
-const REQUIRED_COLUMNS = ['name', 'category', 'unit', 'basePrice', 'price'];
+const REQUIRED_COLUMNS = ['name', 'category', 'unit', 'price'];
 
 /**
  * Parse CSV file and extract product rows
@@ -243,6 +245,7 @@ export function parseCSVFile(
 
 /**
  * Map Turkish column names to English field names
+ * Phase 12.1: Added fuzzy matching for case-insensitive and space-tolerant lookup
  */
 function mapColumns(headers: string[]): Record<string, string> {
   const mapped: Record<string, string> = {};
@@ -251,7 +254,29 @@ function mapColumns(headers: string[]): Record<string, string> {
     if (!header) return;
 
     const normalizedHeader = header.trim();
-    const fieldName = COLUMN_MAP[normalizedHeader];
+    let fieldName = COLUMN_MAP[normalizedHeader];
+
+    // Fuzzy matching: Try case-insensitive lookup
+    if (!fieldName) {
+      const lowerHeader = normalizedHeader.toLowerCase();
+      for (const [key, value] of Object.entries(COLUMN_MAP)) {
+        if (key.toLowerCase() === lowerHeader) {
+          fieldName = value;
+          break;
+        }
+      }
+    }
+
+    // Fuzzy matching: Try with extra spaces removed
+    if (!fieldName && /\s/.test(normalizedHeader)) {
+      const collapsedHeader = normalizedHeader.replace(/\s+/g, '');
+      for (const [key, value] of Object.entries(COLUMN_MAP)) {
+        if (key.replace(/\s+/g, '') === collapsedHeader) {
+          fieldName = value;
+          break;
+        }
+      }
+    }
 
     if (fieldName) {
       mapped[fieldName] = normalizedHeader;
@@ -361,10 +386,26 @@ function parseRow(
   const stockNum = parseNumber(stock);
   const imagesArray = parseImages(images);
 
-  // Return parsed row
+  // Extract variations from product name (Phase 12)
+  const { variations, baseName } = extractVariations(name!.trim());
+
+  // Validate variations
+  const variationValidation = validateVariations(variations);
+  if (!variationValidation.valid) {
+    variationValidation.errors.forEach(err => {
+      errors.push({
+        row: rowIndex,
+        field: 'variations',
+        error: err,
+        value: name,
+      });
+    });
+  }
+
+  // Return parsed row with variations
   return {
     data: {
-      name: name!.trim(),
+      name: baseName || name!.trim(),
       category: category!.trim(),
       unit: unit!.trim(),
       basePrice: basePriceNum!,
@@ -375,6 +416,7 @@ function parseRow(
       availability: availability?.trim() || 'bol',
       description: description?.trim() || null,
       images: imagesArray,
+      variations: variations.length > 0 ? variations : undefined,
     },
     errors: [],
   };

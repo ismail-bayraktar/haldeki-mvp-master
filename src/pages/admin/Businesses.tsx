@@ -179,23 +179,23 @@ const AdminBusinesses = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">İşletmeler (B2B)</h1>
-          <p className="text-muted-foreground">Restoran, kafe ve otel hesaplarını yönetin</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={fetchAll} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Yenile
-          </Button>
-          <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                İşletme Ekle
-              </Button>
-            </DialogTrigger>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">İşletmeler (B2B)</h1>
+            <p className="text-muted-foreground">Restoran, kafe ve otel hesaplarını yönetin</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={fetchAll} variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Yenile
+            </Button>
+            <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  İşletme Ekle
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Yeni İşletme Ekle</DialogTitle>

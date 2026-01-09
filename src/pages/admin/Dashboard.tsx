@@ -10,7 +10,6 @@ import { format, subDays, startOfDay, eachDayOfInterval } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-
 interface Order {
   id: string;
   user_id: string;
@@ -50,6 +49,9 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
+      // SECURITY: This query should be protected by RLS policies
+      // Only admins and superadmins should be able to query all orders
+      // RLS Policy: "Admins can view all orders"
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select('*')
@@ -128,21 +130,21 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Genel bakış ve özet istatistikler</p>
+    <div className="space-y-6" data-testid="admin-dashboard">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">Genel bakış ve özet istatistikler</p>
+          </div>
+          <Button onClick={fetchData} variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Yenile
+          </Button>
         </div>
-        <Button onClick={fetchData} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Yenile
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card data-testid="stat-card-orders">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Toplam Sipariş</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
@@ -153,7 +155,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-testid="stat-card-revenue">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Toplam Gelir</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -164,7 +166,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-testid="stat-card-users">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Toplam Kullanıcı</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -175,7 +177,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-testid="stat-card-pending-orders">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Bekleyen Sipariş</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />

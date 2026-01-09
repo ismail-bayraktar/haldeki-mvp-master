@@ -149,7 +149,7 @@ export const useRepeatOrder = (): UseRepeatOrderReturn => {
         if (product) {
           // Check if product already exists in cart
           // Note: addToCart will handle quantity updates internally
-          addToCart(product, item.quantity, undefined, item.price);
+          addToCart(product, item.quantity, undefined, item.price, undefined);
           addedCount++;
         }
       }

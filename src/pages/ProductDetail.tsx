@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { 
-  ArrowLeft, Plus, Minus, MapPin, Truck, Shield, Check, Heart, 
+import {
+  ArrowLeft, Plus, Minus, MapPin, Truck, Shield, Check, Heart,
   Leaf, Award, Package, Clock, RefreshCw, Info, Bell, Ban
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,10 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { getRegionPriceInfo, getPriceChangeLabel } from "@/lib/productUtils";
 import { cn } from "@/lib/utils";
-import { Product } from "@/types";
+import { Product, ProductVariant } from "@/types";
 import { toast } from "sonner";
+import { useLowestPriceForCart } from "@/hooks/useLowestPriceForCart";
+import { useProductVariations } from "@/hooks/useProductVariations";
 
 // Helper to convert DB product to frontend Product type
 const convertDbProduct = (dbProduct: DbProduct): Product => ({
@@ -47,13 +49,44 @@ const ProductDetail = () => {
   const { data: allProducts } = useActiveProducts();
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
-  
+
   // Convert DB product first to get the id
   const product = useMemo(() => {
     if (!dbProduct) return null;
     return convertDbProduct(dbProduct);
   }, [dbProduct]);
-  
+
+  // Phase 12: Get lowest price from suppliers or region
+  const { data: priceInfo } = useLowestPriceForCart(product?.id ?? '', selectedRegion?.id ?? null);
+
+  // Phase 12: Fetch product variations from database
+  const { data: dbVariations = [] } = useProductVariations(product?.id ?? '');
+
+  // Convert database variations to legacy ProductVariant format for UI compatibility
+  const productVariants = useMemo(() => {
+    if (!dbVariations || dbVariations.length === 0) return product?.variants || [];
+
+    // Group variations by type and convert to ProductVariant format
+    const sizeVariations = dbVariations.filter(v => v.variation_type === 'size' || v.variation_type === 'packaging');
+
+    return sizeVariations
+      .sort((a, b) => a.display_order - b.display_order)
+      .map((v, index) => {
+        const quantity = v.metadata?.quantity as number || 1;
+        const unit = v.metadata?.unit as string || 'kg';
+        const priceMultiplier = v.metadata?.priceMultiplier as number || 1;
+
+        return {
+          id: v.id,
+          label: v.variation_value,
+          quantity,
+          unit,
+          priceMultiplier,
+          isDefault: index === 0, // First variation is default
+        } as ProductVariant;
+      });
+  }, [dbVariations, product?.variants]);
+
   // Bölge bazlı fiyat/stok bilgisi
   const { data: regionProductData } = useRegionProduct(selectedRegion?.id ?? null, product?.id ?? null);
   const regionInfo = useMemo(() => getRegionPriceInfo(regionProductData), [regionProductData]);
@@ -90,13 +123,13 @@ const ProductDetail = () => {
 
   // Set default variant when product loads
   useEffect(() => {
-    if (product?.variants && product.variants.length > 0) {
-      const defaultVariant = product.variants.find(v => v.isDefault) || product.variants[0];
+    if (productVariants && productVariants.length > 0) {
+      const defaultVariant = productVariants.find(v => v.isDefault) || productVariants[0];
       setSelectedVariant(defaultVariant);
     } else {
       setSelectedVariant(undefined);
     }
-  }, [product]);
+  }, [productVariants]);
 
   const inWishlist = product ? isInWishlist(product.id) : false;
 
@@ -119,7 +152,7 @@ const ProductDetail = () => {
 
   const handleAddToCart = useCallback(async () => {
     if (!product || isAdding) return;
-    
+
     if (selectedRegion && !canAddToCart) {
       if (!isInRegion) {
         toast.error("Bu ürün seçili bölgede satılmamaktadır");
@@ -128,16 +161,24 @@ const ProductDetail = () => {
       }
       return;
     }
-    
+
     setIsAdding(true);
     setShowAdded(true);
-    addToCart(product, quantity, selectedVariant);
-    
+
+    const unitPrice = priceInfo?.price ?? regionInfo?.price ?? product.price;
+
+    addToCart(product, quantity, selectedVariant, unitPrice, priceInfo ? {
+      supplierId: priceInfo.supplierId || null,
+      supplierProductId: priceInfo.supplierProductId || null,
+      supplierName: priceInfo.supplierName || '',
+      priceSource: priceInfo.priceSource,
+    } : undefined);
+
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
     setIsAdding(false);
     setTimeout(() => setShowAdded(false), 2000);
-  }, [product, quantity, isAdding, addToCart, selectedVariant, selectedRegion, canAddToCart, isInRegion, isOutOfStock]);
+  }, [product, quantity, isAdding, addToCart, selectedVariant, selectedRegion, canAddToCart, isInRegion, isOutOfStock, priceInfo, regionInfo]);
 
   const handleToggleWishlist = () => {
     if (product) {
@@ -253,13 +294,13 @@ const ProductDetail = () => {
               </div>
 
               {/* Variant Selector */}
-              {product.variants && product.variants.length > 0 && (
+              {productVariants && productVariants.length > 0 && (
                 <div className="space-y-3">
                   <label className="text-sm font-medium text-foreground">
                     Miktar Seçin
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {product.variants.map((variant) => {
+                    {productVariants.map((variant) => {
                       const isSelected = selectedVariant?.id === variant.id;
                       const variantPrice = product.price * variant.priceMultiplier;
                       const expectedPrice = product.price * variant.quantity;
@@ -272,8 +313,8 @@ const ProductDetail = () => {
                           className={cn(
                             "relative flex flex-col items-center px-4 py-3 rounded-xl border-2 transition-all min-w-[90px]",
                             isSelected
-                              ? "border-primary bg-primary/5 shadow-sm"
-                              : "border-border hover:border-primary/50 bg-card"
+                              ? "border-[hsl(var(--haldeki-green-soft))] bg-[hsl(var(--haldeki-green-light))] shadow-sm"
+                              : "border-border hover:border-[hsl(var(--haldeki-green-soft))]/50 bg-card"
                           )}
                         >
                           {hasSavings && (

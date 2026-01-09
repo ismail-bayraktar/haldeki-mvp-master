@@ -1,0 +1,98 @@
+-- ============================================================================
+-- Phase 11: Warehouse Test Accounts
+-- ============================================================================
+-- Migration: 20250109100000_phase11_warehouse_test_accounts.sql
+-- Author: Claude Code (orchestrator)
+-- Date: 2025-01-09
+--
+-- Description:
+--   Instructions for creating test accounts for warehouse manager role
+--
+-- Test Accounts:
+--   Email: warehouse@test.haldeki.com
+--   Password: Test1234!
+--   Role: warehouse_manager
+--
+-- ============================================================================
+--
+-- NOTE: This migration is for DOCUMENTATION only.
+--
+-- Auth users must be created via Supabase Auth API or through signup.
+-- Run the following SQL manually in Supabase SQL Editor:
+--
+-- BEGIN;
+--
+-- -- Step 1: Create auth user (via auth.users table insert)
+-- INSERT INTO auth.users (
+--   id,
+--   email,
+--   encrypted_password,
+--   email_confirmed_at,
+--   raw_app_meta_data,
+--   raw_user_meta_data,
+--   created_at,
+--   updated_at
+-- )
+-- VALUES (
+--   '00000000-0000-0000-0000-000000000013'::UUID,
+--   'warehouse@test.haldeki.com',
+--   -- Password: Test1234! (bcrypt hash, replace with actual hash)
+--   '$2a$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+--   NOW(),
+--   '{"provider":"email","providers":["email"]}'::jsonb,
+--   '{"full_name":"Depo Yöneticisi","phone":"0536 600 00 01"}'::jsonb,
+--   NOW(),
+--   NOW()
+-- )
+-- ON CONFLICT (id) DO NOTHING;
+--
+-- -- Step 2: Create profile
+-- INSERT INTO profiles (id, email, full_name, phone, created_at)
+-- VALUES (
+--   '00000000-0000-0000-0000-000000000013'::UUID,
+--   'warehouse@test.haldeki.com',
+--   'Depo Yöneticisi',
+--   '0536 600 00 01',
+--   NOW()
+-- )
+-- ON CONFLICT (id) DO UPDATE SET
+--   email = EXCLUDED.email,
+--   full_name = EXCLUDED.full_name,
+--   phone = EXCLUDED.phone;
+--
+-- -- Step 3: Assign warehouse_manager role
+-- INSERT INTO user_roles (user_id, role)
+-- VALUES (
+--   '00000000-0000-0000-0000-000000000013'::UUID,
+--   'warehouse_manager'
+-- )
+-- ON CONFLICT (user_id, role) DO NOTHING;
+--
+-- -- Step 4: Create warehouse staff record (vendor-scoped)
+-- -- Note: Adjust vendor_id and select appropriate warehouse_id from regions table
+-- INSERT INTO warehouse_staff (user_id, vendor_id, warehouse_id, is_active)
+-- SELECT
+--   '00000000-0000-0000-0000-000000000013'::UUID,
+--   '00000000-0000-0000-0000-000000000001'::UUID, -- Default vendor (adjust if needed)
+--   id, -- First region from regions table
+--   true
+-- FROM regions
+-- LIMIT 1
+-- ON CONFLICT (user_id, vendor_id, warehouse_id) DO UPDATE SET
+--   is_active = EXCLUDED.is_active;
+--
+-- COMMIT;
+--
+-- ============================================================================
+-- ALTERNATIVE: Use RoleSwitcher in development
+-- ============================================================================
+--
+-- 1. Start dev server: npm run dev
+-- 2. Open browser: http://localhost:5173
+-- 3. Press Ctrl+Shift+D (or click FlaskConical icon)
+-- 4. Click "Depo Yöneticisi"
+-- 5. Auto-creates account via supabase.auth.signUpWithPassword()
+--
+-- This is the RECOMMENDED approach for development!
+--
+-- ============================================================================

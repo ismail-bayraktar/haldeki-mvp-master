@@ -233,7 +233,7 @@ export class AdminPage {
     await this.page.goto('/admin');
   }
 
-  async navigateToSection(section: 'dashboard' | 'orders' | 'users' | 'products' | 'dealers' | 'suppliers' | 'businesses'): Promise<void> {
+  async navigateToSection(section: 'dashboard' | 'orders' | 'users' | 'products' | 'dealers' | 'suppliers' | 'businesses' | 'whitelist' | 'reports'): Promise<void> {
     await this.page.click(`[data-testid="admin-nav-${section}"]`);
     await this.page.waitForLoadState('networkidle');
   }

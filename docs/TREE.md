@@ -39,13 +39,10 @@ docs/
 │   │   ├── 30_TECH_SPECS_TO_TASKS.md
 │   │   └── 40_RELEASE_READINESS.md
 │   └── START_HERE.md
+├── analysis/
+
 ├── api/
-│   ├── fal-ai-mcp-architecture.md
-│   ├── fal-ai-mcp-quick-reference.md
-│   ├── fal-ai-mcp-server-design.md
-│   ├── fal-ai-mcp-visual-overview.md
 │   ├── index.md
-│   ├── phase-10-import-export.md
 │   └── README.md
 ├── architecture/
 │   └── database-schema.md
@@ -63,13 +60,22 @@ docs/
 ├── diagrams/
 │   ├── admin-registration-flow-diagram.md
 │   └── invite-lifecycle-diagram.md
+├── fixes/
+│   ├── README.md
+│   └── WAREHOUSE_STAFF_FIXES_2026-01-09.md
 ├── guides/
 │   ├── 01-supabase-migration.md
 │   ├── 02-supabase-auth-setup.md
 │   ├── 03-auth-troubleshooting.md
 │   └── 04-supabase-cli-setup.md
+├── img-ref/
+│   ├── image.png
+│   ├── prd-list.png
+│   └── urun-quick-edit-add-varyasyon.png
 ├── phases/
 │   ├── phase-10-import-export.md
+│   ├── phase-11-warehouse-mvp.md
+│   ├── phase-12-multi-supplier.md
 │   ├── phase-2a1-regioncontext.md
 │   ├── phase-2a2-region-products.md
 │   ├── phase-2a3-cart-region.md
@@ -79,12 +85,18 @@ docs/
 │   ├── phase-5-approval-system.md
 │   ├── phase-6-order-delivery.md
 │   ├── phase-7-payment-system.md
-│   └── phase-8-business-panel.md
+│   ├── phase-8-business-panel.md
+│   └── phase-9-supplier-panel.md
+├── reviews/
+│   ├── CODE_REVIEW_2026-01-09.md
+│   └── README.md
 ├── scripts/
-│   ├── fix-products-schema.sql
-│   ├── fix-regions-schema.sql
-│   ├── full-schema.sql
-│   └── seed-data.sql
+
+├── Silme-eski.env/
+
+├── technical-debt/
+│   ├── CART_MIGRATION_DEBT.md
+│   └── README.md
 ├── testing/
 │   ├── e2e-getting-started-guide.md
 │   ├── e2e-implementation-summary.md
@@ -94,12 +106,28 @@ docs/
 │   └── test-data-attributes.md
 ├── architecture.md
 ├── CURRENT_STATUS.md
+├── DAILY_SUMMARY_2026-01-06.md
+├── DATABASE_SCHEMA_PHASE12.md
+├── DEPLOYMENT_SUMMARY.md
+├── deployment-checklist.md
+├── DOCUMENTATION_UPDATE_SUMMARY.md
 ├── haldeki_master_plan.md
+├── IMMEDIATE_ACTION_GUIDE.md
 ├── INDEX.md
+├── kendiyorumlar.md
+├── PHASE12_COMPLETION_REPORT.md
+├── PHASE12_FIX_IMPLEMENTATION_PLAN.md
 ├── prd.md
+├── PRODUCTION_READINESS_REPORT_2026-01-09.md
 ├── README.md
 ├── ROADMAP.md
+├── SECURITY_AUDIT_2026-01-09.md
+├── SECURITY_FIX_ACTION_PLAN.md
+├── SECURITY_FIX_SUMMARY.md
+├── SUPPLIER_PANEL_TEST_REPORT.md
+├── tedarikci-paneli-toplam-urun-siparisi.png
+├── TEST_BULGULARI_PHASE12.md
 └── TREE.md
 ```
 
-**Son güncelleme:** 2026-01-05T09:44:19.377Z
+**Son güncelleme:** 2026-01-09T10:33:44.781Z

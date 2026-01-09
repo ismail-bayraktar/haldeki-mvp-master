@@ -1,5 +1,7 @@
 // Supplier-specific types for Phase 9
 
+import type { ProductVariationsGrouped } from './multiSupplier';
+
 /**
  * Product status enum for supplier product management
  */
@@ -7,26 +9,79 @@ export type ProductStatus = 'active' | 'inactive' | 'out_of_stock';
 
 /**
  * Supplier product interface - extends base Product with supplier-specific fields
+ *
+ * Phase 12: Supports both old (products.supplier_id) and new (supplier_products junction) patterns
+ * - For old pattern: uses supplier_id, base_price, product_status
+ * - For new pattern: uses supplier_product_id, product_id, price, and extended fields
+ *
+ * Backward compatibility: Both price and base_price are supported (prefer price in new code)
  */
 export interface SupplierProduct {
+  // Identification
   id: string;
-  supplier_id: string;
+  supplier_id?: string; // Optional: Only in old pattern
+  supplier_product_id?: string; // Phase 12: Junction table ID
+  product_id?: string; // Phase 12: Reference to products table
+
+  // Basic info
   name: string;
   description: string | null;
   category: string;
-  base_price: number;
+
+  // Pricing (backward compatible - prefer price for Phase 12)
+  price?: number; // Phase 12: From supplier_products.price
+  base_price?: number; // Legacy: From products.base_price
+
+  // Unit and inventory
   unit: string;
   stock: number;
+
+  // Images
   images: string[];
-  product_status: ProductStatus;
-  last_modified_by: string | null;
-  last_modified_at: string | null;
-  created_at: string;
+
+  // Status (legacy - for old pattern)
+  product_status?: ProductStatus; // Optional: Only in old pattern
+
+  // Phase 12: Extended fields from supplier_products
+  previous_price?: number | null;
+  price_change?: 'increased' | 'decreased' | 'stable';
+  availability?: 'plenty' | 'limited' | 'last';
+  is_active?: boolean;
+  is_featured?: boolean;
+  quality?: 'premium' | 'standart' | 'ekonomik';
+  origin?: string;
+  supplier_sku?: string | null;
+  min_order_quantity?: number;
+  delivery_days?: number;
+
+  // Legacy tracking fields
+  last_modified_by?: string | null;
+  last_modified_at?: string | null;
+  created_at?: string;
   updated_at: string;
 }
 
 /**
- * Product form data for creating/editing products
+ * Standard product form data - used across ALL product forms
+ * (supplier create/edit, admin create/edit)
+ *
+ * This ensures consistency in fields, validation, and UX across the entire application
+ */
+export interface StandardProductForm {
+  name: string;
+  description?: string;
+  category: string;
+  base_price: number;
+  unit: string;
+  stock: number;
+  product_status?: ProductStatus;
+  images?: File[];
+  variations?: ProductVariationsGrouped[];
+}
+
+/**
+ * Product form data for creating/editing products (legacy - for backward compatibility)
+ * @deprecated Use StandardProductForm instead
  */
 export interface ProductFormData {
   name: string;
@@ -37,6 +92,19 @@ export interface ProductFormData {
   stock: number;
   images?: File[];
   product_status?: ProductStatus;
+  variations?: ProductVariationsGrouped[];
+}
+
+/**
+ * Supplier-specific product form data
+ * Extends StandardProductForm with supplier-only fields
+ */
+export interface SupplierProductForm extends StandardProductForm {
+  supplier_sku?: string;
+  quality?: 'premium' | 'standart' | 'ekonomik';
+  origin?: string;
+  min_order_quantity?: number;
+  delivery_days?: number;
 }
 
 /**
@@ -159,6 +227,17 @@ export interface ProductImportRow {
   availability: string;
   description: string | null;
   images: string[];
+  variations?: ProductImportVariation[];
+}
+
+/**
+ * Variation extracted from product name during import
+ */
+export interface ProductImportVariation {
+  type: 'size' | 'type' | 'scent' | 'packaging' | 'material' | 'flavor' | 'other';
+  value: string;
+  display_order: number;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -168,7 +247,7 @@ export interface ImportError {
   row: number;
   field: string;
   error: string;
-  value: any;
+  value: unknown;
 }
 
 /**

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,13 +17,15 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ImageUpload } from '@/components/supplier/ImageUpload';
+import { VariationList } from '@/components/supplier/VariationList';
 import { SupplierMobileLayout } from '@/components/supplier/SupplierMobileLayout';
 import { useSupplierProduct } from '@/hooks/useSupplierProducts';
 import { useCreateProduct } from '@/hooks/useSupplierProducts';
 import { useUpdateProduct } from '@/hooks/useSupplierProducts';
 import { useProductImages } from '@/hooks/useImageUpload';
 import { toast } from 'sonner';
-import type { ProductFormData } from '@/types/supplier';
+import type { ProductFormData, ProductStatus } from '@/types/supplier';
+import type { ProductVariationsGrouped } from '@/types/multiSupplier';
 
 const CATEGORIES = [
   'Sebze',
@@ -52,6 +54,7 @@ export default function ProductForm() {
     product_status: 'active',
   });
 
+  const [variations, setVariations] = useState<ProductVariationsGrouped[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Load product data if editing
@@ -64,6 +67,8 @@ export default function ProductForm() {
     removeImage,
     isUploading: isImageUploading,
     uploads,
+    areUploadsComplete,
+    getFailedUploads,
   } = useProductImages(isEditing && product ? product.images : []);
 
   const { mutate: createProduct, isPending: isCreating } = useCreateProduct();
@@ -83,6 +88,10 @@ export default function ProductForm() {
         stock: product.stock,
         product_status: product.product_status,
       });
+      // Load variations from product if editing
+      if (product.variations && product.variations.length > 0) {
+        setVariations(product.variations);
+      }
     }
   }, [product]);
 
@@ -136,17 +145,35 @@ export default function ProductForm() {
       return;
     }
 
+    // Check for pending uploads
+    if (!areUploadsComplete()) {
+      toast.error('Lütfen görsel yüklemelerinin tamamlanmasını bekleyin');
+      return;
+    }
+
+    // Check for upload errors
+    const failedUploads = getFailedUploads();
+    if (failedUploads.length > 0) {
+      toast.error('Bazı görseller yüklenemedi. Lütfen tekrar deneyin.');
+      return;
+    }
+
+    console.log('🔍 [DEBUG] handleSubmit - variations state:', variations);
+
     const submitData = {
       ...formData,
       images,
+      variations,
     } as ProductFormData;
+
+    console.log('📤 [DEBUG] Submitting data with variations:', submitData.variations);
 
     if (isEditing) {
       updateProduct(
         { productId: id!, formData: submitData },
         {
           onSuccess: () => {
-            navigate(`/tedarikci/urunler/${id}`);
+            navigate('/tedarikci/urunler');
           },
         }
       );
@@ -154,14 +181,7 @@ export default function ProductForm() {
       createProduct(submitData, {
         onSuccess: (result) => {
           if (result.success && result.product) {
-            // Upload images if any
-            if (images.length > 0 || uploads.length > 0) {
-              // Images are handled separately in a real implementation
-              // For now, just navigate to product detail
-              navigate(`/tedarikci/urunler/${result.product?.id}`);
-            } else {
-              navigate(`/tedarikci/urunler/${result.product?.id}`);
-            }
+            navigate(`/tedarikci/urunler/${result.product?.id}`);
           }
         },
       });
@@ -183,8 +203,13 @@ export default function ProductForm() {
       title={isEditing ? 'Ürün Düzenle' : 'Yeni Ürün'}
       showBackButton
       backTo="/tedarikci/urunler"
+      breadcrumbs={[
+        { label: 'Panel', href: '/tedarikci' },
+        { label: 'Ürünlerim', href: '/tedarikci/urunler' },
+        { label: isEditing ? 'Düzenle' : 'Yeni Ürün' }
+      ]}
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" data-testid="product-form">
         {/* Product Images */}
         <Card>
           <CardHeader>
@@ -219,6 +244,7 @@ export default function ProductForm() {
                 placeholder="Örn: Domates"
                 disabled={isPending}
                 className={errors.name ? 'border-destructive' : ''}
+                data-testid="product-name-input"
               />
               {errors.name && (
                 <p className="text-sm text-destructive">{errors.name}</p>
@@ -292,6 +318,7 @@ export default function ProductForm() {
                   className={
                     errors.base_price ? 'border-destructive flex-1' : 'flex-1'
                   }
+                  data-testid="product-price-input"
                 />
               </div>
               {errors.base_price && (
@@ -341,6 +368,7 @@ export default function ProductForm() {
                 placeholder="0"
                 disabled={isPending}
                 className={errors.stock ? 'border-destructive' : ''}
+                data-testid="product-stock-input"
               />
               {errors.stock && (
                 <p className="text-sm text-destructive">{errors.stock}</p>
@@ -354,7 +382,7 @@ export default function ProductForm() {
                 <Select
                   value={formData.product_status}
                   onValueChange={(value) =>
-                    handleInputChange('product_status', value as any)
+                    handleInputChange('product_status', value as ProductStatus)
                   }
                   disabled={isPending}
                 >
@@ -372,6 +400,15 @@ export default function ProductForm() {
           </CardContent>
         </Card>
 
+        {/* Variations */}
+        <VariationList
+          variations={variations}
+          onUpdate={(newVariations) => {
+            console.log('🔍 [DEBUG] ProductForm onUpdate called with:', newVariations);
+            setVariations(newVariations);
+          }}
+        />
+
         {/* Actions */}
         <div className="flex gap-2">
           <Button
@@ -383,7 +420,12 @@ export default function ProductForm() {
           >
             <Link to="/tedarikci/urunler">İptal</Link>
           </Button>
-          <Button type="submit" className="flex-1" disabled={isPending}>
+          <Button
+            type="submit"
+            className="flex-1"
+            disabled={isPending || !areUploadsComplete()}
+            data-testid="save-product-button"
+          >
             {isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

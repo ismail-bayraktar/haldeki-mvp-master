@@ -9,6 +9,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useRegion } from "@/contexts/RegionContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLowestPriceForCart } from "@/hooks/useLowestPriceForCart";
 import { getPriceChangeLabel } from "@/lib/productUtils";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -25,6 +26,13 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
   const { isInCompare, addToCompare, removeFromCompare } = useCompare();
   const { selectedRegion } = useRegion();
   const { isBusiness } = useAuth();
+
+  // Phase 12: Fetch lowest price across suppliers
+  const { data: cartPriceInfo, isLoading: isLoadingPrice } = useLowestPriceForCart(
+    product.id,
+    selectedRegion?.id ?? null
+  );
+
   const inWishlist = isInWishlist(product.id);
   const inCompare = isInCompare(product.id);
 
@@ -90,7 +98,7 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!canAddToCart) {
       if (!selectedRegion) {
         // requireRegion CartContext içinde zaten modal açıyor
@@ -101,12 +109,22 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
       }
       return;
     }
-    
-    const unitPrice = (isBusiness && regionInfo?.businessPrice) 
-      ? regionInfo.businessPrice 
-      : (regionInfo?.price ?? product.price);
-      
-    addToCart(product, 1, selectedVariant, unitPrice);
+
+    // Phase 12: Use cart price info (supplier > region > product)
+    // Business users still get business price from region
+    const finalPrice = (isBusiness && regionInfo?.businessPrice)
+      ? regionInfo.businessPrice
+      : (cartPriceInfo?.price ?? regionInfo?.price ?? product.price);
+
+    // Phase 12: Pass supplier info to cart for tracking
+    const supplierInfo = cartPriceInfo ? {
+      supplierId: cartPriceInfo.supplierId,
+      supplierProductId: cartPriceInfo.supplierProductId,
+      supplierName: cartPriceInfo.supplierName,
+      priceSource: cartPriceInfo.priceSource,
+    } : undefined;
+
+    addToCart(product, 1, selectedVariant, finalPrice, supplierInfo);
   };
 
   const handleNotifyStock = (e: React.MouseEvent) => {
@@ -140,11 +158,14 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
   };
 
   return (
-    <Card className={cn(
-      "group overflow-hidden card-hover bg-card",
-      (selectedRegion && !isInRegion) && "opacity-60"
-    )}>
-      <Link to={`/urun/${product.slug}`} className="block">
+    <Card
+      className={cn(
+        "group overflow-hidden card-hover bg-card h-full flex flex-col",
+        (selectedRegion && !isInRegion) && "opacity-60"
+      )}
+      data-testid={`product-card-${product.id}`}
+    >
+      <Link to={`/urun/${product.slug}`} className="block" data-testid={`product-link-${product.id}`}>
         <div className="relative aspect-square overflow-hidden bg-secondary/30">
           <img
             src={product.images?.[0] || '/placeholder.svg'}
@@ -160,10 +181,11 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
               onClick={handleToggleWishlist}
               className={cn(
                 "h-8 w-8 rounded-full flex items-center justify-center transition-all",
-                inWishlist 
-                  ? "bg-accent text-accent-foreground" 
+                inWishlist
+                  ? "bg-accent text-accent-foreground"
                   : "bg-card/80 text-muted-foreground hover:bg-card hover:text-accent"
               )}
+              data-testid={`wishlist-button-${product.id}`}
             >
               <Heart className={cn("h-4 w-4", inWishlist && "fill-current")} />
             </button>
@@ -171,10 +193,11 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
               onClick={handleToggleCompare}
               className={cn(
                 "h-8 w-8 rounded-full flex items-center justify-center transition-all",
-                inCompare 
-                  ? "bg-primary text-primary-foreground" 
+                inCompare
+                  ? "bg-primary text-primary-foreground"
                   : "bg-card/80 text-muted-foreground hover:bg-card hover:text-primary"
               )}
+              data-testid={`compare-button-${product.id}`}
             >
               <GitCompare className="h-4 w-4" />
             </button>
@@ -221,17 +244,17 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
         </div>
       </Link>
 
-      <div className="p-4 space-y-3">
-        <div>
+      <div className="p-4 space-y-3 flex-1 flex flex-col">
+        <div className="shrink-0">
           <p className="text-xs text-muted-foreground mb-1">{product.origin}</p>
-          <Link to={`/urun/${product.slug}`}>
+          <Link to={`/urun/${product.slug}`} data-testid={`product-name-${product.id}`}>
             <h3 className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
               {product.name}
             </h3>
           </Link>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <span className={cn("text-xs px-2 py-0.5 rounded-full", availability.className)}>
             {availability.label}
           </span>
@@ -244,8 +267,9 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
         </div>
 
         {/* Quick Variant Selector */}
-        {product.variants && product.variants.length > 0 && (
-          <div className="flex flex-wrap gap-1">
+        <div className="min-h-[40px] flex items-center">
+          {product.variants && product.variants.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
             {product.variants.slice(0, 4).map((variantItem) => {
               const isSelected = selectedVariant?.id === variantItem.id;
               return (
@@ -253,7 +277,8 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
                   key={variantItem.id}
                   onClick={(e) => handleVariantSelect(e, variantItem)}
                   className={cn(
-                    "px-2 py-1 text-xs rounded-md border transition-all",
+                    "px-2 py-1 text-xs rounded-md border transition-all min-w-[44px] min-h-[32px]",
+                    "active:scale-95",
                     isSelected
                       ? "border-primary bg-primary/10 text-primary font-medium"
                       : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/50"
@@ -264,10 +289,11 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
               );
             })}
           </div>
-        )}
+          ) : null}
+        </div>
 
-        <div className="flex items-center justify-between pt-2 border-t">
-          <div>
+        <div className="flex items-center justify-between pt-2 border-t shrink-0 mt-auto">
+          <div data-testid={`product-price-${product.id}`}>
             <span className="text-xl font-bold text-foreground">
               {displayPrice.toFixed(2)}₺
             </span>
@@ -284,26 +310,28 @@ const ProductCard = ({ product, regionInfo, variant = "default" }: ProductCardPr
           
           {/* Sepete Ekle / Tükendi / Haber Ver */}
           {isOutOfStock && isInRegion ? (
-            <Button 
-              size="icon" 
+            <Button
+              size="icon"
               variant="outline"
               className="h-9 w-9 rounded-full"
               onClick={handleNotifyStock}
               title="Gelince haber ver"
+              data-testid={`notify-stock-button-${product.id}`}
             >
               <Bell className="h-4 w-4" />
             </Button>
           ) : (
-            <Button 
-              size="icon" 
+            <Button
+              size="icon"
               className={cn(
                 "h-9 w-9 rounded-full",
-                canAddToCart 
-                  ? "bg-primary hover:bg-primary/90" 
+                canAddToCart
+                  ? "bg-primary hover:bg-primary/90"
                   : "bg-muted text-muted-foreground cursor-not-allowed"
               )}
               onClick={handleAddToCart}
-              disabled={!canAddToCart && !!selectedRegion}
+              disabled={!canAddToCart || isLoadingPrice}
+              data-testid={`add-to-cart-button-${product.id}`}
             >
               <Plus className="h-4 w-4" />
             </Button>

@@ -116,7 +116,11 @@ docs/
 | 5 - Onay Sistemi | ✅ Tamamlandı | phases/phase-5-approval-system.md |
 | 6 - Sipariş & Teslimat | ✅ Tamamlandı | phases/phase-6-order-delivery.md |
 | 7 - Ödeme Sistemi | ✅ Tamamlandı | phases/phase-7-payment-system.md |
-| 8 - İşletme (B2B) Paneli | ⏳ Devam Ediyor | phases/phase-8-business-panel.md |
+| 8 - İşletme (B2B) Paneli | ✅ Tamamlandı | phases/phase-8-business-panel.md |
+| 9 - Tedarikçi Mobil Panel | ✅ Tamamlandı | phases/phase-9-supplier-panel.md |
+| 10 - Excel/CSV Import/Export | ✅ Tamamlandı | phases/phase-10-import-export.md |
+| 11 - Depo Yönetim MVP | ✅ Tamamlandı | phases/phase-11-warehouse-mvp.md |
+| 12 - Çoklu Tedarikçi Sistemi | ✅ Tamamlandı | phases/phase-12-multi-supplier.md |
 
 ---
 
@@ -132,6 +136,8 @@ docs/
 - Supabase (PostgreSQL + Auth + Storage)
 - Supabase Edge Functions (Deno)
 - Row Level Security (RLS)
+- Multi-supplier product management (Phase 12)
+- Warehouse price masking (Phase 11)
 
 ### Araçlar
 - Brevo (email servisi)
@@ -178,4 +184,4 @@ Bu proje özel mülkiyettir. Tüm hakları saklıdır.
 
 ---
 
-Son güncelleme: 2025-12-27
+Son güncelleme: 2026-01-06

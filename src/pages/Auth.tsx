@@ -34,7 +34,13 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await login(loginEmail, loginPassword);
+
+    const result = await login(loginEmail, loginPassword);
+
+    if (result.redirectPath) {
+      navigate(result.redirectPath);
+    }
+
     setIsLoading(false);
   };
 
@@ -63,15 +69,15 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-muted/30">
+    <div className="min-h-screen flex flex-col bg-muted/30" data-testid="auth-page">
       <Header />
-      
+
       <main className="flex-1 flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <img 
-              src={logotypeDark} 
-              alt="Halde" 
+            <img
+              src={logotypeDark}
+              alt="Halde"
               className="h-10 mx-auto mb-4"
             />
             <p className="text-muted-foreground">
@@ -83,11 +89,11 @@ const Auth = () => {
             <Tabs defaultValue="login" className="w-full">
               <CardHeader className="pb-4">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="login">Giriş Yap</TabsTrigger>
-                  <TabsTrigger value="signup">Kayıt Ol</TabsTrigger>
+                  <TabsTrigger value="login" data-testid="auth-page-login-tab">Giriş Yap</TabsTrigger>
+                  <TabsTrigger value="signup" data-testid="auth-page-signup-tab">Kayıt Ol</TabsTrigger>
                 </TabsList>
               </CardHeader>
-              
+
               <CardContent>
                 <TabsContent value="login" className="mt-0">
                   <form onSubmit={handleLogin} className="space-y-4">
@@ -103,10 +109,11 @@ const Auth = () => {
                           onChange={(e) => setLoginEmail(e.target.value)}
                           className="pl-10"
                           required
+                          data-testid="auth-page-email-input"
                         />
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="login-password">Şifre</Label>
                       <div className="relative">
@@ -119,11 +126,12 @@ const Auth = () => {
                           onChange={(e) => setLoginPassword(e.target.value)}
                           className="pl-10"
                           required
+                          data-testid="auth-page-password-input"
                         />
                       </div>
                     </div>
-                    
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+
+                    <Button type="submit" className="w-full" disabled={isLoading} data-testid="auth-page-login-button">
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -135,7 +143,7 @@ const Auth = () => {
                     </Button>
                   </form>
                 </TabsContent>
-                
+
                 <TabsContent value="signup" className="mt-0">
                   <form onSubmit={handleSignup} className="space-y-4">
                     <div className="space-y-2">
@@ -150,10 +158,11 @@ const Auth = () => {
                           onChange={(e) => setSignupName(e.target.value)}
                           className="pl-10"
                           required
+                          data-testid="auth-page-name-input"
                         />
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">Email</Label>
                       <div className="relative">
@@ -166,10 +175,11 @@ const Auth = () => {
                           onChange={(e) => setSignupEmail(e.target.value)}
                           className="pl-10"
                           required
+                          data-testid="auth-page-signup-email-input"
                         />
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Şifre</Label>
                       <div className="relative">
@@ -183,10 +193,11 @@ const Auth = () => {
                           className="pl-10"
                           minLength={6}
                           required
+                          data-testid="auth-page-signup-password-input"
                         />
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="signup-password-confirm">Şifre Tekrar</Label>
                       <div className="relative">
@@ -200,17 +211,19 @@ const Auth = () => {
                           className="pl-10"
                           minLength={6}
                           required
+                          data-testid="auth-page-signup-password-confirm-input"
                         />
                       </div>
                       {signupPassword && signupPasswordConfirm && signupPassword !== signupPasswordConfirm && (
                         <p className="text-xs text-destructive">Şifreler eşleşmiyor</p>
                       )}
                     </div>
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
+
+                    <Button
+                      type="submit"
+                      className="w-full"
                       disabled={isLoading || signupPassword !== signupPasswordConfirm}
+                      data-testid="auth-page-signup-button"
                     >
                       {isLoading ? (
                         <>

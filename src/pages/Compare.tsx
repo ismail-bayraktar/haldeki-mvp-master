@@ -5,11 +5,18 @@ import { Card } from "@/components/ui/card";
 import { Header, Footer, MobileNav } from "@/components/layout";
 import { useCompare } from "@/contexts/CompareContext";
 import { useCart } from "@/contexts/CartContext";
+import { useRegion } from "@/contexts/RegionContext";
+import { useLowestPriceForCart } from "@/hooks/useLowestPriceForCart";
 import { cn } from "@/lib/utils";
 
 const Compare = () => {
   const { compareItems, removeFromCompare, clearCompare, maxItems } = useCompare();
   const { addToCart } = useCart();
+  const { selectedRegion } = useRegion();
+
+  const handleAddToCart = (product: any) => {
+    addToCart(product, 1, undefined, undefined, undefined);
+  };
 
   const specifications = [
     { key: "origin", label: "Mensei" },
@@ -177,10 +184,10 @@ const Compare = () => {
                           <span className="text-sm text-muted-foreground">/{product.unit}</span>
                         </div>
                       </div>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         className="w-full mt-3 gap-2"
-                        onClick={() => addToCart(product)}
+                        onClick={() => handleAddToCart(product)}
                       >
                         <ShoppingCart className="h-4 w-4" />
                         Sepete Ekle

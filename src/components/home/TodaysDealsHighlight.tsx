@@ -31,6 +31,10 @@ const TodaysDealsHighlight = () => {
   const { data: dbProducts, isLoading } = useBugunHaldeProducts();
   const { addToCart } = useCart();
 
+  const handleAddToCart = (product: Product) => {
+    addToCart(product, 1, undefined, undefined, undefined);
+  };
+
   // Convert DB products to frontend type
   const products = useMemo(() => {
     if (!dbProducts) return [];
@@ -151,7 +155,7 @@ const TodaysDealsHighlight = () => {
                   <Button
                     size="sm"
                     className="w-full mt-2 bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => addToCart(product)}
+                    onClick={() => handleAddToCart(product)}
                   >
                     Sepete Ekle
                   </Button>

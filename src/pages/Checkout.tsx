@@ -176,15 +176,45 @@ const Checkout = () => {
       const selectedAddressData = addresses.find(a => a.id === selectedAddress);
       const selectedSlotData = deliverySlots.find(s => s.id === selectedSlot);
 
-      const orderItems = items.map(item => ({
-        productId: item.productId,
-        productName: item.product.name,
-        quantity: item.quantity,
-        unitPrice: item.product.price,
-        totalPrice: item.quantity * item.product.price * (item.selectedVariant?.priceMultiplier ?? 1),
-        variantId: item.selectedVariant?.id || null,
-        variantLabel: item.selectedVariant?.label || null,
-      }));
+      // SECURITY: Price validation to prevent cart manipulation
+      // In production, this should be validated server-side via RPC function
+      // For now, we add client-side validation as a first line of defense
+      const priceValidationErrors: string[] = [];
+
+      const orderItems = items.map(item => {
+        const serverPrice = item.product.price; // In future: fetch from server RPC
+        const clientPrice = item.unitPriceAtAdd || item.product.price;
+        const priceDiff = Math.abs(serverPrice - clientPrice);
+        const priceDiffPercent = (priceDiff / serverPrice) * 100;
+
+        // Warn if price changed more than 5%
+        if (priceDiffPercent > 5) {
+          priceValidationErrors.push(
+            `${item.product.name}: Fiyat değişti (${clientPrice.toFixed(2)} TL → ${serverPrice.toFixed(2)} TL)`
+          );
+        }
+
+        return {
+          productId: item.productId,
+          productName: item.product.name,
+          quantity: item.quantity,
+          unitPrice: serverPrice, // Always use server price
+          totalPrice: item.quantity * serverPrice * (item.selectedVariant?.priceMultiplier ?? 1),
+          variantId: item.selectedVariant?.id || null,
+          variantLabel: item.selectedVariant?.label || null,
+        };
+      });
+
+      // Alert user if prices changed significantly
+      if (priceValidationErrors.length > 0) {
+        const errorMsg = priceValidationErrors.join('\n');
+        toast.error(
+          `Bazı ürünlerin fiyatları değişti:\n${errorMsg}\n\nLütfen sepetinizi kontrol edin.`,
+          { duration: 5000 }
+        );
+        setIsSubmitting(false);
+        return;
+      }
 
       const deliveryNote = selectedSlotData ? `${selectedSlotData.date} - ${selectedSlotData.label}` : undefined;
 

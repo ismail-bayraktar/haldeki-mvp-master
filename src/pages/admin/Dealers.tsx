@@ -18,7 +18,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordGenerator } from "@/components/admin/PasswordGenerator";
 import { PasswordDisplayModal } from "@/components/admin/PasswordDisplayModal";
 import { getTemporaryPassword } from "@/utils/passwordUtils";
-
 const AdminDealers = () => {
   const {
     dealers,
@@ -123,20 +122,20 @@ const AdminDealers = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Bayi Yönetimi</h1>
-          <p className="text-muted-foreground">Sistemdeki tüm bayileri ve başvuruları buradan yönetin</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>
-            <RefreshCw className="h-4 w-4 mr-2" /> Yenile
-          </Button>
-          <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm"><Plus className="h-4 w-4 mr-2" /> Bayi Ekle</Button>
-            </DialogTrigger>
+        {/* Page Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Bayi Yönetimi</h1>
+            <p className="text-muted-foreground">Sistemdeki tüm bayileri ve başvuruları buradan yönetin</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled>
+              <RefreshCw className="h-4 w-4 mr-2" /> Yenile
+            </Button>
+            <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm"><Plus className="h-4 w-4 mr-2" /> Bayi Ekle</Button>
+              </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Yeni Bayi Kaydı</DialogTitle>

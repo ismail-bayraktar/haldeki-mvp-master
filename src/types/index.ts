@@ -97,6 +97,8 @@ export interface ProcessedDeliverySlot extends DeliverySlot {
   isPast: boolean;
 }
 
+export type PriceSource = 'region' | 'supplier' | 'product';
+
 export interface CartItem {
   productId: string;
   quantity: number;
@@ -105,6 +107,11 @@ export interface CartItem {
   // 2A.3: Bölge fiyatı ve bölge tracking
   unitPriceAtAdd: number;    // region_products.price (variant multiplier hariç)
   regionIdAtAdd: string;     // sepete eklendiği bölge
+  // Phase 12: Multi-supplier cart tracking
+  supplierId: string | null;
+  supplierProductId: string | null;
+  supplierName: string;
+  priceSource: PriceSource;
 }
 
 // Cart validation için kullanılan tip
@@ -259,3 +266,67 @@ export type {
   BulkProductResult,
   ImageValidationResult,
 } from './supplier';
+
+// ==========================================
+// PHASE 12: MULTI-SUPPLIER TYPES
+// ==========================================
+
+// Re-export multi-supplier types for convenience
+export type {
+  ProductVariationType,
+  SupplierProduct as Phase12SupplierProduct,
+  ProductVariation,
+  SupplierProductVariation,
+  ProductWithSuppliers,
+  PriceStats,
+  BugunHaldeComparison,
+  ProductVariationsGrouped,
+  SupplierProductWithVariations,
+  SupplierProductSearchParams,
+  SupplierProductSearchResult,
+  SupplierProductFormData,
+  ProductVariationFormData,
+  SupplierProductVariationFormData,
+  SupplierProductListResponse,
+  SupplierProductBulkResult,
+} from './multiSupplier';
+
+// Re-export variation types for convenience
+export type {
+  VariationValue,
+  VariationAttribute,
+  ExtractedVariation,
+  VariationPattern,
+  VariationExtractionResult,
+  VariationCombination,
+  SelectedVariations,
+  VariationSelectionContext,
+  VariationAvailability,
+  VariationDisplayConfig,
+  VariationDisplayOption,
+  VariationValidationRule,
+  VariationValidationResult,
+  VariationImportRow,
+  VariationExportData,
+} from './variations';
+
+// ==========================================
+// WHITELIST APPLICATION TYPES
+// ==========================================
+
+export interface WhitelistApplication {
+  id: string;
+  full_name: string;
+  phone: string;
+  email: string | null;
+  city: string | null;
+  district: string | null;
+  user_type: 'B2B' | 'B2C';
+  notes: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'duplicate';
+  source: 'web' | 'referral' | 'admin';
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+  updated_at: string;
+}

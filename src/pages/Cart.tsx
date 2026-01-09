@@ -75,9 +75,9 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" data-testid="cart-page">
       <Header />
-      
+
       <main className="flex-1 pb-20 lg:pb-0">
         <section className="py-8 md:py-12 bg-secondary/30">
           <div className="container">
@@ -94,12 +94,12 @@ const Cart = () => {
               {items.map((item) => {
                   // 2A.3: unitPriceAtAdd kullan (TEK KAYNAK)
                   const itemPrice = item.unitPriceAtAdd * (item.selectedVariant?.priceMultiplier ?? 1);
-                  const itemKey = item.selectedVariant 
-                    ? `${item.productId}-${item.selectedVariant.id}` 
+                  const itemKey = item.selectedVariant
+                    ? `${item.productId}-${item.selectedVariant.id}`
                     : item.productId;
-                  
+
                   return (
-                    <Card key={itemKey} className="p-4">
+                    <Card key={itemKey} className="p-4" data-testid={`cart-item-${item.productId}`}>
                       <div className="flex gap-4">
                         <Link to={`/urun/${item.product.slug}`} className="shrink-0">
                           <img
@@ -108,7 +108,7 @@ const Cart = () => {
                             className="w-24 h-24 rounded-lg object-cover"
                           />
                         </Link>
-                        
+
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between gap-2">
                             <div>
@@ -123,12 +123,23 @@ const Cart = () => {
                                   {item.selectedVariant.label}
                                 </span>
                               )}
+                              {item.priceSource === 'supplier' && item.supplierName && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Tedarikçi: {item.supplierName}
+                                </p>
+                              )}
+                              {item.priceSource === 'region' && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Bölge Fiyatı
+                                </p>
+                              )}
                             </div>
                             <Button
                               variant="ghost"
                               size="icon"
                               className="shrink-0 text-muted-foreground hover:text-destructive"
                               onClick={() => removeFromCart(item.productId, item.selectedVariant?.id)}
+                              data-testid={`remove-item-button-${item.productId}`}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -141,10 +152,11 @@ const Cart = () => {
                                 size="icon"
                                 className="h-8 w-8"
                                 onClick={() => updateQuantity(item.productId, item.quantity - 1, item.selectedVariant?.id)}
+                                data-testid={`quantity-decrease-${item.productId}`}
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
-                              <span className="w-8 text-center text-sm font-medium">
+                              <span className="w-8 text-center text-sm font-medium" data-testid={`quantity-value-${item.productId}`}>
                                 {item.quantity}
                               </span>
                               <Button
@@ -152,6 +164,7 @@ const Cart = () => {
                                 size="icon"
                                 className="h-8 w-8"
                                 onClick={() => updateQuantity(item.productId, item.quantity + 1, item.selectedVariant?.id)}
+                                data-testid={`quantity-increase-${item.productId}`}
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
@@ -171,7 +184,7 @@ const Cart = () => {
                   );
                 })}
 
-                <Button variant="outline" onClick={clearCart} className="w-full">
+                <Button variant="outline" onClick={clearCart} className="w-full" data-testid="clear-cart-button">
                   Sepeti Temizle
                 </Button>
               </div>
@@ -235,10 +248,11 @@ const Cart = () => {
                     </p>
                   )}
 
-                  <Button 
+                  <Button
                     className="w-full mt-6 h-12 text-base gap-2"
                     onClick={handleCheckout}
                     disabled={!selectedRegion}
+                    data-testid="checkout-button"
                   >
                     {!isAuthenticated ? "Giriş Yap" : "Devam Et"}
                     <ArrowRight className="h-4 w-4" />

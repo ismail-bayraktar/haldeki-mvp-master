@@ -6,7 +6,8 @@
  */
 
 import * as XLSX from 'xlsx';
-import type { ProductImportRow } from '@/types/supplier';
+import type { ProductImportRow, ProductImportVariation } from '@/types/supplier';
+import type { ProductVariationType } from '@/types/multiSupplier';
 
 /**
  * Supported Excel file extensions
@@ -192,14 +193,15 @@ export async function parseExcelFile(
     const headers = rawData[0] as string[];
     const mappedColumns = mapColumns(headers);
 
-    if (!mappedColumns.name || !mappedColumns.category || !mappedColumns.unit || !mappedColumns.basePrice || !mappedColumns.price) {
+    // Phase 12: Only require price, basePrice is optional (deprecated)
+    if (!mappedColumns.name || !mappedColumns.category || !mappedColumns.unit || !mappedColumns.price) {
       return {
         success: false,
         rows: [],
         errors: [{
           row: 1,
           field: 'headers',
-          error: 'Gerekli sütunlar bulunamadı: Ürün Adı, Kategori, Birim, Taban Fiyat, Satış Fiyatı',
+          error: 'Gerekli sütunlar bulunamadı: Ürün Adı, Kategori, Birim, Fiyat',
           value: headers,
         }],
         fileName: file.name,
@@ -281,6 +283,7 @@ function findProductSheet(sheetNames: string[]): string {
 
 /**
  * Map Turkish column names to English field names
+ * Phase 12.1: Added fuzzy matching for case-insensitive and space-tolerant lookup
  */
 function mapColumns(headers: string[]): Record<string, number> {
   const mapped: Record<string, number> = {};
@@ -289,7 +292,29 @@ function mapColumns(headers: string[]): Record<string, number> {
     if (!header) return;
 
     const normalizedHeader = header.trim();
-    const fieldName = COLUMN_MAP[normalizedHeader];
+    let fieldName = COLUMN_MAP[normalizedHeader];
+
+    // Fuzzy matching: Try case-insensitive lookup
+    if (!fieldName) {
+      const lowerHeader = normalizedHeader.toLowerCase();
+      for (const [key, value] of Object.entries(COLUMN_MAP)) {
+        if (key.toLowerCase() === lowerHeader) {
+          fieldName = value;
+          break;
+        }
+      }
+    }
+
+    // Fuzzy matching: Try with extra spaces removed
+    if (!fieldName && /\s/.test(normalizedHeader)) {
+      const collapsedHeader = normalizedHeader.replace(/\s+/g, '');
+      for (const [key, value] of Object.entries(COLUMN_MAP)) {
+        if (key.replace(/\s+/g, '') === collapsedHeader) {
+          fieldName = value;
+          break;
+        }
+      }
+    }
 
     if (fieldName) {
       mapped[fieldName] = index;
@@ -356,23 +381,7 @@ function parseRow(
     });
   }
 
-  const basePriceNum = parseNumber(basePrice);
-  if (basePriceNum === null) {
-    errors.push({
-      row: rowIndex,
-      field: 'basePrice',
-      error: 'Taban fiyat sayı olmalıdır',
-      value: basePrice,
-    });
-  } else if (basePriceNum <= 0) {
-    errors.push({
-      row: rowIndex,
-      field: 'basePrice',
-      error: 'Taban fiyat 0\'dan büyük olmalıdır',
-      value: basePrice,
-    });
-  }
-
+  // Parse price first (required in Phase 12)
   const priceNum = parseNumber(price);
   if (priceNum === null) {
     errors.push({
@@ -390,6 +399,24 @@ function parseRow(
     });
   }
 
+  // Phase 12: basePrice is optional, use price if not provided
+  const basePriceNum = basePrice !== undefined ? parseNumber(basePrice) : priceNum;
+  if (basePrice !== undefined && basePriceNum === null) {
+    errors.push({
+      row: rowIndex,
+      field: 'basePrice',
+      error: 'Taban fiyat sayı olmalıdır (opsiyonel)',
+      value: basePrice,
+    });
+  } else if (basePriceNum !== null && basePriceNum <= 0) {
+    errors.push({
+      row: rowIndex,
+      field: 'basePrice',
+      error: 'Taban fiyat 0\'dan büyük olmalıdır',
+      value: basePrice,
+    });
+  }
+
   // If there are errors, return them
   if (errors.length > 0) {
     return { errors };
@@ -399,10 +426,26 @@ function parseRow(
   const stockNum = parseNumber(stock);
   const imagesArray = parseImages(images);
 
-  // Return parsed row
+  // Extract variations from product name (Phase 12)
+  const { variations, baseName } = extractVariations(name!.trim());
+
+  // Validate variations
+  const variationValidation = validateVariations(variations);
+  if (!variationValidation.valid) {
+    variationValidation.errors.forEach(err => {
+      errors.push({
+        row: rowIndex,
+        field: 'variations',
+        error: err,
+        value: name,
+      });
+    });
+  }
+
+  // Return parsed row with variations
   return {
     data: {
-      name: name!.trim(),
+      name: baseName || name!.trim(), // Use base name if variations extracted, otherwise original
       category: category!.trim(),
       unit: unit!.trim(),
       basePrice: basePriceNum!,
@@ -413,6 +456,7 @@ function parseRow(
       availability: availability?.trim() || 'bol',
       description: description?.trim() || null,
       images: imagesArray,
+      variations: variations.length > 0 ? variations : undefined,
     },
     errors: [],
   };
@@ -471,4 +515,179 @@ function parseImages(value: any): string[] {
  */
 function isEmptyRow(row: any[]): boolean {
   return row.every(cell => cell === null || cell === undefined || cell === '');
+}
+
+// ============================================================================
+// VARIATION EXTRACTION (Phase 12)
+// ============================================================================
+
+/**
+ * Variation pattern definitions for extraction
+ *
+ * Defines regex patterns to identify variations in product names
+ * Patterns are applied in order, first match wins
+ */
+export const VARIATION_PATTERNS: Array<{
+  type: ProductVariationType;
+  regex: RegExp;
+  extractor: (match: RegExpMatchArray) => { value: string; metadata?: Record<string, unknown> };
+  order: number;
+}> = [
+  {
+    type: 'size',
+    regex: /(\d+[,.]?\d*)\s*(LT|KG|ML|GR|L|K)\b/i,
+    extractor: (match) => {
+      const value = match[1].replace(',', '.');
+      const unit = match[2].toUpperCase().replace('L', 'LT').replace('K', 'KG');
+      return {
+        value: `${value} ${unit}`,
+        metadata: { value, unit: unit === 'L' ? 'LT' : unit === 'K' ? 'KG' : unit },
+      };
+    },
+    order: 1,
+  },
+  {
+    type: 'type',
+    regex: /\b(BEYAZ|RENKLI|SIVI|TOZ|KATI|YUVI|AKSKU|YUVARIK)\b/i,
+    extractor: (match) => ({
+      value: match[1].toUpperCase()
+        .replace('İ', 'I')
+        .replace('Ğ', 'G')
+        .replace('Ü', 'U')
+        .replace('Ş', 'S')
+        .replace('Ö', 'O')
+        .replace('Ç', 'C'),
+    }),
+    order: 2,
+  },
+  {
+    type: 'scent',
+    regex: /\b(LAVANTA|LİMON|GUL|GREYFURT|CILEK|VANILYA|CIKOLATA|PORTAKAL|ELMA|NANE|BERGAMOT|LAVAS|PORES|KARANFIL|MISKET|BAHAR|PORCEL|LOTUS|ORKIDE|LIMON|GÜL|ÇİLEK|VANİLYA|ÇİKOLATA)\b/i,
+    extractor: (match) => ({
+      value: match[1].toUpperCase()
+        .replace('İ', 'I')
+        .replace('Ğ', 'G')
+        .replace('Ü', 'U')
+        .replace('Ş', 'S')
+        .replace('Ö', 'O')
+        .replace('Ç', 'C'),
+    }),
+    order: 3,
+  },
+  {
+    type: 'packaging',
+    regex: /\*(\d+)\s*$/,
+    extractor: (match) => ({
+      value: match[1],
+      metadata: { count: parseInt(match[1], 10) },
+    }),
+    order: 4,
+  },
+  {
+    type: 'material',
+    regex: /\b(CAM|PLASTIK|METAL|KAGIT|AHŞAP|AGAC|KOROZON|KOROZYON)\b/i,
+    extractor: (match) => ({
+      value: match[1].toUpperCase()
+        .replace('Ş', 'S')
+        .replace('Ğ', 'G')
+        .replace('İ', 'I'),
+    }),
+    order: 5,
+  },
+  {
+    type: 'flavor',
+    regex: /\b(VANILLA|STRAWBERRY|CHOCOLATE|BANANA|MINT|CARAMEL|HAZELNUT)\b/i,
+    extractor: (match) => ({
+      value: match[1].toUpperCase(),
+    }),
+    order: 6,
+  },
+];
+
+/**
+ * Extract variations from product name
+ *
+ * Parses product name to identify structured variations (size, type, scent, etc.)
+ * Returns extracted variations and the cleaned base product name
+ */
+export function extractVariations(productName: string): {
+  variations: ProductImportVariation[];
+  baseName: string;
+} {
+  const variations: ProductImportVariation[] = [];
+  let remainingText = productName;
+
+  // Apply each pattern in order
+  for (const pattern of VARIATION_PATTERNS) {
+    const match = remainingText.match(pattern.regex);
+    if (match) {
+      const { value, metadata } = pattern.extractor(match);
+
+      // Check for duplicate variation type
+      if (!variations.some(v => v.type === pattern.type)) {
+        variations.push({
+          type: pattern.type,
+          value,
+          display_order: pattern.order,
+          metadata,
+        });
+      }
+
+      // Remove matched text from remaining
+      remainingText = remainingText.replace(match[0], '').trim();
+    }
+  }
+
+  // Clean up remaining text
+  remainingText = remainingText.replace(/\s+/g, ' ').trim();
+
+  return { variations, baseName: remainingText };
+}
+
+/**
+ * Validate extracted variations
+ *
+ * Checks for:
+ * - Duplicate variations within same product
+ * - Invalid variation types
+ * - Invalid variation values
+ */
+export function validateVariations(
+  variations: ProductImportVariation[]
+): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  const seenTypes = new Set<ProductVariationType>();
+
+  for (const variation of variations) {
+    // Check for duplicate types
+    if (seenTypes.has(variation.type)) {
+      errors.push(`Tekrar varyasyon türü: ${variation.type}`);
+      continue;
+    }
+    seenTypes.add(variation.type);
+
+    // Validate value is not empty
+    if (!variation.value || variation.value.trim() === '') {
+      errors.push(`Boş varyasyon değeri: ${variation.type}`);
+    }
+
+    // Type-specific validation
+    switch (variation.type) {
+      case 'size':
+        if (!/\d+[,.]?\d*\s*(LT|KG|ML|GR)/i.test(variation.value)) {
+          errors.push(`Geçersiz boyut formatı: ${variation.value}`);
+        }
+        break;
+      case 'packaging':
+        if (!/^\d+$/.test(variation.value)) {
+          errors.push(`Geçersiz paket formatı: ${variation.value}`);
+        }
+        break;
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
 }

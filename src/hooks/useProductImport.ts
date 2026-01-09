@@ -17,7 +17,68 @@ import type {
   ProductImportRow,
   ImportError,
   ImportResult,
+  ProductImportVariation,
 } from '@/types/supplier';
+import type { ProductVariationType } from '@/types/multiSupplier';
+
+/**
+ * Helper: Insert product variations into database
+ *
+ * Creates product_variations records for a product
+ * Links to supplier_product_variations table
+ */
+async function insertProductVariations(
+  productId: string,
+  variations: ProductImportVariation[],
+  errors: ImportError[],
+  batchIndex: number
+): Promise<void> {
+  for (const variation of variations) {
+    try {
+      // Check if variation already exists for this product
+      const { data: existing } = await supabase
+        .from('product_variations')
+        .select('id')
+        .eq('product_id', productId)
+        .eq('variation_type', variation.type)
+        .eq('variation_value', variation.value)
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        // Variation exists, skip
+        continue;
+      }
+
+      // Insert new variation
+      const { error: varError } = await supabase
+        .from('product_variations')
+        .insert({
+          product_id: productId,
+          variation_type: variation.type,
+          variation_value: variation.value,
+          display_order: variation.display_order,
+          metadata: variation.metadata || null,
+        });
+
+      if (varError) {
+        errors.push({
+          row: batchIndex + 2,
+          field: 'variation',
+          error: `Varyasyon hatası (${variation.type}): ${varError.message}`,
+          value: variation.value,
+        });
+      }
+    } catch (error) {
+      errors.push({
+        row: batchIndex + 2,
+        field: 'variation',
+        error: `Varyasyon hatası (${variation.type}): ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`,
+        value: variation.value,
+      });
+    }
+  }
+}
 
 /**
  * Hook: Import products from Excel or CSV file
@@ -165,6 +226,11 @@ export function useProductImport() {
                 } else {
                   createdCount++;
                   createdProductIds.push(newProduct.id);
+
+                  // Handle variations if present (Phase 12)
+                  if (row.variations && row.variations.length > 0) {
+                    await insertProductVariations(newProduct.id, row.variations, allErrors, i);
+                  }
                 }
               }
             } catch (error) {

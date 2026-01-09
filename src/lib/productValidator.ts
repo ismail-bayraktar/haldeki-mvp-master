@@ -254,7 +254,6 @@ export function validateProductRow(
         'premium': 'premium',
         'standart': 'standart',
         'ekonomik': 'ekonomik',
-        'standart': 'standart',
       };
 
       const mappedQuality = qualityMap[normalizedQuality] || normalizedQuality;

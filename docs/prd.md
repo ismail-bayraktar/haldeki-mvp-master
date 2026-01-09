@@ -11,8 +11,10 @@
 | Segment | Açıklama |
 |---------|----------|
 | **Bireysel Müşteriler** | Taze sebze-meyve satın almak isteyen tüketiciler |
+| **İşletmeler (B2B)** | Restoranlar, kafeler, oteller - perakende müşteriler |
 | **Bayiler** | Belirli bölgelerde teslimat yapan yerel distribütörler |
 | **Tedarikçiler** | Ürün sağlayan çiftçiler ve toptancılar |
+| **Depo Personeli** | Sipariş hazırlama ve toplama yapan warehouse staff |
 
 ### Değer Önerisi
 
@@ -64,7 +66,32 @@
 - Sadece kendi tekliflerini yönetebilir
 - Doğrudan satış yapamaz
 
-### 4. Admin
+### 4. İşletme (Business)
+
+**Yetenekler:**
+- B2B özel fiyatları görüntüleme
+- Toplu sipariş verme
+- Sipariş geçmişi ve tekrar sipariş
+- "Bugün Halde" fırsatları görüntüleme
+
+**Kısıtlamalar:**
+- Sadece kendi işletme adına sipariş verebilir
+- B2B özel fiyatlarını görebilir (perakende fiyatları değil)
+
+### 5. Depo Yöneticisi (Warehouse Manager)
+
+**Yetenekler:**
+- Toplu sipariş hazırlama listesi (picking list)
+- Zaman penceresi filtresi (gece/gündüz vardiya)
+- Sipariş hazırlanacak işaretleme
+- Fiyat bilgisi GİZLİ (güvenlik gereksinimi)
+
+**Kısıtlamalar:**
+- Fiyatları göremez (DB + UI katmanında maskeleme)
+- Sadece atandığı vendor ve warehouse için siparişleri görebilir
+- Tenant isolation (vendor-scoped)
+
+### 6. Admin
 
 **Yetenekler:**
 - Tüm kullanıcı yönetimi
@@ -74,7 +101,7 @@
 - Sipariş yönetimi
 - Sistem ayarları
 
-### 5. Superadmin
+### 7. Superadmin
 
 **Yetenekler:**
 - Tüm admin yetkileri
@@ -231,21 +258,62 @@
 - [x] Email şablonları
 - [x] Sipariş entegrasyonu
 
+### Faz 5: Onay Sistemi ✅
+- [x] Onay akışı
+- [x] Bayi/Tedarikçi onay sayfaları
+- [x] Email bildirimleri
+
+### Faz 6: Sipariş ve Teslimat ✅
+- [x] Sipariş akışı
+- [x] Bayi sipariş yönetimi
+- [x] Teslimat takibi
+
+### Faz 7: Ödeme ✅
+- [x] Kapıda ödeme
+- [x] EFT/Havale sistemi
+
+### Faz 8: B2B Panel ✅
+- [x] İşletme paneli
+- [x] B2B fiyatlandırma
+- [x] Tekrar sipariş
+
+### Faz 9: Tedarikçi Panel ✅
+- [x] Tedarikçi ürün yönetimi
+- [x] Image upload
+- [x] Inline search
+
+### Faz 10: Import/Export ✅
+- [x] Excel/CSV import
+- [x] Validasyon sistemi
+- [x] Audit log
+
+### Faz 11: Depo Yönetim ✅
+- [x] Picking list UI
+- [x] Fiyat maskeleme
+- [x] Zaman penceresi filtresi
+
+### Faz 12: Çoklu Tedarikçi ✅
+- [x] Junction table pattern
+- [x] Ürün varyasyonları
+- [x] "Bugün Halde" karşılaştırma
+- [x] RPC functions
+
 ---
 
 ## 🔜 Planlanan Özellikler
 
-### Faz 5: Sipariş ve Teslimat
-- [ ] Tam sipariş akışı
-- [ ] Bayi sipariş yönetimi
-- [ ] Teslimat takibi
-- [ ] Ödeme entegrasyonu
-
-### Faz 6: Gelişmiş Özellikler
-- [ ] Push notifications
-- [ ] Gerçek zamanlı stok
-- [ ] Raporlama dashboard
+### Faz 13: Gelişmiş Özellikler
+- [ ] Push bildirimleri
+- [ ] SMS bildirimleri
+- [ ] Müşteri sadakat programı
+- [ ] Abonelik sistemi
 - [ ] Mobil uygulama
+
+### Faz 14: Analitik ve Raporlama
+- [ ] Satış raporları
+- [ ] Tedarikçi performans analitiği
+- [ ] Müşteri davranış analitiği
+- [ ] Dashboard widgets
 
 ---
 
@@ -260,4 +328,4 @@
 
 ---
 
-Son güncelleme: 2025-12-26
+Son güncelleme: 2026-01-06

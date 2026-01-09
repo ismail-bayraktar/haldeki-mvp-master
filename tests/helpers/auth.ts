@@ -30,6 +30,11 @@ export const TEST_USERS = {
     password: 'Test123!',
     role: 'business',
   },
+  warehouse_manager: {
+    email: 'test-warehouse@haldeki.com',
+    password: 'Test123!',
+    role: 'warehouse_manager',
+  },
   customer: {
     email: 'test-customer@haldeki.com',
     password: 'Test123!',
@@ -176,6 +181,7 @@ export class AuthHelper {
       dealer: '/bayi',
       supplier: '/tedarikci',
       business: '/isletme',
+      warehouse_manager: '/depo',
       customer: '/hesabim',
     };
     await this.page.goto(dashboardPaths[role]);
@@ -199,6 +205,7 @@ export class AuthHelper {
       dealer: '/bayi',
       supplier: '/tedarikci',
       business: '/isletme',
+      warehouse_manager: '/depo',
       customer: '/hesabim',
     };
 

@@ -8,7 +8,6 @@ import { Loader2, Package, Check, X } from "lucide-react";
 import { useAdminOffers } from "@/hooks/useAdminOffers";
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'pending':
@@ -133,14 +132,14 @@ const SupplierOffers = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Tedarikçi Teklifleri</h1>
-        <p className="text-muted-foreground">Ürün fiyat tekliflerini yönetin</p>
-      </div>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Tedarikçi Teklifleri</h1>
+          <p className="text-muted-foreground">Ürün fiyat tekliflerini yönetin</p>
+        </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <Card>
@@ -179,7 +178,7 @@ const SupplierOffers = () => {
             </CardContent>
           </Card>
         )}
-      </div>
+    </div>
   );
 };
 

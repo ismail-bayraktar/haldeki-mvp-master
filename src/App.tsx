@@ -26,6 +26,7 @@ import Wishlist from "./pages/Wishlist";
 import Compare from "./pages/Compare";
 import MenemenLanding from "./pages/MenemenLanding";
 import AliagaLanding from "./pages/AliagaLanding";
+import WhitelistLanding from "./pages/WhitelistLanding";
 import Auth from "./pages/Auth";
 import BayiKayit from "./pages/BayiKayit";
 import TedarikciKayit from "./pages/TedarikciKayit";
@@ -35,11 +36,12 @@ import NotFound from "./pages/NotFound";
 
 // Admin imports
 import { AdminLayout } from "@/components/admin";
-import { AdminDashboard, AdminOrders, AdminUsers, AdminProducts, AdminSettings, AdminBusinesses } from "./pages/admin";
+import { AdminDashboard, AdminOrders, AdminUsers, AdminProducts, AdminSettings, AdminBusinesses, AdminBugunHalde, WhitelistApplicationsPage } from "./pages/admin";
 import AdminRegionProducts from "./pages/admin/RegionProducts";
 import AdminDealers from "./pages/admin/Dealers";
 import AdminSuppliers from "./pages/admin/Suppliers";
 import AdminSupplierOffers from "./pages/admin/SupplierOffers";
+import AdminWarehouseStaff from "./pages/admin/WarehouseStaff";
 
 // Role-specific imports
 import DealerDashboard from "./pages/dealer/DealerDashboard";
@@ -48,7 +50,9 @@ import SupplierDashboard from "./pages/supplier/SupplierDashboard";
 import SupplierProducts from "./pages/supplier/Products";
 import SupplierProductForm from "./pages/supplier/ProductForm";
 import BusinessDashboard from "./pages/business/BusinessDashboard";
+import WarehouseDashboard from "./pages/warehouse/WarehouseDashboard";
 import RequireRole from "@/components/auth/RequireRole";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 // Account imports
 import AccountOrders from "./pages/account/Orders";
@@ -72,22 +76,12 @@ const App = () => (
                   {/* DEV-only: Role switcher for testing */}
                   {import.meta.env.DEV && <RoleSwitcher />}
                   <Routes>
-                    {/* Public routes */}
-                    <Route path="/" element={<Index />} />
-                    <Route path="/bugun-halde" element={<BugunHalde />} />
-                    <Route path="/urunler" element={<Products />} />
-                    <Route path="/urun/:slug" element={<ProductDetail />} />
+                    {/* Public routes - Guest & Customer accessible */}
+                    <Route path="/" element={<WhitelistLanding />} />
+                    <Route path="/izmir-cagri" element={<WhitelistLanding />} />
                     <Route path="/nasil-calisir" element={<NasilCalisir />} />
                     <Route path="/hakkimizda" element={<Hakkimizda />} />
                     <Route path="/iletisim" element={<Iletisim />} />
-                    <Route path="/hesabim" element={<Account />} />
-                    <Route path="/hesabim/siparisler" element={<AccountOrders />} />
-                    <Route path="/odeme-bildirimi/:orderId" element={<PaymentNotification />} />
-                    <Route path="/sepet" element={<Cart />} />
-                    <Route path="/teslimat" element={<Checkout />} />
-                    <Route path="/siparis-tamamlandi" element={<OrderComplete />} />
-                    <Route path="/favoriler" element={<Wishlist />} />
-                    <Route path="/karsilastir" element={<Compare />} />
                     <Route path="/menemen-taze-sebze-meyve" element={<MenemenLanding />} />
                     <Route path="/aliaga-taze-sebze-meyve" element={<AliagaLanding />} />
                     <Route path="/giris" element={<Auth />} />
@@ -95,6 +89,96 @@ const App = () => (
                     <Route path="/tedarikci-kayit" element={<TedarikciKayit />} />
                     <Route path="/isletme-kayit" element={<BusinessRegistration />} />
                     <Route path="/beklemede" element={<Beklemede />} />
+
+                    {/* Protected routes - Auth required */}
+                    <Route
+                      path="/urunler"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <Products />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/bugun-halde"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <BugunHalde />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/urun/:slug"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <ProductDetail />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/hesabim"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <Account />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/hesabim/siparisler"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <AccountOrders />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/odeme-bildirimi/:orderId"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <PaymentNotification />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/sepet"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <Cart />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/teslimat"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <Checkout />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/siparis-tamamlandi"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <OrderComplete />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/favoriler"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <Wishlist />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/karsilastir"
+                      element={
+                        <ProtectedRoute requireAuth={true}>
+                          <Compare />
+                        </ProtectedRoute>
+                      }
+                    />
                     
                     {/* Dealer Dashboard - Only for dealers */}
                     <Route 
@@ -158,6 +242,16 @@ const App = () => (
                       }
                     />
 
+                    {/* Warehouse Dashboard - Only for warehouse staff */}
+                    <Route
+                      path="/depo"
+                      element={
+                        <RequireRole allowedRoles={['warehouse_manager']}>
+                          <WarehouseDashboard />
+                        </RequireRole>
+                      }
+                    />
+
                     {/* Redirect old backend route to new admin */}
                     <Route path="/backend" element={<Navigate to="/admin" replace />} />
                     
@@ -172,6 +266,9 @@ const App = () => (
                       <Route path="suppliers" element={<AdminSuppliers />} />
                       <Route path="businesses" element={<AdminBusinesses />} />
                       <Route path="supplier-offers" element={<AdminSupplierOffers />} />
+                      <Route path="warehouse-staff" element={<AdminWarehouseStaff />} />
+                      <Route path="bugun-halde" element={<AdminBugunHalde />} />
+                      <Route path="whitelist-applications" element={<WhitelistApplicationsPage />} />
                       <Route path="settings" element={<AdminSettings />} />
                     </Route>
                     

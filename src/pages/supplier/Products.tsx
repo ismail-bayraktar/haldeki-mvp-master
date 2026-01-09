@@ -1,17 +1,25 @@
-// Supplier Products Page (Phase 9 - Mobile First)
+// Supplier Products Page (Phase 9 - Mobile First, Phase 12 Variations, Phase 13: Table/Grid Toggle)
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Loader2, Package, Upload } from 'lucide-react';
-import { SupplierMobileLayout, MobileCardContainer } from '@/components/supplier/SupplierMobileLayout';
+import { SupplierMobileLayout } from '@/components/supplier/SupplierMobileLayout';
 import { ProductCard } from '@/components/supplier/ProductCard';
 import { SearchBar } from '@/components/supplier/SearchBar';
 import { Button } from '@/components/ui/button';
 import { ProductImportModal } from '@/components/supplier/ProductImportModal';
 import { ProductExportButton } from '@/components/supplier/ProductExportButton';
-import { useSupplierProducts } from '@/hooks/useSupplierProducts';
+import { ViewToggle, type ProductView } from '@/components/supplier/ViewToggle';
+import { SupplierProductTable } from '@/components/supplier/SupplierProductTable';
+import { SupplierProductGrid } from '@/components/supplier/SupplierProductGrid';
+import { useSupplierJunctionProducts } from '@/hooks/useSupplierProducts';
 import { useDeleteProduct } from '@/hooks/useSupplierProducts';
+import { useUpdateProductPrice } from '@/hooks/useSupplierProducts';
+import { useUpdateProductStock } from '@/hooks/useSupplierProducts';
+import { useUpdateProductStatus } from '@/hooks/useSupplierProducts';
+import { useUpdateProductVariations } from '@/hooks/useSupplierProducts';
 import { useProductSearch } from '@/hooks/useProductSearch';
+import type { ProductVariationsGrouped } from '@/types/multiSupplier';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,12 +32,30 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
+const STORAGE_KEY = 'supplier-products-view';
+
 export default function SupplierProducts() {
+  // Load view preference from localStorage
+  const [view, setView] = useState<ProductView>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return (saved === 'grid' ? 'grid' : 'table') as ProductView;
+  });
+
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; product: any }>({
     open: false,
     product: null,
   });
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState<string[]>([]); // Track product IDs being updated
+
+  // Sync view state with localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, view);
+  }, [view]);
+
+  const handleViewChange = (newView: ProductView) => {
+    setView(newView);
+  };
 
   const {
     searchQuery,
@@ -46,7 +72,7 @@ export default function SupplierProducts() {
     clearRecentSearches,
   } = useProductSearch();
 
-  const { data, isLoading, error } = useSupplierProducts({
+  const { data, isLoading, error } = useSupplierJunctionProducts({
     filters: {
       ...filters,
       query: searchQuery || undefined,
@@ -57,6 +83,11 @@ export default function SupplierProducts() {
   const products = data?.products ?? [];
   const total = data?.total ?? 0;
 
+  // Inline edit mutations
+  const { mutate: updatePrice } = useUpdateProductPrice();
+  const { mutate: updateStock } = useUpdateProductStock();
+  const { mutate: updateStatus } = useUpdateProductStatus();
+  const { mutate: updateVariations } = useUpdateProductVariations();
   const { mutate: deleteProduct, isPending: isDeleting } = useDeleteProduct();
 
   const handleDeleteClick = (product: any) => {
@@ -73,6 +104,54 @@ export default function SupplierProducts() {
     }
   };
 
+  const handleUpdatePrice = (productId: string, price: number) => {
+    setIsUpdating((prev) => [...prev, productId]);
+    updatePrice(
+      { productId, price },
+      {
+        onSettled: () => {
+          setIsUpdating((prev) => prev.filter((id) => id !== productId));
+        },
+      }
+    );
+  };
+
+  const handleUpdateStock = (productId: string, stock: number) => {
+    setIsUpdating((prev) => [...prev, productId]);
+    updateStock(
+      { productId, stock },
+      {
+        onSettled: () => {
+          setIsUpdating((prev) => prev.filter((id) => id !== productId));
+        },
+      }
+    );
+  };
+
+  const handleUpdateStatus = (productId: string, isActive: boolean) => {
+    setIsUpdating((prev) => [...prev, productId]);
+    updateStatus(
+      { productId, isActive },
+      {
+        onSettled: () => {
+          setIsUpdating((prev) => prev.filter((id) => id !== productId));
+        },
+      }
+    );
+  };
+
+  const handleUpdateVariations = (productId: string, variations: ProductVariationsGrouped[]) => {
+    setIsUpdating((prev) => [...prev, productId]);
+    updateVariations(
+      { productId, variations },
+      {
+        onSettled: () => {
+          setIsUpdating((prev) => prev.filter((id) => id !== productId));
+        },
+      }
+    );
+  };
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     if (query.trim()) {
@@ -85,7 +164,12 @@ export default function SupplierProducts() {
       title="Ürünler"
       actionLabel="Yeni Ürün"
       actionHref="/tedarikci/urunler/yeni"
+      breadcrumbs={[
+        { label: 'Panel', href: '/tedarikci' },
+        { label: 'Ürünlerim' }
+      ]}
     >
+      <div data-testid="supplier-products-page">
       {/* Search and Filters */}
       <div className="mb-4">
         <SearchBar
@@ -98,6 +182,7 @@ export default function SupplierProducts() {
           onSortChange={setSortBy}
           recentSearches={recentSearches}
           onRecentSearchClick={loadRecentSearch}
+          onClearRecentSearches={clearRecentSearches}
         />
 
         {/* Action Buttons */}
@@ -107,11 +192,14 @@ export default function SupplierProducts() {
             size="sm"
             onClick={() => setImportModalOpen(true)}
             className="flex-1 gap-2"
+            data-testid="import-products-button"
           >
             <Upload className="h-4 w-4" />
-            İçe Aktar
+            <span className="hidden sm:inline">İçe Aktar</span>
+            <span className="sm:hidden">İçe Aktar</span>
           </Button>
-          <ProductExportButton disabled={products.length === 0} className="flex-1" />
+          <ProductExportButton disabled={products.length === 0} className="flex-1" data-testid="export-products-button" />
+          <ViewToggle view={view} onChange={handleViewChange} data-testid="view-toggle" />
         </div>
 
         {/* Active Filters Display */}
@@ -166,7 +254,7 @@ export default function SupplierProducts() {
           </p>
           {!searchQuery && activeFilterCount === 0 && (
             <Link to="/tedarikci/urunler/yeni">
-              <Button>
+              <Button data-testid="add-product-button">
                 <Plus className="h-4 w-4 mr-2" />
                 İlk Ürünü Ekle
               </Button>
@@ -175,17 +263,28 @@ export default function SupplierProducts() {
         </div>
       )}
 
-      {/* Product Grid */}
+      {/* Product Display: Table or Grid */}
       {!isLoading && !error && products.length > 0 && (
-        <MobileCardContainer>
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
+        <>
+          {view === 'table' ? (
+            <div className="overflow-x-auto">
+              <SupplierProductTable
+                products={products}
+                onUpdatePrice={handleUpdatePrice}
+                onUpdateStock={handleUpdateStock}
+                onUpdateStatus={handleUpdateStatus}
+                onUpdateVariations={handleUpdateVariations}
+                onDelete={handleDeleteClick}
+                isUpdating={isUpdating}
+              />
+            </div>
+          ) : (
+            <SupplierProductGrid
+              products={products}
               onDelete={handleDeleteClick}
             />
-          ))}
-        </MobileCardContainer>
+          )}
+        </>
       )}
 
       {/* Delete Confirmation Dialog */}
@@ -230,6 +329,7 @@ export default function SupplierProducts() {
         open={importModalOpen}
         onOpenChange={setImportModalOpen}
       />
+      </div>
     </SupplierMobileLayout>
   );
 }

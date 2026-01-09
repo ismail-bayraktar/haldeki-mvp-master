@@ -280,6 +280,21 @@ export function useImageUpload() {
     setUploads((prev) => prev.filter((u) => u.file !== file));
   }, []);
 
+  /**
+   * Check if all uploads are complete (no pending uploads)
+   */
+  const areUploadsComplete = useCallback(() => {
+    const pendingUploads = uploads.filter((u) => u.progress < 100 && !u.error);
+    return pendingUploads.length === 0;
+  }, [uploads]);
+
+  /**
+   * Get failed uploads
+   */
+  const getFailedUploads = useCallback(() => {
+    return uploads.filter((u) => u.error);
+  }, [uploads]);
+
   return {
     uploads,
     isUploading,
@@ -288,6 +303,8 @@ export function useImageUpload() {
     deleteImage,
     clearUploads,
     removeUpload,
+    areUploadsComplete,
+    getFailedUploads,
   };
 }
 
@@ -296,7 +313,7 @@ export function useImageUpload() {
  */
 export function useProductImages(initialImages: string[] = []) {
   const [images, setImages] = useState<string[]>(initialImages);
-  const { uploadImages, deleteImage, isUploading } = useImageUpload();
+  const { uploadImages, deleteImage, isUploading, areUploadsComplete, getFailedUploads } = useImageUpload();
 
   /**
    * Add images to product
@@ -348,5 +365,7 @@ export function useProductImages(initialImages: string[] = []) {
     reorderImages,
     isUploading,
     canAddMore: images.length < MAX_IMAGES_PER_PRODUCT,
+    areUploadsComplete,
+    getFailedUploads,
   };
 }

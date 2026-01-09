@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
-import { CartItem, Product, ProductVariant, CartValidationResult } from "@/types";
+import { CartItem, Product, ProductVariant, CartValidationResult, PriceSource } from "@/types";
 import { useAuth } from "./AuthContext";
 import { useRegion } from "./RegionContext";
 import { toast } from "sonner";
@@ -9,7 +9,18 @@ interface CartContextType {
   items: CartItem[];
   itemCount: number;
   total: number;
-  addToCart: (product: Product, quantity?: number, variant?: ProductVariant, regionPrice?: number) => void;
+  addToCart: (
+    product: Product,
+    quantity?: number,
+    variant?: ProductVariant,
+    regionPrice?: number,
+    supplierInfo?: {
+      supplierId: string | null;
+      supplierProductId: string | null;
+      supplierName: string;
+      priceSource: PriceSource;
+    }
+  ) => void;
   removeFromCart: (productId: string, variantId?: string) => void;
   updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
   clearCart: () => void;
@@ -21,6 +32,16 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'haldeki_cart_items';
+const CART_VERSION = 2;
+
+// SECURITY NOTICE: Cart data (including prices) is stored in localStorage
+// Risk: XSS attacks could potentially access or manipulate cart data
+// Mitigation: Price validation during checkout prevents manipulation
+// Future: Consider server-side cart storage for sensitive data
+interface CartStorage {
+  version: number;
+  items: CartItem[];
+}
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -28,25 +49,47 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated, openAuthDrawer } = useAuth();
   const { selectedRegion, openRegionModal } = useRegion();
 
+  const migrateCartItem = (item: any): CartItem => ({
+    ...item,
+    supplierId: item.supplierId ?? null,
+    supplierProductId: item.supplierProductId ?? null,
+    supplierName: item.supplierName ?? '',
+    priceSource: item.priceSource ?? 'product',
+  });
+
   // Load cart from localStorage on mount or when auth/region becomes available
   useEffect(() => {
-    if (isHydrated) return; // Prevent multiple hydrations
+    if (isHydrated) return;
 
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as CartItem[];
-        // Only restore cart if user is authenticated and region is selected
+        const parsed = JSON.parse(stored);
+
+        // Check version and migrate if needed
+        if (parsed.version === undefined || parsed.version < CART_VERSION) {
+          const migratedItems = (parsed.items || parsed).map(migrateCartItem);
+          setItems(migratedItems);
+          toast.info('Sepet güncellendi');
+        } else if (parsed.version === CART_VERSION) {
+          const items = parsed.items as CartItem[];
+          if (isAuthenticated && selectedRegion) {
+            setItems(items);
+            setIsHydrated(true);
+            return;
+          }
+        }
+
         if (isAuthenticated && selectedRegion) {
-          setItems(parsed);
-          setIsHydrated(true); // Mark as hydrated only after successful restoration
+          setIsHydrated(true);
         }
       } else {
-        setIsHydrated(true); // No cart to restore, mark as hydrated
+        setIsHydrated(true);
       }
     } catch (error) {
       console.error('Error loading cart from localStorage:', error);
       localStorage.removeItem(CART_STORAGE_KEY);
+      toast.warning('Sepet hatası nedeniyle temizlendi');
       setIsHydrated(true);
     }
   }, [isAuthenticated, selectedRegion, isHydrated]);
@@ -54,10 +97,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   // Save cart to localStorage whenever items change (but only after hydration)
   useEffect(() => {
     if (!isHydrated) return;
-    
+
     try {
       if (items.length > 0 && isAuthenticated && selectedRegion) {
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+        const storage: CartStorage = { version: CART_VERSION, items };
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(storage));
       } else {
         localStorage.removeItem(CART_STORAGE_KEY);
       }
@@ -73,10 +117,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         try {
           const stored = localStorage.getItem(CART_STORAGE_KEY);
           if (stored) {
-            const parsed = JSON.parse(stored) as CartItem[];
-            // Only sync if items are different to avoid unnecessary updates
-            if (JSON.stringify(parsed) !== JSON.stringify(items)) {
-              setItems(parsed);
+            const parsed = JSON.parse(stored);
+            let cartItems: CartItem[];
+
+            if (parsed.version === CART_VERSION && parsed.items) {
+              cartItems = parsed.items;
+            } else {
+              cartItems = (parsed.items || parsed).map(migrateCartItem);
+            }
+
+            if (JSON.stringify(cartItems) !== JSON.stringify(items)) {
+              setItems(cartItems);
             }
           }
         } catch (error) {
@@ -103,30 +154,44 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return variantId ? `${productId}-${variantId}` : productId;
   };
 
-  const addToCart = (product: Product, quantity = 1, variant?: ProductVariant, regionPrice?: number) => {
-    // Check if user is authenticated
+  const addToCart = (
+    product: Product,
+    quantity = 1,
+    variant?: ProductVariant,
+    regionPrice?: number,
+    supplierInfo?: {
+      supplierId: string | null;
+      supplierProductId: string | null;
+      supplierName: string;
+      priceSource: PriceSource;
+    }
+  ) => {
     if (!isAuthenticated) {
       openAuthDrawer();
       return;
     }
 
-    // Check if region is selected - open modal instead of just toast
     if (!selectedRegion) {
       openRegionModal();
       return;
     }
 
-    // unitPriceAtAdd: regionPrice verilmişse onu kullan, yoksa product.price (fallback)
     const unitPrice = regionPrice ?? product.price;
+    const defaultSupplierInfo = {
+      supplierId: null,
+      supplierProductId: null,
+      supplierName: '',
+      priceSource: 'product' as PriceSource,
+    };
 
     setItems((prev) => {
       const itemKey = getCartItemKey(product.id, variant?.id);
       const existingItem = prev.find(
         (item) => getCartItemKey(item.productId, item.selectedVariant?.id) === itemKey
       );
-      
+
       const variantLabel = variant ? ` (${variant.label})` : "";
-      
+
       if (existingItem) {
         toast.success(`${product.name}${variantLabel} sepetinizde güncellendi`);
         return prev.map((item) =>
@@ -135,7 +200,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             : item
         );
       }
-      
+
       toast.success(`${product.name}${variantLabel} sepete eklendi`);
       return [
         ...prev,
@@ -146,6 +211,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           selectedVariant: variant,
           unitPriceAtAdd: unitPrice,
           regionIdAtAdd: selectedRegion.id,
+          ...supplierInfo,
+          ...defaultSupplierInfo,
         },
       ];
     });

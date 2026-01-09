@@ -11,6 +11,7 @@ import { useRegionProducts } from "@/hooks/useRegionProducts";
 import { useRegion } from "@/contexts/RegionContext";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLowestPriceForCart } from "@/hooks/useLowestPriceForCart";
 import { mergeProductsWithRegion, sortByAvailability, getPriceChangeLabel } from "@/lib/productUtils";
 import { cn } from "@/lib/utils";
 import { Product, ProductWithRegionInfo } from "@/types";
@@ -70,13 +71,14 @@ const BugunHalde = () => {
         return;
       }
     }
-    
+
     // 2A.3: Add to cart with correct price based on role
-    const price = (isBusiness && product.regionInfo?.businessPrice) 
-      ? product.regionInfo.businessPrice 
+    const price = (isBusiness && product.regionInfo?.businessPrice)
+      ? product.regionInfo.businessPrice
       : (product.regionInfo?.price ?? product.price);
-      
-    addToCart(product, 1, undefined, price);
+
+    // Phase 12: Pass supplier info (undefined for now, will be enhanced with supplier selector)
+    addToCart(product, 1, undefined, price, undefined);
   };
 
   const handleNotifyStock = (productName: string) => {

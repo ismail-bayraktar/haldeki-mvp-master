@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, ShoppingCart, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Loader2, ShoppingCart, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useRepeatOrder } from '@/hooks/useRepeatOrder';
 import { formatPrice, getUnavailableReasonMessage } from '@/lib/orderUtils';
 import type { RepeatOrderValidationResult, OrderItem } from '@/types';
@@ -110,7 +110,7 @@ export const RepeatOrderConfirmDialog = ({
             {validation.availableItems.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-4 w-4 text-green-600" />
                   <h4 className="font-medium">Sepete Eklenecek Ürünler</h4>
                   <Badge variant="secondary">{validation.availableItems.length}</Badge>
                 </div>

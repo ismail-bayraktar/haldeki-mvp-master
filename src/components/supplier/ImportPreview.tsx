@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -70,7 +70,7 @@ export function ImportPreview({
         </Alert>
 
         <Alert className="border-l-4 border-green-500/50 bg-green-500/5">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertTitle className="text-sm">Başarılı</AlertTitle>
           <AlertDescription className="text-sm font-medium">
             {successfulRows} / {totalRows} satır
@@ -160,7 +160,7 @@ export function ImportPreview({
                             ))}
                           </div>
                         ) : (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          <CheckCircle className="h-4 w-4 text-green-600" />
                         )}
                       </TableCell>
                     </TableRow>

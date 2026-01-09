@@ -17,7 +17,6 @@ import { Loader2, RefreshCw, Search, Eye, Package, Truck, CheckCircle, XCircle, 
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-
 interface OrderItem {
   productId: string;
   quantity: number;
@@ -163,16 +162,16 @@ const AdminOrders = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Siparişler</h1>
-          <p className="text-muted-foreground">Tüm siparişleri görüntüleyin ve yönetin</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Siparişler</h1>
+            <p className="text-muted-foreground">Tüm siparişleri görüntüleyin ve yönetin</p>
+          </div>
+          <Button onClick={fetchOrders} variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Yenile
+          </Button>
         </div>
-        <Button onClick={fetchOrders} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Yenile
-        </Button>
-      </div>
 
       {/* Status Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

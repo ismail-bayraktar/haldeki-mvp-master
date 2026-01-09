@@ -32,19 +32,40 @@ const Header = () => {
   const { itemCount: compareCount } = useCompare();
 
   const navLinks = [
-    { href: "/", label: "Ana Sayfa" },
-    { href: "/bugun-halde", label: "Bugün Halde" },
-    { href: "/urunler", label: "Ürünler" },
-    { href: "/nasil-calisir", label: "Nasıl Çalışır?" },
+    { href: "/", label: "Ana Sayfa", badge: null },
+    { href: "/bugun-halde", label: "Bugün Halde", badge: !isAuthenticated ? "Erken Erişim" : null },
+    { href: "/urunler", label: "Ürünler", badge: !isAuthenticated ? "Erken Erişim" : null },
+    { href: "/nasil-calisir", label: "Nasıl Çalışır?", badge: null },
   ];
 
   const handleRegionClick = () => {
     setIsRegionSelectorOpen(true);
   };
 
+  const handleProtectedNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // Check if this is a protected route and user is not authenticated
+    const isProtectedRoute = href === "/bugun-halde" || href === "/urunler";
+
+    if (isProtectedRoute && !isAuthenticated) {
+      e.preventDefault();
+
+      // If on homepage, scroll to form
+      if (window.location.pathname === "/" || window.location.pathname === "/izmir-cagri") {
+        document.getElementById("whitelist-form")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      } else {
+        // Navigate to homepage first, then scroll
+        window.location.href = "/#whitelist-form";
+      }
+    }
+    // If authenticated or not protected, let default Link behavior happen
+  };
+
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80" data-testid="header">
         <div className="container flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
@@ -58,8 +79,10 @@ const Header = () => {
                 key={link.href}
                 to={link.href}
                 className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+                onClick={(e) => handleProtectedNavClick(e, link.href)}
               >
                 {link.label}
+                {link.badge && <span className="superscript-badge">{link.badge}</span>}
               </Link>
             ))}
           </nav>
@@ -130,12 +153,13 @@ const Header = () => {
             </Link>
 
             {/* Cart */}
-            <Link to="/sepet">
+            <Link to="/sepet" data-testid="cart-icon">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
                 {itemCount > 0 && (
-                  <Badge 
+                  <Badge
                     className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground"
+                    data-testid="cart-count"
                   >
                     {itemCount}
                   </Badge>
@@ -147,7 +171,7 @@ const Header = () => {
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative">
+                  <Button variant="ghost" size="icon" className="relative" data-testid="user-menu">
                     <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
                       {user?.email?.charAt(0).toUpperCase()}
                     </div>
@@ -166,14 +190,14 @@ const Header = () => {
                     <Link to="/favoriler" className="cursor-pointer">Favorilerim</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="text-destructive cursor-pointer">
+                  <DropdownMenuItem onClick={logout} className="text-destructive cursor-pointer" data-testid="logout-button">
                     <LogOut className="h-4 w-4 mr-2" />
                     Çıkış Yap
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" size="icon" onClick={openAuthDrawer}>
+              <Button variant="ghost" size="icon" onClick={openAuthDrawer} data-testid="login-button">
                 <User className="h-5 w-5" />
               </Button>
             )}
@@ -200,13 +224,16 @@ const Header = () => {
                   <div className="h-px bg-border my-2" />
 
                   {navLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      to={link.href}
-                      className="flex items-center py-2 text-lg font-medium text-foreground hover:text-primary transition-colors"
-                    >
-                      {link.label}
-                    </Link>
+                    <div key={link.href} className="flex items-center justify-between">
+                      <Link
+                        to={link.href}
+                        className="flex items-center gap-2 py-2 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                        onClick={(e) => handleProtectedNavClick(e, link.href)}
+                      >
+                        <span>{link.label}</span>
+                        {link.badge && <span className="superscript-badge">{link.badge}</span>}
+                      </Link>
+                    </div>
                   ))}
 
                   <Link

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { X, Mail, Lock, User, Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -9,13 +10,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const AuthDrawer = () => {
+  const navigate = useNavigate();
   const { isAuthDrawerOpen, closeAuthDrawer, login, signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  
+
   // Signup form state
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
@@ -27,16 +29,27 @@ const AuthDrawer = () => {
       toast.error("Lütfen tüm alanları doldurun");
       return;
     }
-    
+
     setIsLoading(true);
     try {
-      await login(loginEmail, loginPassword);
-      toast.success("Giriş başarılı!");
+      const result = await login(loginEmail, loginPassword);
+
+      if (result.error) {
+        toast.error("Giriş yapılamadı");
+        setIsLoading(false);
+        return;
+      }
+
+      // Success - redirect based on role
       setLoginEmail("");
       setLoginPassword("");
+      setIsLoading(false);
+
+      if (result.redirectPath) {
+        navigate(result.redirectPath);
+      }
     } catch (error) {
       toast.error("Giriş yapılamadı");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -67,7 +80,7 @@ const AuthDrawer = () => {
   };
 
   return (
-    <Sheet open={isAuthDrawerOpen} onOpenChange={closeAuthDrawer}>
+    <Sheet open={isAuthDrawerOpen} onOpenChange={closeAuthDrawer} data-testid="auth-drawer">
       <SheetContent side="right" className="w-full sm:max-w-md p-0 bg-card">
         <SheetHeader className="p-6 pb-0">
           <SheetTitle className="text-2xl font-bold text-foreground">
@@ -78,11 +91,11 @@ const AuthDrawer = () => {
           </p>
         </SheetHeader>
 
-        <div className="p-6">
+        <div className="p-6" data-testid="auth-content">
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Giriş Yap</TabsTrigger>
-              <TabsTrigger value="signup">Üye Ol</TabsTrigger>
+              <TabsTrigger value="login" data-testid="auth-login-tab">Giriş Yap</TabsTrigger>
+              <TabsTrigger value="signup" data-testid="auth-signup-tab">Üye Ol</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login" className="space-y-4">
@@ -99,6 +112,7 @@ const AuthDrawer = () => {
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       disabled={isLoading}
+                      data-testid="auth-email-input"
                     />
                   </div>
                 </div>
@@ -115,14 +129,16 @@ const AuthDrawer = () => {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       disabled={isLoading}
+                      data-testid="auth-password-input"
                     />
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full h-12 text-base"
                   disabled={isLoading}
+                  data-testid="auth-login-button"
                 >
                   {isLoading ? (
                     <>
@@ -192,6 +208,7 @@ const AuthDrawer = () => {
                       value={signupName}
                       onChange={(e) => setSignupName(e.target.value)}
                       disabled={isLoading}
+                      data-testid="auth-name-input"
                     />
                   </div>
                 </div>
@@ -208,6 +225,7 @@ const AuthDrawer = () => {
                       value={signupEmail}
                       onChange={(e) => setSignupEmail(e.target.value)}
                       disabled={isLoading}
+                      data-testid="auth-signup-email-input"
                     />
                   </div>
                 </div>
@@ -224,14 +242,16 @@ const AuthDrawer = () => {
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
                       disabled={isLoading}
+                      data-testid="auth-signup-password-input"
                     />
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full h-12 text-base"
                   disabled={isLoading}
+                  data-testid="auth-signup-button"
                 >
                   {isLoading ? (
                     <>

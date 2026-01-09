@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Bell, CheckCircle2, Leaf } from "lucide-react";
+import { Mail, Bell, CheckCircle, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const NewsletterCTA = () => {
@@ -26,7 +26,7 @@ const NewsletterCTA = () => {
         <div className="max-w-2xl mx-auto text-center space-y-6">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-foreground/10 mb-4">
             {isSubscribed ? (
-              <CheckCircle2 className="h-8 w-8 text-primary-foreground" />
+              <CheckCircle className="h-8 w-8 text-primary-foreground" />
             ) : (
               <Leaf className="h-8 w-8 text-primary-foreground" />
             )}
@@ -79,7 +79,7 @@ const NewsletterCTA = () => {
 
           {isSubscribed && (
             <div className="inline-flex items-center gap-2 bg-primary-foreground/10 text-primary-foreground px-6 py-3 rounded-full">
-              <CheckCircle2 className="h-5 w-5" />
+              <CheckCircle className="h-5 w-5" />
               <span className="font-medium">Başarıyla abone oldunuz</span>
             </div>
           )}

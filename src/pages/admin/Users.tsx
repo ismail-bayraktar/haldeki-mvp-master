@@ -13,7 +13,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
-
 interface Profile {
   id: string;
   email: string | null;
@@ -231,17 +230,17 @@ const AdminUsers = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Kullanıcılar</h1>
-          <p className="text-muted-foreground">Tüm kullanıcıları görüntüleyin ve yönetin</p>
+    <div className="space-y-6" data-testid="admin-users-page">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Kullanıcılar</h1>
+            <p className="text-muted-foreground">Tüm kullanıcıları görüntüleyin ve yönetin</p>
+          </div>
+          <Button onClick={fetchData} variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Yenile
+          </Button>
         </div>
-        <Button onClick={fetchData} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Yenile
-        </Button>
-      </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -307,12 +306,13 @@ const AdminUsers = () => {
                         <TableCell>{profile.email || '-'}</TableCell>
                         <TableCell>{profile.phone || '-'}</TableCell>
                         <TableCell>
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-1" data-testid={`user-roles-${profile.id}`}>
                             {roles.length > 0 ? (
                               roles.map(role => (
                                 <Badge
                                   key={role}
                                   variant={getRoleBadgeVariant(role)}
+                                  data-testid={`user-role-${profile.id}-${role}`}
                                 >
                                   {getRoleLabel(role)}
                                 </Badge>
@@ -334,6 +334,7 @@ const AdminUsers = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openRoleDialog(profile.id, profile.email || '')}
+                                data-testid={`edit-user-button-${profile.id}`}
                               >
                                 <Settings2 className="h-4 w-4 mr-1" />
                                 Rol Yönet
@@ -346,7 +347,7 @@ const AdminUsers = () => {
                                   {selectedUserEmail} için rolleri düzenleyin
                                 </DialogDescription>
                               </DialogHeader>
-                              <div className="space-y-4 py-4">
+                              <div className="space-y-4 py-4" data-testid="role-selector-dialog">
                                 {ALL_ROLES.map(role => {
                                   const isChecked = pendingRoles.includes(role);
                                   const isSelf = selectedUserId === currentUser?.id;
@@ -360,6 +361,7 @@ const AdminUsers = () => {
                                         checked={isChecked}
                                         disabled={isCriticalSelfRole || isSuperadminRestricted}
                                         onCheckedChange={() => togglePendingRole(role)}
+                                        data-testid={`role-checkbox-${role}`}
                                       />
                                       <label
                                         htmlFor={`role-${role}`}

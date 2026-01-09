@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Plus, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { PricePreviewCard } from './PricePreviewCard';
 
 interface Product {
   id: string;
@@ -101,6 +102,16 @@ const SupplierOfferForm = ({ supplierId, onSubmit, isSubmitting = false }: Suppl
                   ))}
                 </SelectContent>
               </Select>
+
+              {selectedProduct && (
+                <div className="mt-3">
+                  <PricePreviewCard
+                    productId={selectedProduct.id}
+                    basePrice={selectedProduct.price}
+                    unit={selectedProduct.unit}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

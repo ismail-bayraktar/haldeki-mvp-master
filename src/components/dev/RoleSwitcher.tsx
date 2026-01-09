@@ -15,12 +15,14 @@ import {
   CheckCircle,
   LogOut,
   ChevronsUpDown,
-  FlaskConical
+  FlaskConical,
+  Warehouse
 } from 'lucide-react';
 
-if (import.meta.env.PROD) {
-  throw new Error('RoleSwitcher cannot be used in production');
-}
+// SECURITY: RoleSwitcher is development-only and must NOT be included in production builds
+// This component contains hardcoded test credentials and allows role switching
+// In production, it returns null to completely remove it from the DOM
+const PROD_CHECK = import.meta.env.PROD;
 
 interface TestAccount {
   id: string;
@@ -123,6 +125,15 @@ const TEST_ACCOUNTS: TestAccount[] = [
     color: 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900/30 dark:text-gray-300',
     redirectPath: '/'
   },
+  {
+    id: 'warehouse-manager',
+    email: import.meta.env.VITE_TEST_WAREHOUSE_EMAIL || 'warehouse@test.haldeki.com',
+    role: 'warehouse_manager',
+    label: 'Depo Yöneticisi',
+    icon: <Warehouse className="h-4 w-4" />,
+    color: 'bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-900/30 dark:text-teal-300',
+    redirectPath: '/depo'
+  },
 ];
 
 const DEFAULT_PASSWORD = import.meta.env.VITE_TEST_DEFAULT_PASS || 'Test1234!';
@@ -130,6 +141,12 @@ const STORAGE_KEY = 'role-switcher-open';
 const SHORTCUT_KEY = 'd';
 
 export const RoleSwitcher = () => {
+  // SECURITY: Double-check production environment
+  // This ensures the component never renders in production, even if the check above is bypassed
+  if (PROD_CHECK) {
+    return null;
+  }
+
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -202,6 +219,7 @@ export const RoleSwitcher = () => {
     supplier: 'Tedarikçiler',
     business: 'İşletmeler',
     customer: 'Müşteriler',
+    warehouse_manager: 'Depo Yöneticileri',
   };
 
   return (

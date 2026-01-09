@@ -140,14 +140,14 @@ export default function RegionProducts() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Bölge Ürünleri</h1>
-          <p className="text-muted-foreground">
-            Bölge bazlı fiyat ve stok yönetimi
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Bölge Ürünleri</h1>
+            <p className="text-muted-foreground">
+              Bölge bazlı fiyat ve stok yönetimi
+            </p>
+          </div>
         </div>
-      </div>
 
       {/* Filters */}
       <Card className="p-4">

@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingCart, Users, Settings, Package, MapPin, ChevronLeft, Store, Truck, FileText, Building2 } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Users, Settings, Package, MapPin, ChevronLeft, Store, Truck, FileText, Building2, Warehouse, TrendingDown, UserCheck, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -17,7 +17,13 @@ import {
 import { Button } from "@/components/ui/button";
 import logotypeDark from "@/assets/logotype_dark.svg";
 
-const menuItems = [
+export interface MenuItem {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+}
+
+export const adminMenuItems: MenuItem[] = [
   {
     title: "Dashboard",
     url: "/admin",
@@ -63,6 +69,21 @@ const menuItems = [
     url: "/admin/supplier-offers",
     icon: FileText,
   },
+  {
+    title: "Depo Personeli",
+    url: "/admin/warehouse-staff",
+    icon: Warehouse,
+  },
+  {
+    title: "Bugün Halde",
+    url: "/admin/bugun-halde",
+    icon: TrendingDown,
+  },
+  {
+    title: "Whitelist",
+    url: "/admin/whitelist-applications",
+    icon: UserCheck,
+  },
 ];
 
 const secondaryItems = [
@@ -86,7 +107,7 @@ export function AdminSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
+    <Sidebar collapsible="icon" className="border-r border-border" data-testid="admin-sidebar">
       <SidebarHeader className="border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
@@ -111,14 +132,14 @@ export function AdminSidebar() {
           <SidebarGroupLabel>Ana Menü</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {adminMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
                     isActive={isActive(item.url)}
                     tooltip={item.title}
                   >
-                    <NavLink to={item.url}>
+                    <NavLink to={item.url} data-testid={`nav-${item.url.split('/').pop()}`}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </NavLink>
@@ -140,7 +161,7 @@ export function AdminSidebar() {
                     isActive={isActive(item.url)}
                     tooltip={item.title}
                   >
-                    <NavLink to={item.url}>
+                    <NavLink to={item.url} data-testid={`nav-${item.url.split('/').pop()}`}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </NavLink>

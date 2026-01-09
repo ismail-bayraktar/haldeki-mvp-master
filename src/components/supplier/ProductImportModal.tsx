@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, Download, FileSpreadsheet, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, Download, FileSpreadsheet, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -118,7 +118,7 @@ export function ProductImportModal({ open, onOpenChange }: ProductImportModalPro
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="product-import-modal">
         <DialogHeader>
           <DialogTitle className="text-xl">Ürün İçe Aktar</DialogTitle>
           <DialogDescription>
@@ -157,6 +157,7 @@ export function ProductImportModal({ open, onOpenChange }: ProductImportModalPro
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
+              data-testid="file-upload-zone"
             >
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="p-4 bg-primary/10 rounded-full">
@@ -176,6 +177,7 @@ export function ProductImportModal({ open, onOpenChange }: ProductImportModalPro
                     accept=".xlsx,.xls,.csv"
                     onChange={handleFileSelect}
                     className="hidden"
+                    data-testid="file-input"
                   />
                   <Button variant="outline" size="sm" asChild>
                     <span>Dosya Seç</span>
@@ -227,7 +229,7 @@ export function ProductImportModal({ open, onOpenChange }: ProductImportModalPro
               {/* Success Result */}
               {importMutation.data?.success && !importMutation.isPending && (
                 <Alert className="border-green-500/50 text-green-700 dark:text-green-400">
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle className="h-4 w-4" />
                   <AlertTitle>Başarılı!</AlertTitle>
                   <AlertDescription>
                     {importMutation.data.created} ürün eklendi, {importMutation.data.updated} ürün güncellendi
@@ -293,6 +295,7 @@ export function ProductImportModal({ open, onOpenChange }: ProductImportModalPro
             <Button
               onClick={handleImport}
               disabled={importMutation.isPending}
+              data-testid="import-submit-button"
             >
               {importMutation.isPending ? (
                 <>

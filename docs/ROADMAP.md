@@ -2,7 +2,7 @@
 
 > Bu doküman, Haldeki projesinin teknik yol haritasını, faz durumlarını ve gelecek planlarını içerir.
 
-Son güncelleme: 2026-01-04
+Son güncelleme: 2026-01-06 23:30
 
 ---
 
@@ -234,7 +234,55 @@ Haldeki.com, taze meyve-sebze tedarik zincirini dijitalleştiren, bölge bazlı 
 
 ---
 
-### Faz 12: Gelişmiş Özellikler 📋
+### Faz 11: Depo Yönetim MVP ✅
+
+**Durum**: Tamamlandı (2026-01-09)
+**Döküman**: [phases/phase-11-warehouse-mvp.md](./phases/phase-11-warehouse-mvp.md)
+
+| Görev | Durum | Öncelik |
+|-------|-------|---------|
+| warehouse_manager rolü | ✅ | Yüksek |
+| Vendors tablosu (multi-vendor support) | ✅ | Yüksek |
+| Warehouse_staff tablosu (vendor-scoped) | ✅ | Yüksek |
+| Orders tablosu güncellemeleri (placed_at, order_number, prepared_at, vendor_id) | ✅ | Yüksek |
+| RPC functions (warehouse_get_orders, warehouse_get_picking_list, warehouse_mark_prepared) | ✅ | Yüksek |
+| Fiyat maskeleme (DB + UI katmanı) | ✅ | Yüksek |
+| Tenant isolation (vendor-based) | ✅ | Yüksek |
+| Zaman penceresi filtresi (gece/gündüz vardiya) | ✅ | Orta |
+| Toplu toplama listesi UI | ✅ | Yüksek |
+| Admin panelde depo personeli yönetimi | ✅ | Orta |
+| Unit tests (time window calculations) | ✅ | Orta |
+| Integration tests (warehouse operations) | ✅ | Orta |
+
+**Notation**: Faz 11, depo personeli için toplu sipariş hazırlama arayüzü ve güvenli fiyat maskeleme sistemi içerir. P0 güvenlik gereksinimi: Depo personeli fiyatları göremez (DB + UI katmanında korumalı). Tenant isolation, vendor-scoped warehouse_staff tablosu ile sağlanır.
+
+---
+
+### Faz 12: Çoklu Tedarikçi Ürün Yönetimi ✅
+
+**Durum**: Tamamlandı (2026-01-05)
+**Döküman**: [phases/phase-12-multi-supplier.md](./phases/phase-12-multi-supplier.md)
+
+| Görev | Durum | Öncelik |
+|-------|-------|---------|
+| supplier_products junction table | ✅ | Yüksek |
+| product_variations tablosu | ✅ | Yüksek |
+| supplier_product_variations tablosu | ✅ | Yüksek |
+| bugun_halde_comparison view | ✅ | Yüksek |
+| Multi-supplier RPC functions (get_product_suppliers, get_product_variations, get_product_price_stats) | ✅ | Yüksek |
+| Excel import varyasyon extraction | ✅ | Yüksek |
+| Supplier panel varyasyon UI (VariationSelector, VariationTag, VariationList) | ✅ | Yüksek |
+| "Bugün Halde" fiyat karşılaştırma sayfası | ✅ | Yüksek |
+| Admin tedarikçi atama dialogu (SupplierAssignmentDialog) | ✅ | Orta |
+| Unit tests (excel parser) | ✅ | Orta |
+| Integration tests (RPC functions) | 📋 | Orta |
+
+**Test Coverage**: 64/64 unit tests passing (100%)
+**Notation**: Faz 12, bir ürünün birden fazla tedarikçi tarafından farklı fiyatlarla sunulabileceği çoklu tedarikçi sistemdir. Ürün varyasyonları (boyut, tip, koku, paket) normalized olarak saklanır ve "Bugün Halde" view'ı ile tüm tedarikçi fiyatları karşılaştırılabilir.
+
+---
+
+### Faz 13: Gelişmiş Özellikler 📋
 
 **Durum**: Planlandı
 
@@ -272,8 +320,11 @@ Haldeki.com, taze meyve-sebze tedarik zincirini dijitalleştiren, bölge bazlı 
 
 | Kategori | Tablolar |
 |----------|----------|
-| Core | profiles, user_roles, regions, products, region_products, orders |
-| Role-specific | pending_invites, dealers, suppliers, supplier_offers |
+| Core | profiles, user_roles, regions, products, region_products, orders, vendors |
+| Role-specific | pending_invites, dealers, suppliers, businesses, warehouse_staff |
+| Import/Export | product_imports |
+| Orders | orders, order_items, delivery_proofs |
+| Multi-Supplier (Phase 12) | supplier_products, product_variations, supplier_product_variations ✅ |
 
 ### Rol Enum'ları
 
@@ -284,6 +335,8 @@ Haldeki.com, taze meyve-sebze tedarik zincirini dijitalleştiren, bölge bazlı 
 | superadmin | Süper yönetici (admin'i kapsar) |
 | dealer | Bölge bayisi |
 | supplier | Tedarikçi |
+| business | İşletme (B2B müşteri) |
+| warehouse_manager | Depo yöneticisi |
 
 ---
 
@@ -383,6 +436,11 @@ supabase/
 | 2026-01-04 | 8 | Faz 8 tamamlandı - Tekrar sipariş özelliği eklendi |
 | 2026-01-04 | 8 | Birim testler (orderUtils, useRepeatOrder) eklendi |
 | 2026-01-04 | 8 | E2E testler (business/customer repeat order) eklendi |
+| 2026-01-04 | 9 | Faz 9 tamamlandı - Tedarikçi mobil ürün yönetimi |
+| 2026-01-07 | 10 | Faz 10 tamamlandı - Excel/CSV import/export |
+| 2026-01-09 | 11 | Faz 11 tamamlandı - Depo yönetim MVP (fiyat maskeleme, picking list) |
+| 2026-01-05 | 12 | Faz 12 tamamlandı - Çoklu tedarikçi ürün yönetimi (junction table, varyasyonlar) |
+| 2026-01-06 | 12 | Faz 12 bug fix'leri - Cart Context migration, ProductCard null price, WarehouseStaff syntax |
 
 ---
 
@@ -409,5 +467,5 @@ supabase/
 
 ---
 
-Son güncelleme: 2026-01-04
+Son güncelleme: 2026-01-06
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,92 +7,182 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock, CheckCircle, XCircle, Home, LogOut, Loader2 } from "lucide-react";
 import logotypeDark from "@/assets/logotype_dark.svg";
+import { normalizePhoneNumber } from "@/lib/phoneNormalizer";
 
 type ApprovalStatus = "pending" | "approved" | "rejected" | "loading" | "not_applicable";
+type ApprovalType = "whitelist" | "dealer" | "supplier";
 
 interface ApprovalInfo {
   status: ApprovalStatus;
-  role: "dealer" | "supplier" | null;
+  type: ApprovalType | null;
   name: string | null;
+  phone: string | null;
 }
 
 const Beklemede = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading: authLoading, logout, isDealer, isSupplier } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logout, roles } = useAuth();
   const [approvalInfo, setApprovalInfo] = useState<ApprovalInfo>({
     status: "loading",
-    role: null,
+    type: null,
     name: null,
+    phone: null,
   });
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autoRedirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    const checkApprovalStatus = async () => {
-      if (!user) {
-        setApprovalInfo({ status: "not_applicable", role: null, name: null });
-        return;
+  const checkStatus = async (): Promise<ApprovalInfo> => {
+    if (!user) {
+      return { status: "not_applicable", type: null, name: null, phone: null };
+    }
+
+    try {
+      // Get user phone from users table (not user_metadata)
+      let userPhone: string | null = null;
+      try {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('phone')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        userPhone = profile?.phone || null;
+      } catch (error) {
+        console.error('Error fetching user phone:', error);
       }
 
-      try {
-        // Bayi kontrolü
-        if (isDealer) {
-          const { data: dealerData } = await supabase
-            .from("dealers")
-            .select("approval_status, name")
-            .eq("user_id", user.id)
-            .single();
+      // Check whitelist first
+      if (userPhone) {
+        // Normalize phone number for consistent matching
+        const normalizedPhone = normalizePhoneNumber(userPhone);
 
-          if (dealerData) {
-            setApprovalInfo({
-              status: dealerData.approval_status as ApprovalStatus,
-              role: "dealer",
-              name: dealerData.name,
-            });
+        if (normalizedPhone) {
+          const { data: whitelistData } = await supabase
+            .from("whitelist_applications")
+            .select("id, status, full_name, phone")
+            .eq("phone", normalizedPhone)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-            // Onaylanmışsa dashboard'a yönlendir
-            if (dealerData.approval_status === "approved") {
-              navigate("/bayi");
-            }
-            return;
+          if (whitelistData) {
+            return {
+              status: whitelistData.status as ApprovalStatus,
+              type: "whitelist",
+              name: whitelistData.full_name,
+              phone: whitelistData.phone,
+            };
           }
         }
+      }
 
-        // Tedarikçi kontrolü
-        if (isSupplier) {
-          const { data: supplierData } = await supabase
-            .from("suppliers")
-            .select("approval_status, name")
-            .eq("user_id", user.id)
-            .single();
+      // Check dealer approval
+      if (roles.includes("dealer")) {
+        const { data: dealerData } = await supabase
+          .from("dealers")
+          .select("approval_status, name")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-          if (supplierData) {
-            setApprovalInfo({
-              status: supplierData.approval_status as ApprovalStatus,
-              role: "supplier",
-              name: supplierData.name,
-            });
+        if (dealerData) {
+          return {
+            status: dealerData.approval_status as ApprovalStatus,
+            type: "dealer",
+            name: dealerData.name,
+            phone: null,
+          };
+        }
+      }
 
-            // Onaylanmışsa dashboard'a yönlendir
-            if (supplierData.approval_status === "approved") {
-              navigate("/tedarikci");
-            }
-            return;
-          }
+      // Check supplier approval
+      if (roles.includes("supplier")) {
+        const { data: supplierData } = await supabase
+          .from("suppliers")
+          .select("approval_status, name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (supplierData) {
+          return {
+            status: supplierData.approval_status as ApprovalStatus,
+            type: "supplier",
+            name: supplierData.name,
+            phone: null,
+          };
+        }
+      }
+
+      return { status: "not_applicable", type: null, name: null, phone: null };
+    } catch (err) {
+      console.error("Status check error:", err);
+      return { status: "not_applicable", type: null, name: null, phone: null };
+    }
+  };
+
+  const handleApprovedRedirect = (type: ApprovalType) => {
+    // Auto-redirect after 2 seconds
+    autoRedirectTimeoutRef.current = setTimeout(() => {
+      let redirectPath = "/";
+      if (type === "dealer") redirectPath = "/bayi";
+      else if (type === "supplier") redirectPath = "/tedarikci";
+      else if (type === "whitelist") redirectPath = "/urunler";
+
+      navigate(redirectPath);
+    }, 2000);
+  };
+
+  useEffect(() => {
+    const initialCheck = async () => {
+      if (!authLoading && isAuthenticated) {
+        const info = await checkStatus();
+        setApprovalInfo(info);
+
+        // If approved, start auto-redirect
+        if (info.status === "approved" && info.type) {
+          handleApprovedRedirect(info.type);
         }
 
-        // Normal kullanıcı - ana sayfaya yönlendir
-        setApprovalInfo({ status: "not_applicable", role: null, name: null });
-      } catch (err) {
-        console.error("Approval check error:", err);
-        setApprovalInfo({ status: "not_applicable", role: null, name: null });
+        // If pending, start polling
+        if (info.status === "pending") {
+          pollingIntervalRef.current = setInterval(async () => {
+            const updatedInfo = await checkStatus();
+            setApprovalInfo(updatedInfo);
+
+            if (updatedInfo.status === "approved" && updatedInfo.type) {
+              // Stop polling
+              if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+              }
+              // Start auto-redirect
+              handleApprovedRedirect(updatedInfo.type);
+            }
+          }, 10000); // Poll every 10 seconds
+        }
       }
     };
 
-    if (!authLoading && isAuthenticated) {
-      checkApprovalStatus();
-    }
-  }, [user, authLoading, isAuthenticated, isDealer, isSupplier, navigate]);
+    initialCheck();
+
+    // Cleanup
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+      if (autoRedirectTimeoutRef.current) {
+        clearTimeout(autoRedirectTimeoutRef.current);
+      }
+    };
+  }, [authLoading, isAuthenticated, user, roles]);
 
   const handleLogout = async () => {
+    // Clear intervals before logout
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+    if (autoRedirectTimeoutRef.current) {
+      clearTimeout(autoRedirectTimeoutRef.current);
+    }
     await logout();
     navigate("/");
   };
@@ -116,7 +206,7 @@ const Beklemede = () => {
             <CardHeader>
               <CardTitle>Erişim Yok</CardTitle>
               <CardDescription>
-                Bu sayfa sadece onay bekleyen bayi ve tedarikçiler içindir.
+                Bu sayfa sadece onay bekleyen kullanıcılar içindir.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -134,33 +224,54 @@ const Beklemede = () => {
   }
 
   // Status content
-  const statusConfig = {
-    pending: {
-      icon: Clock,
-      iconBg: "bg-yellow-100",
-      iconColor: "text-yellow-600",
-      title: "Başvurunuz İnceleniyor",
-      description: "Başvurunuz admin ekibimiz tarafından incelenmektedir. Onay durumu hakkında email ile bilgilendirileceksiniz.",
-    },
-    approved: {
-      icon: CheckCircle,
-      iconBg: "bg-green-100",
-      iconColor: "text-green-600",
-      title: "Başvurunuz Onaylandı!",
-      description: "Tebrikler! Başvurunuz onaylandı. Panele erişebilirsiniz.",
-    },
-    rejected: {
-      icon: XCircle,
-      iconBg: "bg-red-100",
-      iconColor: "text-red-600",
-      title: "Başvurunuz Reddedildi",
-      description: "Üzgünüz, başvurunuz şu anda onaylanamadı. Detaylar için bizimle iletişime geçebilirsiniz.",
-    },
+  const getStatusConfig = (status: ApprovalStatus) => {
+    const baseConfig = {
+      pending: {
+        icon: Clock,
+        iconBg: "bg-yellow-100",
+        iconColor: "text-yellow-600",
+        title: "Başvurunuz İnceleniyor",
+        description: "Başvurunuz inceleniyor. Onaylandığında otomatik olarak yönlendirileceksiniz.",
+      },
+      approved: {
+        icon: CheckCircle,
+        iconBg: "bg-green-100",
+        iconColor: "text-green-600",
+        title: "Başvurunuz Onaylandı!",
+        description: "Tebrikler! Başvurunuz onaylandı. Yönlendiriliyorsunuz...",
+      },
+      rejected: {
+        icon: XCircle,
+        iconBg: "bg-red-100",
+        iconColor: "text-red-600",
+        title: "Başvurunuz Reddedildi",
+        description: "Üzgünüz, başvurunuz onaylanamadı. Detaylar için iletişime geçin.",
+      },
+    };
+    return baseConfig[status];
   };
 
-  const config = statusConfig[approvalInfo.status as keyof typeof statusConfig];
-  const Icon = config?.icon || Clock;
-  const roleLabel = approvalInfo.role === "dealer" ? "Bayi" : "Tedarikçi";
+  const getTypeLabel = (type: ApprovalType | null) => {
+    switch (type) {
+      case "whitelist": return "Erken Erişim";
+      case "dealer": return "Bayi";
+      case "supplier": return "Tedarikçi";
+      default: return "Bilinmiyor";
+    }
+  };
+
+  const getRedirectPath = (type: ApprovalType) => {
+    switch (type) {
+      case "whitelist": return "/urunler";
+      case "dealer": return "/bayi";
+      case "supplier": return "/tedarikci";
+      default: return "/";
+    }
+  };
+
+  const config = getStatusConfig(approvalInfo.status);
+  const Icon = config.icon;
+  const typeLabel = getTypeLabel(approvalInfo.type);
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
@@ -174,30 +285,36 @@ const Beklemede = () => {
 
           <Card className="border-border/50 shadow-lg text-center">
             <CardHeader>
-              <div className={`mx-auto w-20 h-20 rounded-full ${config?.iconBg} flex items-center justify-center mb-4`}>
-                <Icon className={`h-10 w-10 ${config?.iconColor}`} />
+              <div className={`mx-auto w-20 h-20 rounded-full ${config.iconBg} flex items-center justify-center mb-4`}>
+                <Icon className={`h-10 w-10 ${config.iconColor}`} />
               </div>
-              <CardTitle className="text-xl">{config?.title}</CardTitle>
+              <CardTitle className="text-xl">{config.title}</CardTitle>
               <CardDescription className="mt-2">
-                {config?.description}
+                {config.description}
               </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-4">
               <div className="bg-muted rounded-lg p-4">
                 <p className="text-sm text-muted-foreground mb-1">Başvuru Türü</p>
-                <p className="font-semibold">{roleLabel}</p>
+                <p className="font-semibold">{typeLabel}</p>
                 {approvalInfo.name && (
                   <>
-                    <p className="text-sm text-muted-foreground mt-3 mb-1">Firma</p>
+                    <p className="text-sm text-muted-foreground mt-3 mb-1">Ad Soyad</p>
                     <p className="font-semibold">{approvalInfo.name}</p>
+                  </>
+                )}
+                {approvalInfo.phone && (
+                  <>
+                    <p className="text-sm text-muted-foreground mt-3 mb-1">Telefon</p>
+                    <p className="font-semibold">{approvalInfo.phone}</p>
                   </>
                 )}
               </div>
 
-              {approvalInfo.status === "approved" && (
+              {approvalInfo.status === "approved" && approvalInfo.type && (
                 <Button
-                  onClick={() => navigate(approvalInfo.role === "dealer" ? "/bayi" : "/tedarikci")}
+                  onClick={() => navigate(getRedirectPath(approvalInfo.type))}
                   className="w-full"
                 >
                   Panele Git

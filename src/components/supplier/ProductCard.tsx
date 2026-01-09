@@ -1,7 +1,7 @@
-// Supplier Product Card Component (Phase 9 - Mobile First)
+// Supplier Product Card Component (Phase 9 - Mobile First, Phase 12 Multi-Supplier + Variations)
 
 import { Link } from 'react-router-dom';
-import { Edit, Trash2, MoreVertical, ImageOff } from 'lucide-react';
+import { Edit, Trash2, MoreVertical, ImageOff, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,14 +11,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { VariationTag } from '@/components/supplier/VariationTag';
 import { cn } from '@/lib/utils';
 import type { SupplierProduct } from '@/types/supplier';
+import type { ProductVariationsGrouped } from '@/types/multiSupplier';
+import { useProductVariationsGrouped } from '@/hooks/useProductVariations';
 
 interface ProductCardProps {
   product: SupplierProduct;
+  variations?: ProductVariationsGrouped[];
   onEdit?: (product: SupplierProduct) => void;
   onDelete?: (product: SupplierProduct) => void;
   className?: string;
+  // Phase 12: Multi-supplier display
+  supplierCount?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  showMultiSupplier?: boolean;
 }
 
 const getStatusConfig = (status: SupplierProduct['product_status']) => {
@@ -30,8 +39,31 @@ const getStatusConfig = (status: SupplierProduct['product_status']) => {
   return configs[status] || configs.active;
 };
 
-export function ProductCard({ product, onEdit, onDelete, className }: ProductCardProps) {
+export function ProductCard({
+  product,
+  variations: variationsProp,
+  onEdit,
+  onDelete,
+  className,
+  supplierCount,
+  minPrice,
+  maxPrice,
+  showMultiSupplier = false
+}: ProductCardProps) {
   const statusConfig = getStatusConfig(product.product_status);
+
+  // Fetch variations from database if not provided as prop
+  const productId = product.product_id || product.id;
+  const { data: variationsData } = useProductVariationsGrouped(productId);
+
+  // Convert grouped variations to array format for display
+  const variations = variationsProp || (variationsData
+    ? Object.entries(variationsData).map(([type, values]) => ({
+        variation_type: type as any,
+        values: values as any,
+      }))
+    : []
+  );
 
   const handleEdit = () => {
     onEdit?.(product);
@@ -40,6 +72,19 @@ export function ProductCard({ product, onEdit, onDelete, className }: ProductCar
   const handleDelete = () => {
     onDelete?.(product);
   };
+
+  // Phase 12: Calculate display price for multi-supplier
+  // Handle both old base_price and new price field for backward compatibility
+  const productPrice = product.price ?? product.base_price;
+  const displayPrice = showMultiSupplier && minPrice !== undefined ? minPrice : productPrice;
+
+  // Build price label with null safety
+  let priceLabel = '0.00';
+  if (showMultiSupplier && minPrice !== undefined && maxPrice !== undefined && minPrice !== maxPrice) {
+    priceLabel = `${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)}`;
+  } else if (productPrice !== undefined && productPrice !== null) {
+    priceLabel = productPrice.toFixed(2);
+  }
 
   return (
     <Card className={cn('group overflow-hidden', className)}>
@@ -74,6 +119,16 @@ export function ProductCard({ product, onEdit, onDelete, className }: ProductCar
               </Badge>
             </div>
           )}
+
+          {/* Phase 12: Supplier Count Badge */}
+          {showMultiSupplier && supplierCount && supplierCount > 1 && (
+            <div className="absolute bottom-2 right-2">
+              <Badge variant="secondary" className="bg-blue-500/90 text-white flex items-center gap-1">
+                <Store className="h-3 w-3" />
+                {supplierCount} tedarikçi
+              </Badge>
+            </div>
+          )}
         </div>
       </Link>
 
@@ -94,11 +149,17 @@ export function ProductCard({ product, onEdit, onDelete, className }: ProductCar
         <div className="flex items-center justify-between">
           <div>
             <p className="font-bold text-lg">
-              ₺{product.base_price.toFixed(2)}
+              ₺{priceLabel}
               <span className="text-xs font-normal text-muted-foreground ml-1">
                 /{product.unit}
               </span>
             </p>
+            {/* Phase 12: Show "Starting from" for multi-supplier */}
+            {showMultiSupplier && supplierCount && supplierCount > 1 && minPrice !== undefined && (
+              <p className="text-xs text-muted-foreground">
+                {minPrice !== maxPrice ? 'Başlangıç fiyatı' : `${supplierCount} tedarikçi`}
+              </p>
+            )}
           </div>
 
           {/* Stock Status */}
@@ -108,6 +169,28 @@ export function ProductCard({ product, onEdit, onDelete, className }: ProductCar
             </Badge>
           )}
         </div>
+
+        {/* Variations */}
+        {variations && variations.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {variations.slice(0, 3).map((group) =>
+              group.values.slice(0, 2).map((val) => (
+                <VariationTag
+                  key={`${group.variation_type}-${val.value}`}
+                  type={group.variation_type}
+                  value={val.value}
+                  showType={false}
+                  className="text-[10px] px-1.5 py-0"
+                />
+              ))
+            )}
+            {variations.reduce((acc, g) => acc + g.values.length, 0) > 6 && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                +{variations.reduce((acc, g) => acc + g.values.length, 0) - 6}
+              </Badge>
+            )}
+          </div>
+        )}
 
         {/* Action Menu */}
         <div className="flex items-center gap-2 mt-3">

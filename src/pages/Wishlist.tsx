@@ -4,14 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Header, Footer, MobileNav } from "@/components/layout";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCart } from "@/contexts/CartContext";
+import { useRegion } from "@/contexts/RegionContext";
+import { useLowestPriceForCart } from "@/hooks/useLowestPriceForCart";
 import { Card } from "@/components/ui/card";
 
 const Wishlist = () => {
   const { items, removeFromWishlist, clearWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { selectedRegion } = useRegion();
 
   const handleAddToCart = (product: typeof items[0]) => {
-    addToCart(product);
+    addToCart(product, 1, undefined, undefined, undefined);
     removeFromWishlist(product.id);
   };
 

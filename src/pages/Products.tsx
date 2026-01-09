@@ -139,9 +139,9 @@ const Products = () => {
   const hasActiveFilters = searchQuery || selectedCategory || sortBy !== "newest";
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" data-testid="products-page">
       <Header />
-      
+
       <main className="flex-1 pb-20 lg:pb-0">
         <section className="py-8 md:py-12 bg-secondary/30">
           <div className="container">

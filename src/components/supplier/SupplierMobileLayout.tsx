@@ -5,6 +5,7 @@ import { Outlet } from 'react-router-dom';
 import { ChevronLeft, Plus } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Breadcrumbs, BreadcrumbItem } from '@/components/layout/Breadcrumbs';
 import { cn } from '@/lib/utils';
 import { SupplierBottomNav } from '@/components/supplier/SupplierBottomNav';
 
@@ -15,6 +16,7 @@ interface SupplierMobileLayoutProps {
   actionHref?: string;
   showBackButton?: boolean;
   backTo?: string;
+  breadcrumbs?: BreadcrumbItem[];
   children?: ReactNode;
 }
 
@@ -25,6 +27,7 @@ export function SupplierMobileLayout({
   actionHref,
   showBackButton = false,
   backTo = '/tedarikci',
+  breadcrumbs,
   children,
 }: SupplierMobileLayoutProps) {
   const location = useLocation();
@@ -33,8 +36,14 @@ export function SupplierMobileLayout({
     <div className="min-h-screen bg-background pb-16 lg:pb-0">
       {/* Sticky Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-14">
+        <div className="container mx-auto px-4 py-3">
+          {/* Breadcrumbs */}
+          {breadcrumbs && breadcrumbs.length > 0 && (
+            <div className="mb-2">
+              <Breadcrumbs items={breadcrumbs} />
+            </div>
+          )}
+          <div className="flex items-center justify-between">
             {/* Left: Back button or Logo */}
             <div className="flex items-center">
               {showBackButton ? (

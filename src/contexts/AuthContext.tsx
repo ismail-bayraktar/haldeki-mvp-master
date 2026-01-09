@@ -3,9 +3,15 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PasswordChangeModal } from "@/components/auth/PasswordChangeModal";
+import { normalizePhoneNumber } from "@/lib/phoneNormalizer";
 
-type AppRole = 'superadmin' | 'admin' | 'dealer' | 'supplier' | 'business' | 'user';
+type AppRole = 'superadmin' | 'admin' | 'dealer' | 'supplier' | 'business' | 'warehouse_manager' | 'user';
 type ApprovalStatus = 'pending' | 'approved' | 'rejected' | null;
+
+interface WhitelistStatus {
+  status: 'pending' | 'approved' | 'rejected' | 'duplicate' | null;
+  applicationId: string | null;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +23,7 @@ interface AuthContextType {
   isDealer: boolean;
   isSupplier: boolean;
   isBusiness: boolean;
+  isWarehouseManager: boolean;
   roles: AppRole[];
   isRolesChecked: boolean;
   approvalStatus: ApprovalStatus;
@@ -26,7 +33,7 @@ interface AuthContextType {
   openAuthDrawer: () => void;
   closeAuthDrawer: () => void;
   hasRole: (role: AppRole) => boolean;
-  login: (email: string, password: string) => Promise<{ error: Error | null }>;
+  login: (email: string, password: string) => Promise<{ error: Error | null; redirectPath?: string }>;
   signup: (name: string, email: string, password: string) => Promise<{ error: Error | null }>;
   logout: () => Promise<void>;
 }
@@ -50,6 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isDealer = roles.includes('dealer');
   const isSupplier = roles.includes('supplier');
   const isBusiness = roles.includes('business');
+  const isWarehouseManager = roles.includes('warehouse_manager');
 
   const hasRole = (role: AppRole): boolean => {
     if (role === 'admin') {
@@ -173,10 +181,64 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const openAuthDrawer = () => setIsAuthDrawerOpen(true);
   const closeAuthDrawer = () => setIsAuthDrawerOpen(false);
 
-  const login = async (email: string, password: string): Promise<{ error: Error | null }> => {
+  // Check whitelist status by phone number
+  const checkWhitelistStatus = async (phone: string): Promise<WhitelistStatus> => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      
+      // Normalize phone number for consistent matching
+      const normalizedPhone = normalizePhoneNumber(phone);
+
+      if (!normalizedPhone) {
+        console.warn('Could not normalize phone number:', phone);
+        return { status: null, applicationId: null };
+      }
+
+      const { data, error } = await supabase
+        .from('whitelist_applications')
+        .select('id, status')
+        .eq('phone', normalizedPhone)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) {
+        return { status: null, applicationId: null };
+      }
+
+      return {
+        status: data.status,
+        applicationId: data.id
+      };
+    } catch (error) {
+      console.error('Error checking whitelist status:', error);
+      return { status: null, applicationId: null };
+    }
+  };
+
+  // Helper: Get redirect path based on user roles
+  const getRedirectPathForRole = (userRoles: AppRole[]): string => {
+    // Priority: admin > warehouse > supplier > dealer > business > customer
+    if (userRoles.includes('admin') || userRoles.includes('superadmin')) {
+      return '/admin';
+    }
+    if (userRoles.includes('warehouse_manager')) {
+      return '/depo';
+    }
+    if (userRoles.includes('supplier')) {
+      return '/tedarikci';
+    }
+    if (userRoles.includes('dealer')) {
+      return '/bayi';
+    }
+    if (userRoles.includes('business')) {
+      return '/isletme';
+    }
+    return '/'; // Customer (user role) → landing page
+  };
+
+  const login = async (email: string, password: string): Promise<{ error: Error | null; redirectPath?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
           toast.error('Email veya şifre hatalı');
@@ -185,10 +247,74 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         return { error };
       }
-      
+
       toast.success('Giriş başarılı!');
       closeAuthDrawer();
-      return { error: null };
+
+      // Wait for roles to load properly (not arbitrary timeout)
+      await new Promise<void>((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (isRolesChecked) {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 50);
+      });
+
+      // Get user phone from users table for whitelist check
+      let userPhone: string | null = null;
+      let whitelistStatus: WhitelistStatus = { status: null, applicationId: null };
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('users')
+          .select('phone')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching user phone:', error);
+          toast.error('Profil bilgileriniz yüklenirken bir hata oluştu');
+          await supabase.auth.signOut();
+          return { error: new Error('Failed to fetch user profile') };
+        }
+
+        userPhone = profile?.phone || null;
+      } catch (error) {
+        console.error('Error fetching user phone:', error);
+        toast.error('Profil bilgileriniz yüklenirken bir hata oluştu');
+        await supabase.auth.signOut();
+        return { error: new Error('Failed to fetch user profile') };
+      }
+
+      // Business users require phone number for whitelist
+      if (!userPhone && roles.includes('business')) {
+        toast.error('Telefon numaranız profil bilgilerinizde eksik. Lütfen iletişime geçin.');
+        await supabase.auth.signOut();
+        return { error: new Error('Phone number required for business users') };
+      }
+
+      if (userPhone) {
+        whitelistStatus = await checkWhitelistStatus(userPhone);
+      }
+
+      // Handle whitelist status
+      if (whitelistStatus.status === 'pending') {
+        return { error: null, redirectPath: '/beklemede' };
+      }
+
+      if (whitelistStatus.status === 'rejected' || whitelistStatus.status === 'duplicate') {
+        const message = whitelistStatus.status === 'rejected'
+          ? 'Başvurunuz reddedildi. Detaylar için iletişime geçin.'
+          : 'Bu telefon numarası için zaten bir başvuru mevcut.';
+        toast.error(message);
+        await supabase.auth.signOut();
+        return { error: new Error(message) };
+      }
+
+      // Approved or no whitelist record → normal role-based redirect
+      const redirectPath = getRedirectPathForRole(roles);
+      return { error: null, redirectPath };
     } catch (e) {
       const error = e as Error;
       toast.error('Bir hata oluştu');
@@ -268,6 +394,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isDealer,
         isSupplier,
         isBusiness,
+        isWarehouseManager,
         roles,
         isRolesChecked,
         approvalStatus,
