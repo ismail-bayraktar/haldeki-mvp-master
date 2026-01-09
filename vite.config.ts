@@ -28,6 +28,9 @@ export default defineConfig(({ mode }) => ({
         chunkFileNames: 'assets/[name].[hash].js',
         assetFileNames: 'assets/[name].[hash].[ext]',
         manualChunks: (id) => {
+          // Don't create separate charts chunk - causes TDZ errors
+          // Recharts will be bundled with dashboard pages only
+
           // React core
           if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
             return 'react-core';
@@ -39,10 +42,6 @@ export default defineConfig(({ mode }) => ({
           // Data & forms
           if (id.includes('@tanstack') || id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
             return 'data-vendor';
-          }
-          // Charts & visualization
-          if (id.includes('recharts') || id.includes('embla-carousel')) {
-            return 'charts';
           }
           // Icons - smaller chunks for better tree-shaking
           if (id.includes('lucide-react')) {
