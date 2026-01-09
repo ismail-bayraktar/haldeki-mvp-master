@@ -53,9 +53,16 @@ docs/
 │   ├── invite-filtering-logic.md
 │   ├── invite-lifecycle.md
 │   └── password-change-flow.md
+├── checklists/
+│   ├── HERO_SECTION_TODOS.md
+│   ├── SEO_TODOS.md
+│   └── SITE_STATUS.md
+├── deployment/
+│   └── BETA_SECURITY_CHECKLIST.md
 ├── development/
 │   ├── documentation-sync.md
 │   ├── README.md
+│   ├── SUPERADMIN-CREDENTIALS.md
 │   └── TEST_ACCOUNTS.md
 ├── diagrams/
 │   ├── admin-registration-flow-diagram.md
@@ -72,6 +79,8 @@ docs/
 │   ├── image.png
 │   ├── prd-list.png
 │   └── urun-quick-edit-add-varyasyon.png
+├── notes/
+│   └── VARYASYON-FIYAT-ISSUE.md
 ├── phases/
 │   ├── phase-10-import-export.md
 │   ├── phase-11-warehouse-mvp.md
@@ -116,6 +125,9 @@ docs/
 │   └── README.md
 ├── scripts/
 
+├── security/
+│   ├── TEST_ACCOUNTS_AUDIT.md
+│   └── TEST_ACCOUNTS_REPORT.md
 ├── technical-debt/
 │   ├── CART_MIGRATION_DEBT.md
 │   └── README.md
@@ -127,16 +139,20 @@ docs/
 │   ├── README.md
 │   └── test-data-attributes.md
 ├── architecture.md
+├── BETA-TESTING-GUIDE.md
 ├── CURRENT_STATUS.md
 ├── DAILY_SUMMARY_2026-01-06.md
 ├── DATABASE_SCHEMA_PHASE12.md
 ├── DEPLOYMENT_SUMMARY.md
 ├── deployment-checklist.md
 ├── DOCUMENTATION_UPDATE_SUMMARY.md
+├── GEO_STRATEGY.md
 ├── haldeki_master_plan.md
 ├── IMMEDIATE_ACTION_GUIDE.md
 ├── INDEX.md
 ├── kendiyorumlar.md
+├── MIGRATION_EXECUTION_GUIDE.md
+├── MIGRATION_QUICK_START.md
 ├── PHASE12_COMPLETION_REPORT.md
 ├── PHASE12_FIX_IMPLEMENTATION_PLAN.md
 ├── prd.md
@@ -146,10 +162,17 @@ docs/
 ├── SECURITY_AUDIT_2026-01-09.md
 ├── SECURITY_FIX_ACTION_PLAN.md
 ├── SECURITY_FIX_SUMMARY.md
+├── SEO_GEO_SUMMARY.md
+├── SUPERADMIN-DOCUMENTATION-SUMMARY.md
+├── SUPERADMIN-QUICK-REFERENCE.md
 ├── SUPPLIER_PANEL_TEST_REPORT.md
+├── TARGET_KEYWORDS.md
 ├── tedarikci-paneli-toplam-urun-siparisi.png
+├── TEST_ACCOUNTS_CLEAN.md
+├── TEST_ACCOUNTS.md
 ├── TEST_BULGULARI_PHASE12.md
-└── TREE.md
+├── TREE.md
+└── UPDATE-TEST-ACCOUNTS.md
 ```
 
-**Son güncelleme:** 2026-01-09T11:01:34.198Z
+**Son güncelleme:** 2026-01-09T12:49:24.031Z
