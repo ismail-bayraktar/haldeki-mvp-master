@@ -3,7 +3,27 @@
 > **SECURITY ALERT** - This document contains sensitive test credentials
 > **NOT FOR PRODUCTION** - These accounts must be removed or secured before beta launch
 > **Last Updated**: 2026-01-09
-> **Status**: ACTION REQUIRED
+> **Status**: SUPERSEDED - Use SUPERADMIN-CREDENTIALS.md for production
+
+---
+
+## IMPORTANT NOTICE
+
+**This document is OUTDATED.**
+
+**New Production Credentials:**
+- SuperAdmin credentials have been moved to: `docs/development/SUPERADMIN-CREDENTIALS.md`
+- New SuperAdmin email: `admin@haldeki.com`
+- New SuperAdmin password: `hws8WadKktlvvjO8`
+- See [SuperAdmin Credentials](./development/SUPERADMIN-CREDENTIALS.md) for production setup
+
+**Old Test Accounts:**
+- All test accounts listed below are marked for deletion
+- Use new SuperAdmin account to create fresh test users
+- See [Beta Testing Guide](./BETA-TESTING-GUIDE.md) for testing workflow
+
+**Migration Guide:**
+- See [UPDATE-TEST-ACCOUNTS.md](./UPDATE-TEST-ACCOUNTS.md) for complete migration instructions
 
 ---
 
@@ -16,6 +36,8 @@
 5. [Secure Password Storage](#secure-password-storage)
 6. [Post-Beta Cleanup](#post-beta-cleanup)
 7. [Audit SQL Queries](#audit-sql-queries)
+
+---
 
 ---
 
