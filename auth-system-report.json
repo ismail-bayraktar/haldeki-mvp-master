@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-01-09T13:01:36.620Z",
+  "supabaseUrl": "https://epuhjrdqotyrryvkjnrp.supabase.co",
+  "usingServiceRole": false,
+  "results": [
+    {
+      "email": "admin@haldeki.com",
+      "exists": false
+    },
+    {
+      "email": "superadmin@test.haldeki.com",
+      "exists": false
+    },
+    {
+      "email": "supplier-approved@test.haldeki.com",
+      "exists": false
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "existing": 0,
+    "missing": 3
+  }
+}
