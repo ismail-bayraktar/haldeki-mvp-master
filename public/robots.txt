@@ -1,4 +1,9 @@
 # robots.txt for Haldeki Market
+# Optimized for AI crawlers and local SEO
+
+# ============================================
+# TRADITIONAL SEARCH ENGINES
+# ============================================
 
 User-agent: *
 Allow: /
@@ -21,8 +26,135 @@ Disallow: /odeme-bildirimi
 Disallow: /favoriler
 Disallow: /karsilastir
 
-# Sitemap location
+# ============================================
+# AI CRAWLERS - FULL ACCESS
+# ============================================
+
+# OpenAI GPTBot (ChatGPT)
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 1
+
+# Anthropic Claude-Web
+User-agent: Claude-Web
+Allow: /
+Crawl-delay: 1
+
+# PerplexityBot
+User-agent: PerplexityBot
+Allow: /
+Crawl-delay: 1
+
+# Googlebot (includes Gemini)
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Googlebot-Image
+User-agent: Googlebot-Image
+Allow: /
+
+# Googlebot-News (if we publish content)
+User-agent: Googlebot-News
+Allow: /
+
+# Bingbot
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Applebot (Siri, Apple Intelligence)
+User-agent: Applebot
+Allow: /
+Crawl-delay: 1
+
+# ============================================
+# SPECIALIZED CRAWLERS
+# ============================================
+
+# Facebook External Hit
+User-agent: facebookexternalhit
+Allow: /
+
+# Twitterbot
+User-agent: Twitterbot
+Allow: /
+
+# LinkedIn Bot
+User-agent: LinkedInBot
+Allow: /
+
+# Pinterest
+User-agent: Pinterest
+Allow: /
+
+# ============================================
+# BLOCKED CRAWLERS
+# ============================================
+
+# Block malicious/scraping bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# ============================================
+# SITEMAP & RESOURCES
+# ============================================
+
+# XML Sitemap
 Sitemap: https://haldeki-market.vercel.app/sitemap.xml
 
-# Crawl delay (optional, be respectful)
+# AI-friendly content file
+Sitemap: https://haldeki-market.vercel.app/llm.txt
+
+# Crawl delay (be respectful)
 Crawl-delay: 1
+
+# ============================================
+# LOCAL SEO SIGNALS
+# ============================================
+
+# Allow product pages for local SEO
+Allow: /urunler
+Allow: /urun/*
+Allow: /bugun-halde
+
+# Allow landing pages for local SEO
+Allow: /menemen-taze-sebze-meyve
+Allow: /aliaga-taze-sebze-meyve
+Allow: /izmir-cagri
+
+# Allow informational content
+Allow: /nasil-calisir
+Allow: /hakkimizda
+Allow: /iletisim
+
+# ============================================
+# AI CITATION OPTIMIZATION
+# ============================================
+
+# These pages are optimized for AI citations:
+# - /nasil-calisir (FAQ content)
+# - /hakkimizda (business info)
+# - /menemen-taze-sebze-meyve (local landing)
+# - /aliaga-taze-sebze-meyve (local landing)
+# - /llm.txt (AI-friendly summary)
+
+# Target keywords for AI recommendations:
+# - "İzmir'de en ucuz meyve sebze"
+# - "Menemen ucuz sebze"
+# - "Aliağa toptan meyve"
+# - "Hal fiyatlarına meyve sebze"
+# - "Aynı gün teslimat sebze"
+
+# ============================================
+# END
+# ============================================
+
+# Last updated: 2025-01-09
+# Purpose: SEO + GEO optimization for Haldeki Market
