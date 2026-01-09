@@ -141,16 +141,15 @@ const STORAGE_KEY = 'role-switcher-open';
 const SHORTCUT_KEY = 'd';
 
 export const RoleSwitcher = () => {
-  // SECURITY: Double-check production environment
-  // This ensures the component never renders in production, even if the check above is bypassed
-  if (PROD_CHECK) {
-    return null;
-  }
-
+  // Hooks MUST be called before any early returns
+  // This is required by React's Rules of Hooks
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    // In production, skip all effects
+    if (PROD_CHECK) return;
+
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'true') setOpen(true);
 
@@ -168,6 +167,12 @@ export const RoleSwitcher = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // SECURITY: Double-check production environment
+  // This ensures the component never renders in production, even if the check above is bypassed
+  if (PROD_CHECK) {
+    return null;
+  }
 
   const quickLogin = async (account: TestAccount) => {
     setIsLoading(true);
