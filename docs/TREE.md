@@ -87,12 +87,34 @@ docs/
 │   ├── phase-7-payment-system.md
 │   ├── phase-8-business-panel.md
 │   └── phase-9-supplier-panel.md
+├── reports/
+│   ├── BACKEND_SECURITY_AUDIT_REPORT.md
+│   ├── CORNER_RIBBON_BADGE_REPORT.md
+│   ├── CUSTOMER_TEST_FIX_GUIDE.md
+│   ├── CUSTOMER_TEST_QUICK_SUMMARY.md
+│   ├── DISTRIBUTION_TEST_SUMMARY.md
+│   ├── E2E_TEST_SUITE_SUMMARY.md
+│   ├── E2E_TEST_USERS_DEPLOYMENT_COMPLETE.md
+│   ├── GUEST_UX_IMPROVEMENTS_REPORT.md
+│   ├── HEADER_BADGE_UPDATE_REPORT.md
+│   ├── MASTER_ORCHESTRATION_REPORT.md
+│   ├── PHASE1_TECHNICAL_DEBT_REPORT.md
+│   ├── PHASE1-2-3_TECHNICAL_DEBT_STATUS.md
+│   ├── PHASE12_CART_UI_MIGRATION_REPORT.md
+│   ├── PHASE12_CRITICAL_ANALYSIS.md
+│   ├── PHASE12_VERIFICATION_REPORT.md
+│   ├── PHASE2_DEPLOYMENT_REPORT.md
+│   ├── PHASE2_FIXES_SUMMARY.md
+│   ├── PHASE2_FIXES_TEST_GUIDE.md
+│   ├── PHASE2_INTEGRATION_TEST_REPORT.md
+│   ├── PHASE2_MANUAL_TESTING_GUIDE.md
+│   ├── PHASE2_TECHNICAL_DEBT_REPORT.md
+│   ├── PHASE2_TEST_SUMMARY.md
+│   └── PHASE2_TESTING_SUMMARY.md
 ├── reviews/
 │   ├── CODE_REVIEW_2026-01-09.md
 │   └── README.md
 ├── scripts/
-
-├── Silme-eski.env/
 
 ├── technical-debt/
 │   ├── CART_MIGRATION_DEBT.md
@@ -130,4 +152,4 @@ docs/
 └── TREE.md
 ```
 
-**Son güncelleme:** 2026-01-09T10:33:44.781Z
+**Son güncelleme:** 2026-01-09T11:01:25.102Z
