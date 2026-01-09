@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    target: 'es2020',
+    target: 'es2015',
     minify: 'esbuild',
     sourcemap: false,
     rollupOptions: {
@@ -65,6 +65,7 @@ export default defineConfig(({ mode }) => ({
       'react-router-dom',
       '@tanstack/react-query',
       'lucide-react',
+      'recharts',
     ],
   },
 }));
