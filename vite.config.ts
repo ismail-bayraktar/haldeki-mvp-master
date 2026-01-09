@@ -65,7 +65,8 @@ export default defineConfig(({ mode }) => ({
       'react-router-dom',
       '@tanstack/react-query',
       'lucide-react',
-      'recharts',
+      // Recharts excluded - loaded dynamically to avoid TDZ errors
     ],
+    exclude: ['recharts'],
   },
 }));
