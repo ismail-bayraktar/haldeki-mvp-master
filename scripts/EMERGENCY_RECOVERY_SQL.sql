@@ -1,0 +1,19 @@
+-- ============================================================================
+-- EMERGENCY USER RECOVERY - PRODUCTION
+-- ============================================================================
+-- EXECUTE THIS IN SUPABASE DASHBOARD SQL EDITOR
+-- ============================================================================
+-- This file is a copy of: 20260109200000_emergency_user_recreation.sql
+-- ============================================================================
+-- PURPOSE: Recreate critical users after production data loss
+--
+-- IMPORTANT: Execute this via SQL Editor in Supabase Dashboard
+-- This script requires service_role privileges
+--
+-- CREDENTIALS (CHANGE AFTER FIRST LOGIN):
+-- 1. admin@haldeki.com / AdminRecovery2025!
+-- 2. superadmin@test.haldeki.com / TestSuperAdmin2025!
+-- 3. supplier-approved@test.haldeki.com / TestSupplier2025!
+-- ============================================================================
+
+-- See full script at: supabase/migrations/20260109200000_emergency_user_recreation.sql
