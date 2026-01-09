@@ -18,6 +18,18 @@ dist-ssr
 .env.*.local
 docs/Silme-eski.env/
 
+# AI Development Files (kept for reference but excluded from future commits)
+code-review-results/
+*.code-workspace
+test-results.json
+temp_env.txt
+
+# Test reports (archived but excluded from future commits)
+*_REPORT.md
+*_SUMMARY.md
+*_GUIDE.md
+*_ANALYSIS.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
