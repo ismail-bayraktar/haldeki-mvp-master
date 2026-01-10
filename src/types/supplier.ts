@@ -301,3 +301,100 @@ export interface ExportOptions {
   includeImages?: boolean;
   selectedIds?: string[];
 }
+
+// ============================================
+// Global Product Catalog Types
+// ============================================
+
+/**
+ * Global product with supplier's price overlay
+ * Combines product catalog with supplier-specific pricing
+ */
+export interface GlobalProductCatalogItem {
+  // Product identification
+  id: string; // products.id
+  name: string;
+  slug: string;
+  category: string;
+  unit: string;
+  description: string | null;
+  images: string[];
+
+  // Supplier's pricing (if linked)
+  supplier_product_id: string | null;
+  supplier_price: number | null;
+  supplier_stock: number | null;
+  supplier_availability: 'plenty' | 'limited' | 'last' | null;
+  supplier_is_active: boolean | null;
+  supplier_is_featured: boolean | null;
+  supplier_quality: 'premium' | 'standart' | 'ekonomik' | null;
+  supplier_origin: string | null;
+  supplier_sku: string | null;
+  supplier_min_order_quantity: number | null;
+  supplier_delivery_days: number | null;
+  supplier_updated_at: string | null;
+
+  // Market statistics (across all suppliers)
+  market_min_price: number | null;
+  market_max_price: number | null;
+  market_avg_price: number | null;
+  market_supplier_count: number;
+
+  // Product variations
+  has_variations: boolean;
+
+  // Timestamps
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Catalog list response with pagination
+ */
+export interface GlobalCatalogResponse {
+  products: GlobalProductCatalogItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
+/**
+ * Filter parameters for catalog
+ */
+export interface CatalogFilters {
+  query?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  onlyLinked?: boolean; // Only show products already linked to supplier
+  onlyUnlinked?: boolean; // Only show products NOT linked to supplier
+  hasVariations?: boolean;
+}
+
+/**
+ * Update price mutation data
+ */
+export interface UpdatePriceData {
+  productId: string; // products.id
+  price: number;
+  stock?: number;
+  availability?: 'plenty' | 'limited' | 'last';
+}
+
+/**
+ * Link product to supplier data
+ */
+export interface LinkProductData {
+  productId: string; // products.id
+  price: number;
+  stockQuantity: number;
+  availability?: 'plenty' | 'limited' | 'last';
+  quality?: 'premium' | 'standart' | 'ekonomik';
+  origin?: string;
+  supplierSku?: string;
+  minOrderQuantity?: number;
+  deliveryDays?: number;
+  isFeatured?: boolean;
+}
