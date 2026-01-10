@@ -45,6 +45,7 @@ DECLARE
   v_offset INT;
   v_user_supplier_id UUID;
   v_user_role TEXT;
+  v_supplier_id UUID;
 BEGIN
   -- 1. AUTHORIZATION CHECK - Kullanıcının rolünü ve tedarikçi ID'sini al
   SELECT
@@ -265,20 +266,6 @@ GRANT EXECUTE ON FUNCTION upsert_supplier_product_price TO authenticated;
 
 COMMENT ON FUNCTION upsert_supplier_product_price IS
   'Tedarikçi ürün fiyatı için güvenli upsert. Authorization + validation ile.';
-
--- ----------------------------------------------------------------------------
--- MIGRATION METADATA
--- ----------------------------------------------------------------------------
-
-INSERT INTO public.schema_migrations (
-  migration_name,
-  description,
-  applied_at
-) VALUES (
-  'supplier_catalog_security_fix',
-  'Authorization bypass fix + input validation + SECURITY INVOKER',
-  NOW()
-) ON CONFLICT (migration_name) DO NOTHING;
 
 -- ============================================================================
 -- SON
