@@ -11,9 +11,9 @@ import { Header, Footer, MobileNav } from "@/components/layout";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRegion } from "@/contexts/RegionContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useEmailService } from "@/hooks/useEmailService";
 import { useBankAccount, usePaymentSettings } from "@/hooks/useSystemSettings";
+import { useCartTotal } from "@/hooks/useCartPrices";
 import { DeliverySlot, ProcessedDeliverySlot } from "@/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -28,11 +28,30 @@ interface Address {
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, total, clearCart } = useCart();
-  const { isAuthenticated, user } = useAuth();
+  const { items, clearCart } = useCart();
+  const { isAuthenticated, user, isBusiness } = useAuth();
   const { selectedRegion, openRegionModal, getSelectedRegionDetails } = useRegion();
   const { sendOrderConfirmation, sendOrderNotification } = useEmailService();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Determine customer type: B2B for business users, B2C for regular customers
+  const customerType: 'b2b' | 'b2c' = isBusiness ? 'b2b' : 'b2c';
+
+  // Convert cart items to the format expected by useCartTotal
+  const cartItemsInput = items.map((item) => ({
+    productId: item.productId,
+    quantity: item.quantity,
+    variationId: item.selectedVariant?.id || null,
+    supplierId: item.supplierId || null,
+  }));
+
+  // Fetch cart prices using new pricing system
+  const { cartTotal, cartPrices, isLoading: isLoadingCartPrices } = useCartTotal({
+    regionId: selectedRegion?.id ?? null,
+    customerType,
+    cartItems: cartItemsInput,
+    enabled: items.length > 0 && !!selectedRegion,
+  });
   
   const [step, setStep] = useState<"address" | "delivery" | "payment" | "summary">("address");
   const [addresses, setAddresses] = useState<Address[]>([
@@ -65,15 +84,16 @@ const Checkout = () => {
   const canCalculateDelivery = !!regionDetails;
   const freeDeliveryThreshold = regionDetails?.free_delivery_threshold ?? null;
   const baseDeliveryFee = regionDetails?.delivery_fee ?? null;
-  
+
   // DB'den gelen teslimat slotları
   const deliverySlots: DeliverySlot[] = (regionDetails?.delivery_slots as DeliverySlot[] | null) ?? [];
-  
+
+  // Use cartTotal from new pricing system instead of old total
   const deliveryFee = canCalculateDelivery && freeDeliveryThreshold !== null && baseDeliveryFee !== null
-    ? (total >= freeDeliveryThreshold ? 0 : baseDeliveryFee)
+    ? (cartTotal >= freeDeliveryThreshold ? 0 : baseDeliveryFee)
     : null;
-  
-  const grandTotal = deliveryFee !== null ? total + deliveryFee : null;
+
+  const grandTotal = deliveryFee !== null ? cartTotal + deliveryFee : null;
 
   // Region Gate: Bölge seçilmeden checkout'a erişilemez
   useEffect(() => {
@@ -176,44 +196,34 @@ const Checkout = () => {
       const selectedAddressData = addresses.find(a => a.id === selectedAddress);
       const selectedSlotData = deliverySlots.find(s => s.id === selectedSlot);
 
-      // SECURITY: Fetch current prices from server to prevent cart manipulation
-      const productIds = items.map(item => item.productId);
-
-      const { data: regionProducts, error: priceError } = await supabase
-        .from('region_products')
-        .select('product_id, price')
-        .eq('region_id', selectedRegion.id)
-        .in('product_id', productIds);
-
-      if (priceError) {
-        console.error('Error fetching server prices:', priceError);
-        toast.error('Fiyat bilgileri alınamadı. Lütfen tekrar deneyin.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Create price map: product_id -> current_price
-      const serverPriceMap = new Map(
-        (regionProducts || []).map(rp => [rp.product_id, rp.price])
+      // Use cartPrices from new pricing system (already fetched via RPC)
+      // Map items to their corresponding cart prices
+      const cartPricesMap = new Map(
+        cartPrices.map((cp, index) => {
+          const item = items[index];
+          // Create a unique key for each cart item
+          const key = item.selectedVariant
+            ? `${item.productId}-${item.selectedVariant.id}`
+            : item.productId;
+          return [key, cp];
+        })
       );
 
-      // Calculate order totals using SERVER prices (security enforcement)
+      // Calculate order totals using NEW PRICING SYSTEM (from RPC)
       let orderTotal = 0;
-      const priceValidationWarnings: string[] = [];
-
       const orderItems = items.map(item => {
-        const serverPrice = serverPriceMap.get(item.productId) ?? item.unitPriceAtAdd;
-        const clientPrice = item.unitPriceAtAdd;
-        const priceDiff = Math.abs(serverPrice - clientPrice);
-        const priceDiffPercent = clientPrice > 0 ? (priceDiff / clientPrice) * 100 : 0;
+        const itemKey = item.selectedVariant
+          ? `${item.productId}-${item.selectedVariant.id}`
+          : item.productId;
 
-        // Log warning if price changed significantly (don't block, just inform)
-        if (priceDiffPercent > 10) {
-          priceValidationWarnings.push(
-            `${item.product.name}: ${clientPrice.toFixed(2)} TL → ${serverPrice.toFixed(2)} TL`
-          );
+        const cartPriceResult = cartPricesMap.get(itemKey);
+
+        if (!cartPriceResult) {
+          console.warn(`No price found for cart item ${itemKey}`);
         }
 
+        // Use pricing result or fallback to unitPriceAtAdd
+        const serverPrice = cartPriceResult?.final_price ?? item.unitPriceAtAdd;
         const multiplier = item.selectedVariant?.priceMultiplier ?? 1;
         const itemTotal = item.quantity * serverPrice * multiplier;
         orderTotal += itemTotal;
@@ -241,7 +251,7 @@ const Checkout = () => {
       // Ödeme yöntemi detayları
       let paymentMethodValue: string;
       let paymentMethodDetails: Record<string, unknown> | null = null;
-      
+
       if (paymentMethod === "cash" || paymentMethod === "card") {
         paymentMethodValue = paymentMethod; // "cash" veya "card"
         paymentMethodDetails = { type: cashOrCard };
@@ -283,7 +293,7 @@ const Checkout = () => {
         // 1. Send confirmation email to customer
         const customerEmail = user.email;
         const customerName = user.user_metadata?.full_name || 'Değerli Müşterimiz';
-        
+
         if (customerEmail && orderId) {
           await sendOrderConfirmation(
             customerEmail,
@@ -321,14 +331,6 @@ const Checkout = () => {
               console.log(`[Checkout] Dealer notification sent to: ${dealer.contact_email}`);
             }
           }
-        }
-
-        // Show price change warning if any (but don't block order)
-        if (priceValidationWarnings.length > 0) {
-          toast.info(
-            `Bazı ürünlerin fiyatları güncellendi:\n${priceValidationWarnings.join('\n')}`,
-            { duration: 5000 }
-          );
         }
       } catch (emailError) {
         // Don't fail the order if emails fail
@@ -750,7 +752,7 @@ const Checkout = () => {
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Ara Toplam</span>
-                      <span>{total.toFixed(2)}₺</span>
+                      <span>{cartTotal.toFixed(2)}₺</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Teslimat</span>

@@ -4,6 +4,7 @@ import { useAuth } from "./AuthContext";
 import { useRegion } from "./RegionContext";
 import { toast } from "sonner";
 import { validateCartForRegion, applyCartRegionChange } from "@/hooks/useCartValidation";
+import type { PriceCalculationResult } from "@/types/pricing";
 
 interface CartContextType {
   items: CartItem[];
@@ -19,7 +20,8 @@ interface CartContextType {
       supplierProductId: string | null;
       supplierName: string;
       priceSource: PriceSource;
-    }
+    },
+    priceResult?: PriceCalculationResult
   ) => void;
   removeFromCart: (productId: string, variantId?: string) => void;
   updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
@@ -49,7 +51,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated, openAuthDrawer } = useAuth();
   const { selectedRegion, openRegionModal } = useRegion();
 
-  const migrateCartItem = (item: any): CartItem => ({
+  const migrateCartItem = (item: Partial<CartItem> & { supplierId?: string | null; supplierProductId?: string | null; supplierName?: string; priceSource?: PriceSource }): CartItem => ({
     ...item,
     supplierId: item.supplierId ?? null,
     supplierProductId: item.supplierProductId ?? null,
@@ -162,7 +164,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       supplierProductId: string | null;
       supplierName: string;
       priceSource: PriceSource;
-    }
+    },
+    priceResult?: PriceCalculationResult
   ) => {
     if (!isAuthenticated) {
       openAuthDrawer();
@@ -174,12 +177,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const unitPrice = regionPrice ?? product.price;
+    // Yeni pricing sistemi: priceResult varsa kullan, yoksa legacy regionPrice/product.price
+    const unitPrice = priceResult?.final_price ?? regionPrice ?? product.price;
+    const finalPriceResult = priceResult || undefined;
+
     const defaultSupplierInfo = {
-      supplierId: null,
-      supplierProductId: null,
-      supplierName: '',
-      priceSource: 'product' as PriceSource,
+      supplierId: priceResult?.supplier_id ?? null,
+      supplierProductId: priceResult?.supplier_product_id ?? null,
+      supplierName: priceResult?.supplier_name ?? '',
+      priceSource: priceResult ? ('supplier' as PriceSource) : ('product' as PriceSource),
     };
 
     setItems((prev) => {
@@ -210,7 +216,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           unitPriceAtAdd: unitPrice,
           regionIdAtAdd: selectedRegion.id,
           ...supplierInfo,
-          ...defaultSupplierInfo,
+          ...(supplierInfo || defaultSupplierInfo),
         },
       ];
     });

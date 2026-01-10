@@ -15,12 +15,13 @@ import { useRegion } from "@/contexts/RegionContext";
 import { getAverageRating } from "@/data/reviews";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { getRegionPriceInfo, getPriceChangeLabel } from "@/lib/productUtils";
 import { cn } from "@/lib/utils";
 import { Product, ProductVariant } from "@/types";
 import { toast } from "sonner";
-import { useLowestPriceForCart } from "@/hooks/useLowestPriceForCart";
+import { useProductPrice } from "@/hooks/useProductPrice";
 import { useProductVariations } from "@/hooks/useProductVariations";
+import type { CustomerType, PriceCalculationResult } from "@/types/pricing";
+import { formatPrice } from "@/lib/pricing";
 
 // Helper to convert DB product to frontend Product type
 const convertDbProduct = (dbProduct: DbProduct): Product => ({
@@ -44,7 +45,7 @@ const convertDbProduct = (dbProduct: DbProduct): Product => ({
 
 const ProductDetail = () => {
   const { slug } = useParams();
-  const { selectedRegion } = useRegion();
+  const { selectedRegion, isBusiness } = useRegion();
   const { data: dbProduct, isLoading: isProductLoading } = useProductBySlug(slug || "");
   const { data: allProducts } = useActiveProducts();
   const { addToCart } = useCart();
@@ -56,8 +57,16 @@ const ProductDetail = () => {
     return convertDbProduct(dbProduct);
   }, [dbProduct]);
 
-  // Phase 12: Get lowest price from suppliers or region
-  const { data: priceInfo } = useLowestPriceForCart(product?.id ?? '', selectedRegion?.id ?? null);
+  // Determine customer type: B2B for business users, B2C for regular customers
+  const customerType: CustomerType = isBusiness ? 'b2b' : 'b2c';
+
+  // Fetch calculated price using new pricing system
+  const { data: priceResult, isLoading: isLoadingPrice } = useProductPrice({
+    productId: product?.id ?? '',
+    regionId: selectedRegion?.id ?? null,
+    customerType,
+    enabled: !!product?.id && !!selectedRegion,
+  });
 
   // Phase 12: Fetch product variations from database
   const { data: dbVariations = [] } = useProductVariations(product?.id ?? '');
@@ -87,20 +96,15 @@ const ProductDetail = () => {
       });
   }, [dbVariations, product?.variants]);
 
-  // Bölge bazlı fiyat/stok bilgisi
-  const { data: regionProductData } = useRegionProduct(selectedRegion?.id ?? null, product?.id ?? null);
-  const regionInfo = useMemo(() => getRegionPriceInfo(regionProductData), [regionProductData]);
-  
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [showAdded, setShowAdded] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>();
   const [showStickyBar, setShowStickyBar] = useState(false);
-  
-  // Bölge durumları
-  const isInRegion = regionInfo?.isInRegion ?? false;
-  const isOutOfStock = regionInfo ? regionInfo.stockQuantity === 0 : false;
-  const canAddToCart = !selectedRegion || (isInRegion && !isOutOfStock && regionInfo?.isAvailable);
+
+  // Product availability based on pricing result
+  const isOutOfStock = !priceResult?.is_available || priceResult?.stock_quantity === 0;
+  const canAddToCart = !selectedRegion || (priceResult?.is_available && !isOutOfStock);
 
   // Handle scroll for sticky bar
   useEffect(() => {
@@ -133,13 +137,13 @@ const ProductDetail = () => {
 
   const inWishlist = product ? isInWishlist(product.id) : false;
 
-  // Fiyat: Bölge varsa bölge fiyatı, yoksa master fiyat
+  // Display price from pricing result
   const currentPrice = useMemo(() => {
     if (!product) return 0;
-    const basePrice = regionInfo?.price ?? product.price;
+    const basePrice = priceResult?.final_price ?? product.price;
     const multiplier = selectedVariant?.priceMultiplier ?? 1;
     return basePrice * multiplier;
-  }, [product, regionInfo, selectedVariant]);
+  }, [product, priceResult, selectedVariant]);
 
   // Calculate savings percentage for variant
   const variantSavings = useMemo(() => {
@@ -154,7 +158,7 @@ const ProductDetail = () => {
     if (!product || isAdding) return;
 
     if (selectedRegion && !canAddToCart) {
-      if (!isInRegion) {
+      if (!priceResult?.is_available) {
         toast.error("Bu ürün seçili bölgede satılmamaktadır");
       } else if (isOutOfStock) {
         toast.error("Ürün stokta yok");
@@ -165,20 +169,14 @@ const ProductDetail = () => {
     setIsAdding(true);
     setShowAdded(true);
 
-    const unitPrice = priceInfo?.price ?? regionInfo?.price ?? product.price;
-
-    addToCart(product, quantity, selectedVariant, unitPrice, priceInfo ? {
-      supplierId: priceInfo.supplierId || null,
-      supplierProductId: priceInfo.supplierProductId || null,
-      supplierName: priceInfo.supplierName || '',
-      priceSource: priceInfo.priceSource,
-    } : undefined);
+    // Use priceResult for cart
+    addToCart(product, quantity, selectedVariant, undefined, undefined, priceResult);
 
     await new Promise(resolve => setTimeout(resolve, 300));
 
     setIsAdding(false);
     setTimeout(() => setShowAdded(false), 2000);
-  }, [product, quantity, isAdding, addToCart, selectedVariant, selectedRegion, canAddToCart, isInRegion, isOutOfStock, priceInfo, regionInfo]);
+  }, [product, quantity, isAdding, addToCart, selectedVariant, selectedRegion, canAddToCart, isOutOfStock, priceResult]);
 
   const handleToggleWishlist = () => {
     if (product) {
@@ -343,7 +341,7 @@ const ProductDetail = () => {
 
               {/* Price */}
               <div className="flex items-baseline gap-2 py-4 border-y">
-                <span className="text-4xl font-bold text-foreground">{currentPrice.toFixed(2)}₺</span>
+                <span className="text-4xl font-bold text-foreground">{formatPrice(currentPrice)}</span>
                 {selectedVariant && (
                   <span className="text-lg text-muted-foreground">/ {selectedVariant.label}</span>
                 )}
@@ -357,7 +355,7 @@ const ProductDetail = () => {
                 )}
                 {product.previousPrice && !selectedVariant && (
                   <span className="text-lg text-muted-foreground line-through ml-2">
-                    {product.previousPrice.toFixed(2)}₺
+                    {formatPrice(product.previousPrice)}
                   </span>
                 )}
               </div>
@@ -580,7 +578,7 @@ const ProductDetail = () => {
         <div className="flex items-center gap-3">
           <div className="flex-1">
             <p className="text-sm font-medium truncate">{product.name}</p>
-            <p className="text-lg font-bold text-primary">{currentPrice.toFixed(2)}₺</p>
+            <p className="text-lg font-bold text-primary">{formatPrice(currentPrice)}</p>
           </div>
           <Button 
             onClick={handleAddToCart}

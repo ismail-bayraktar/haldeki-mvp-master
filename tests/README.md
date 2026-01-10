@@ -215,3 +215,63 @@ Increase timeout in `playwright.config.ts` or use `test.setTimeout()`.
 - Use proper waiting strategies
 - Ensure test data is properly cleaned up
 - Avoid race conditions with `waitForSelector`
+
+---
+
+## Pricing System Tests
+
+New comprehensive test suite for the pricing system redesign.
+
+### Quick Start
+
+```bash
+# Run all pricing tests
+./scripts/test-pricing-system.sh
+
+# Run with coverage
+./scripts/test-pricing-system.sh --coverage
+
+# Run specific suite
+./scripts/test-pricing-system.sh --unit
+./scripts/test-pricing-system.sh --integration
+./scripts/test-pricing-system.sh --e2e
+```
+
+### Pricing Test Files
+
+| File | Tests | Focus |
+|------|-------|-------|
+| `unit/pricing-calculation.test.ts` | 60+ | Core pricing logic |
+| `integration/pricing-rpc.test.ts` | 30+ | RPC functions |
+| `e2e/pricing-user-flow.spec.ts` | 20+ | User flows |
+| `security/pricing-security.test.ts` | 25+ | Security |
+| `performance/pricing-performance.test.ts` | 15+ | Performance |
+| `migration/pricing-migration.test.ts` | 20+ | Data migration |
+
+**Total:** 170+ test cases
+
+### Environment Variables
+
+```bash
+# Required for integration, security, performance tests
+VITE_SUPABASE_URL=your-url
+VITE_SUPABASE_ANON_KEY=your-key
+TEST_REGION_ID=marmara-region
+TEST_PRODUCT_ID=your-product-id
+
+# Required for migration tests
+VITE_SUPABASE_SERVICE_ROLE_KEY=your-service-key
+
+# Required for E2E tests
+PLAYWRIGHT_TEST_BASE_URL=http://localhost:5173
+TEST_B2B_EMAIL=test-business@haldeki.com
+TEST_B2B_PASSWORD=Test123!
+TEST_B2C_EMAIL=test-customer@haldeki.com
+TEST_B2C_PASSWORD=Test123!
+```
+
+### Documentation
+
+- **Summary:** `docs/PRICING_TEST_SUITE_SUMMARY.md`
+- **Checklist:** `docs/PRICING_TEST_CHECKLIST.md`
+- **Fixtures:** `fixtures/pricing-fixtures.ts`

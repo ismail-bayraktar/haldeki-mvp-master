@@ -311,6 +311,24 @@ export type {
 } from './variations';
 
 // ==========================================
+// PRICING SYSTEM TYPES (New Redesign)
+// ==========================================
+
+export type {
+  CommissionRates,
+  CustomerType,
+  PriceCalculationInput,
+  PriceCalculationResult,
+  CartPriceCalculationResult,
+  RegionalPricingConfig,
+  RegionalMultiplier,
+  SupplierProductPrice,
+  VariationPriceAdjustment,
+} from './pricing';
+
+export { DEFAULT_COMMISSION_RATES } from './pricing';
+
+// ==========================================
 // WHITELIST APPLICATION TYPES
 // ==========================================
 
