@@ -1,0 +1,24 @@
+-- ============================================================================
+-- PRICING REDESIGN - ALL MIGRATIONS (COMBINED)
+-- ============================================================================
+-- This file combines all pricing redesign migrations into a single script
+-- for manual execution via Supabase SQL Editor.
+--
+-- EXECUTION ORDER:
+--   1. Schema Migration (creates tables, views, functions)
+--   2. Data Migration (migrates data, validates)
+--   3. Verification (tests all functionality)
+--
+-- INSTRUCTIONS:
+--   1. Open Supabase SQL Editor: https://app.supabase.com/project/ynatuiwdvkxcmmnmejkl/sql
+--   2. Copy entire contents of this file
+--   3. Paste into SQL Editor
+--   4. Click "Run" to execute
+--   5. Review output for any errors
+--
+-- ROLLBACK (if needed):
+--   Execute the file: supabase/migrations/20260110290000_pricing_redesign_rollback.sql
+-- ============================================================================
+
+-- ============================================================================
+-- PART 1: SCHEMA MIGRATION
