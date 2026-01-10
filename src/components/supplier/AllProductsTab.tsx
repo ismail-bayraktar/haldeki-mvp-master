@@ -1,107 +1,73 @@
 // All Products Tab - Global Product Catalog with Price Entry (Phase 12)
-// Shows all products in the catalog, supplier can enter their price
+// Shows all products in the catalog with table/grid view toggle (default: table)
+// Full feature parity with MyProductsTab - inline editing for price, stock, status
 
 import { useState } from 'react';
-import { Search, Loader2, Package, Filter } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { Loader2, Package, Upload } from 'lucide-react';
+import { SearchBar } from '@/components/supplier/SearchBar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ProductPriceModal } from '@/components/supplier/ProductPriceModal';
+import { ProductImportModal } from '@/components/supplier/ProductImportModal';
+import { ProductExportButton } from '@/components/supplier/ProductExportButton';
+import { ViewToggle, type ProductView } from '@/components/supplier/ViewToggle';
+import { AllProductsTable } from '@/components/supplier/AllProductsTable';
+import { useProductSearch } from '@/hooks/useProductSearch';
+import { useAvailableProducts } from '@/hooks/useGlobalProductCatalog';
 import { useCreateSupplierJunctionProduct } from '@/hooks/useSupplierProducts';
+import { useUpdateCatalogPrice } from '@/hooks/useGlobalProductCatalog';
+import { useUpdateCatalogStock } from '@/hooks/useGlobalProductCatalog';
+import { useUpdateCatalogStatus } from '@/hooks/useGlobalProductCatalog';
+import { ProductPriceModal } from '@/components/supplier/ProductPriceModal';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import type { GlobalProductCatalogItem } from '@/types/supplier';
 
-interface GlobalProduct {
-  id: string;
-  name: string;
-  category: string;
-  unit: string;
-  images: string[] | null;
-  description: string | null;
-  supplier_products?: Array<{
-    id: string;
-    price: string | number;
-    supplier_id: string;
-  }>;
-}
+const STORAGE_KEY = 'all-products-view';
 
 export function AllProductsTab() {
-  const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<GlobalProduct | null>(null);
+  const [view, setView] = useState<ProductView>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    // Default: TABLE view (not grid)
+    return (saved === 'grid' ? 'grid' : 'table') as ProductView;
+  });
+
+  const [selectedProduct, setSelectedProduct] = useState<GlobalProductCatalogItem | null>(null);
   const [priceModalOpen, setPriceModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState<string[]>([]);
 
   const { mutate: createSupplierProduct, isPending: isCreating } = useCreateSupplierJunctionProduct();
+  const { mutate: updatePrice } = useUpdateCatalogPrice();
+  const { mutate: updateStock } = useUpdateCatalogStock();
+  const { mutate: updateStatus } = useUpdateCatalogStatus();
 
-  // Fetch global products catalog
-  const { data: products = [], isLoading, error } = useQuery({
-    queryKey: ['global-products', searchQuery, selectedCategory],
-    queryFn: async () => {
-      if (!user?.id) return [];
+  const handleViewChange = (newView: ProductView) => {
+    setView(newView);
+    localStorage.setItem(STORAGE_KEY, newView);
+  };
 
-      // Get supplier ID
-      const { data: supplier } = await supabase
-        .from('suppliers')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('approval_status', 'approved')
-        .single();
+  const {
+    searchQuery,
+    setSearchQuery,
+    filters,
+    updateFilters,
+    clearAllFilters,
+    activeFilterCount,
+    sortBy,
+    setSortBy,
+    recentSearches,
+    saveSearch,
+    loadRecentSearch,
+    clearRecentSearches,
+  } = useProductSearch();
 
-      if (!supplier) return [];
-
-      let query = supabase
-        .from('products')
-        .select(`
-          id,
-          name,
-          category,
-          unit,
-          images,
-          description,
-          supplier_products (
-            id,
-            price,
-            supplier_id
-          )
-        `)
-        .eq('is_active', true)
-        .eq('product_status', 'active')
-        .order('category', { ascending: true })
-        .order('name', { ascending: true });
-
-      if (searchQuery) {
-        query = query.ilike('name', `%${searchQuery}%`);
-      }
-
-      if (selectedCategory) {
-        query = query.eq('category', selectedCategory);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return (data || []) as GlobalProduct[];
-    },
-    enabled: !!user?.id,
-    staleTime: 60 * 1000, // 1 minute
+  const { data, isLoading, error } = useAvailableProducts({
+    searchQuery: searchQuery || undefined,
+    category: filters.category,
   });
 
-  // Extract unique categories
-  const categories = Array.from(new Set(products.map((p) => p.category))).sort();
+  const products = data?.products ?? [];
+  const total = data?.total ?? 0;
 
-  // Filter products: show only those NOT already linked to current supplier
-  const availableProducts = products.filter((product) => {
-    // For now, show all products - the UI will indicate which are already linked
-    // In a real implementation, you'd filter out already-linked products
-    return true;
-  });
-
-  const handlePriceClick = (product: GlobalProduct) => {
+  const handlePriceClick = (product: GlobalProductCatalogItem) => {
     setSelectedProduct(product);
     setPriceModalOpen(true);
   };
@@ -133,51 +99,103 @@ export function AllProductsTab() {
     );
   };
 
+  const handleUpdatePrice = (productId: string, price: number) => {
+    setIsUpdating((prev) => [...prev, productId]);
+    updatePrice(
+      { productId, price },
+      {
+        onSettled: () => {
+          setIsUpdating((prev) => prev.filter((id) => id !== productId));
+        },
+      }
+    );
+  };
+
+  const handleUpdateStock = (productId: string, stock: number) => {
+    setIsUpdating((prev) => [...prev, productId]);
+    updateStock(
+      { productId, stock },
+      {
+        onSettled: () => {
+          setIsUpdating((prev) => prev.filter((id) => id !== productId));
+        },
+      }
+    );
+  };
+
+  const handleUpdateStatus = (productId: string, isActive: boolean) => {
+    setIsUpdating((prev) => [...prev, productId]);
+    updateStatus(
+      { productId, isActive },
+      {
+        onSettled: () => {
+          setIsUpdating((prev) => prev.filter((id) => id !== productId));
+        },
+      }
+    );
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      saveSearch(query);
+    }
+  };
+
   return (
-    <div className="space-y-4" data-testid="all-products-tab">
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Ürün ara..."
+    <div data-testid="all-products-tab">
+      {/* Search and Filters */}
+      <div className="mb-4">
+        <SearchBar
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-          data-testid="global-product-search"
+          onChange={setSearchQuery}
+          filters={filters}
+          onFiltersChange={updateFilters}
+          activeFilterCount={activeFilterCount}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          recentSearches={recentSearches}
+          onRecentSearchClick={loadRecentSearch}
+          onClearRecentSearches={clearRecentSearches}
         />
-      </div>
 
-      {/* Category Filter */}
-      {categories.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2">
-          <Filter className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        {/* Action Buttons */}
+        <div className="flex gap-2 mt-3">
           <Button
-            variant={selectedCategory === null ? 'default' : 'outline'}
+            variant="outline"
             size="sm"
-            onClick={() => setSelectedCategory(null)}
-            className="flex-shrink-0"
+            onClick={() => setImportModalOpen(true)}
+            className="flex-1 gap-2"
+            data-testid="import-products-button"
           >
-            Tümü
+            <Upload className="h-4 w-4" />
+            <span className="hidden sm:inline">İçe Aktar</span>
+            <span className="sm:hidden">İçe Aktar</span>
           </Button>
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory(category)}
-              className="flex-shrink-0"
-            >
-              {category}
-            </Button>
-          ))}
+          <ProductExportButton disabled={products.length === 0} className="flex-1" data-testid="export-products-button" />
+          <ViewToggle view={view} onChange={handleViewChange} data-testid="view-toggle" />
         </div>
-      )}
 
-      {/* Results Count */}
-      <p className="text-sm text-muted-foreground">
-        {availableProducts.length} ürün
-      </p>
+        {/* Active Filters Display */}
+        {activeFilterCount > 0 && (
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-sm text-muted-foreground">Filtreler:</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto py-0 px-2 text-xs text-destructive"
+              onClick={clearAllFilters}
+            >
+              Tümünü temizle
+            </Button>
+          </div>
+        )}
+
+        {/* Results Count */}
+        <p className="text-sm text-muted-foreground mt-2">
+          {total} ürün
+        </p>
+      </div>
 
       {/* Loading State */}
       {isLoading && (
@@ -190,109 +208,44 @@ export function AllProductsTab() {
       {error && (
         <div className="text-center py-12">
           <p className="text-destructive mb-2">Ürünler yüklenirken hata oluştu</p>
-          <p className="text-sm text-muted-foreground">{(error as Error).message}</p>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
         </div>
       )}
 
       {/* Empty State */}
-      {!isLoading && !error && availableProducts.length === 0 && (
+      {!isLoading && !error && products.length === 0 && (
         <div className="text-center py-12">
           <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <h3 className="text-lg font-medium mb-2">Ürün bulunamadı</h3>
+          <h3 className="text-lg font-medium mb-2">
+            {searchQuery || activeFilterCount > 0
+              ? 'Ürün bulunamadı'
+              : 'Katalogta ürün yok'}
+          </h3>
           <p className="text-muted-foreground">
-            {searchQuery || selectedCategory
+            {searchQuery || activeFilterCount > 0
               ? 'Filtreleri değiştirerek tekrar deneyin'
-              : 'Katalogda henüz ürün yok'}
+              : 'Sistem yöneticisi ile iletişime geçin'}
           </p>
         </div>
       )}
 
-      {/* Products Grid */}
-      {!isLoading && !error && availableProducts.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {availableProducts.map((product) => {
-            const hasPrice = product.supplier_products && product.supplier_products.length > 0;
-            const lowestPrice = hasPrice
-              ? Math.min(...product.supplier_products.map((sp) => typeof sp.price === 'string' ? parseFloat(sp.price) : sp.price))
-              : null;
+      {/* Product Display: Table Only (Grid can be added later if needed) */}
+      {!isLoading && !error && products.length > 0 && view === 'table' && (
+        <AllProductsTable
+          products={products}
+          onPriceClick={handlePriceClick}
+          onUpdatePrice={handleUpdatePrice}
+          onUpdateStock={handleUpdateStock}
+          onUpdateStatus={handleUpdateStatus}
+          isCreating={isCreating}
+          isUpdating={isUpdating}
+        />
+      )}
 
-            return (
-              <Card
-                key={product.id}
-                className={cn(
-                  "group overflow-hidden transition-all hover:shadow-md",
-                  hasPrice && "border-primary/50"
-                )}
-              >
-                {/* Product Image */}
-                <div className="relative aspect-square bg-muted overflow-hidden">
-                  {product.images && product.images.length > 0 ? (
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center w-full h-full">
-                      <Package className="h-12 w-12 text-muted-foreground/30" />
-                    </div>
-                  )}
-
-                  {/* Category Badge */}
-                  <div className="absolute top-2 left-2">
-                    <Badge variant="secondary" className="bg-black/50 text-white">
-                      {product.category}
-                    </Badge>
-                  </div>
-
-                  {/* Price Badge */}
-                  {lowestPrice && (
-                    <div className="absolute top-2 right-2">
-                      <Badge variant="secondary" className="bg-green-500/90 text-white">
-                        ₺{lowestPrice.toFixed(2)}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-
-                <CardContent className="p-4">
-                  {/* Product Name */}
-                  <h3 className="font-medium line-clamp-2 mb-1">
-                    {product.name}
-                  </h3>
-
-                  {/* Unit */}
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Birim: {product.unit}
-                  </p>
-
-                  {/* Action Button */}
-                  {hasPrice ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      disabled
-                    >
-                      Zaten Fiyat Girdiniz
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => handlePriceClick(product)}
-                      disabled={isCreating}
-                      data-testid={`price-button-${product.id}`}
-                    >
-                      Fiyat Gir
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+      {/* Grid View - Optional for future */}
+      {!isLoading && !error && products.length > 0 && view === 'grid' && (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Grid view coming soon</p>
         </div>
       )}
 
@@ -306,6 +259,12 @@ export function AllProductsTab() {
           isSubmitting={isCreating}
         />
       )}
+
+      {/* Import Modal */}
+      <ProductImportModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+      />
     </div>
   );
 }

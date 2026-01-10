@@ -2,6 +2,7 @@
 
 import { useState, KeyboardEvent } from 'react';
 import { Input } from '@/components/ui/input';
+import { MAX_STOCK, clampStock, isValidStock } from '@/lib/validation';
 
 export interface EditStockCellProps {
   value: number;
@@ -21,11 +22,20 @@ export function EditStockCell({
 
   const handleSave = () => {
     const newStock = parseInt(tempValue, 10);
-    if (!isNaN(newStock) && newStock >= 0 && newStock !== value) {
-      onSave(productId, newStock);
-    } else {
+
+    // Validate: must be a valid stock integer within range
+    if (!isValidStock(newStock)) {
       // Reset to original value if invalid
       setTempValue(value.toString());
+      setIsEditing(false);
+      return;
+    }
+
+    // Clamp to max value for security
+    const clampedStock = clampStock(newStock);
+
+    if (clampedStock !== value) {
+      onSave(productId, clampedStock);
     }
     setIsEditing(false);
   };
@@ -54,6 +64,7 @@ export function EditStockCell({
       <Input
         type="number"
         min="0"
+        max={MAX_STOCK}
         step="1"
         value={tempValue}
         onChange={(e) => setTempValue(e.target.value)}

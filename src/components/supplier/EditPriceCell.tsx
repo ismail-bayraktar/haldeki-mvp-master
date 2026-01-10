@@ -2,6 +2,7 @@
 
 import { useState, KeyboardEvent } from 'react';
 import { Input } from '@/components/ui/input';
+import { MAX_PRICE, clampPrice, isValidPrice } from '@/lib/validation';
 
 export interface EditPriceCellProps {
   value: number;
@@ -23,11 +24,20 @@ export function EditPriceCell({
 
   const handleSave = () => {
     const newPrice = parseFloat(tempValue);
-    if (!isNaN(newPrice) && newPrice >= 0 && newPrice !== value) {
-      onSave(productId, newPrice);
-    } else {
+
+    // Validate: must be a valid price within range
+    if (!isValidPrice(newPrice)) {
       // Reset to original value if invalid
       setTempValue(value.toString());
+      setIsEditing(false);
+      return;
+    }
+
+    // Clamp to max value for security
+    const clampedPrice = clampPrice(newPrice);
+
+    if (clampedPrice !== value) {
+      onSave(productId, clampedPrice);
     }
     setIsEditing(false);
   };
@@ -58,6 +68,7 @@ export function EditPriceCell({
           type="number"
           step="0.01"
           min="0"
+          max={MAX_PRICE}
           value={tempValue}
           onChange={(e) => setTempValue(e.target.value)}
           onBlur={handleSave}

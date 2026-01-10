@@ -70,6 +70,55 @@ Header'dan açılan bölge seçici modal
 - DB'den bölgeleri çeker
 - Aktif olmayan bölgeler için waitlist gösterir
 - 2A.3: Sepet doluyken bölge değişikliği için validation + confirm modal
+## components\playground\AIReviewPanel.tsx
+
+```typescript
+// Path: components\playground\AIReviewPanel.tsx
+```
+
+AIReviewPanel - Simulates AI design review
+Shows design guidelines and best practices
+## components\playground\CoreUI.tsx
+
+```typescript
+// Path: components\playground\CoreUI.tsx
+```
+
+CoreUI - Showcases core UI components
+Badges, cards, forms, etc.
+## components\playground\index.ts
+
+```typescript
+// Path: components\playground\index.ts
+```
+
+Playground Components - Design System Showcase
+## components\playground\templates\MinimalShowcaseTemplate.tsx
+
+```typescript
+// Path: components\playground\templates\MinimalShowcaseTemplate.tsx
+```
+
+ComponentName - One-line description
+REPLACE: ComponentName with your actual component name
+## components\playground\templates\PerfectShowcaseComponent.tsx
+
+```typescript
+// Path: components\playground\templates\PerfectShowcaseComponent.tsx
+```
+
+FormShowcase - Demonstrates form components and patterns
+This showcase component displays all form elements including inputs,
+selects, checkboxes, radio buttons, and form validation patterns.
+It includes interactive demos for props and usage examples.
+## components\playground\TokenShowcase.tsx
+
+```typescript
+// Path: components\playground\TokenShowcase.tsx
+```
+
+TokenShowcase - Displays all design system tokens
+Colors, typography, spacing, shadows, etc.
 ## components\region\RegionBanner.tsx
 
 ```typescript
@@ -110,6 +159,13 @@ Hook: Get Bugün Halde comparison view with filters
 
 Sepetteki ürünleri yeni bölge için validate eder.
 Tek sorgu ile tüm ürünleri kontrol eder (N+1 yok).
+## hooks\useGlobalProductCatalog.ts
+
+```typescript
+// Path: hooks\useGlobalProductCatalog.ts
+```
+
+Get supplier ID from user
 ## hooks\useImageUpload.ts
 
 ```typescript
@@ -219,6 +275,14 @@ DB'den aktif bölgeleri çeken hook
 ```
 
 Hook for validating and repeating previous orders
+## hooks\useSupplierCatalog.ts
+
+```typescript
+// Path: hooks\useSupplierCatalog.ts
+```
+
+useSupplierCatalog Hook
+Optimized tedarikçi ürün katalog sorguları için React hook
 ## hooks\useSupplierProducts.ts
 
 ```typescript
@@ -266,6 +330,27 @@ Warehouse Staff Hook
 Phase 11 - Warehouse MVP
 Admin panel için warehouse_staff CRUD işlemleri
 Tablo: warehouse_staff (user_id, vendor_id, warehouse_id, is_active)
+## lib\animations\hooks.ts
+
+```typescript
+// Path: lib\animations\hooks.ts
+```
+
+Hook to detect user's reduced motion preference
+## lib\animations\utils.ts
+
+```typescript
+// Path: lib\animations\utils.ts
+```
+
+Animation utility functions for performant, GPU-accelerated animations
+## lib\animations\variants.ts
+
+```typescript
+// Path: lib\animations\variants.ts
+```
+
+Framer Motion-style variants for manual animation implementations
 ## lib\csvParser.ts
 
 ```typescript
@@ -356,6 +441,16 @@ Day Shift: Bugün 08:00 → Bugün 17:00
 
 Convert string to URL-friendly slug
 Example: "Yeni Ürün" → "yeni-urun"
+## lib\validation.ts
+
+```typescript
+// Path: lib\validation.ts
+```
+
+Validates if a string is a safe URL
+- Must use http:// or https:// protocol
+- Blocks javascript: and data: URLs (XSS prevention)
+- Blocks protocol-relative URLs (//evil.com)
 ## pages\admin\WarehouseStaff.tsx
 
 ```typescript
@@ -366,6 +461,16 @@ Warehouse Staff Management Page
 Phase 11 - Warehouse MVP
 Admin panel - Warehouse staff CRUD işlemleri
 warehouse_staff tablosu yönetimi
+## pages\Playground.tsx
+
+```typescript
+// Path: pages\Playground.tsx
+```
+
+Playground - Design System Showcase
+This route showcases the Haldeki design system components and tokens.
+It's a reference page for designers and developers to see all available
+UI elements in one place.
 ## pages\warehouse\OrdersList.tsx
 
 ```typescript
@@ -395,6 +500,13 @@ Phase 11 - Warehouse MVP
 Mobil-first depo yönetim paneli
 Shift selector, picking list, orders
 FİYAT YOK - Security P0
+## services\supplierProducts.ts
+
+```typescript
+// Path: services\supplierProducts.ts
+```
+
+Get supplier ID from user ID
 ## templates\generateCSVTemplate.ts
 
 ```typescript
@@ -433,6 +545,14 @@ Supports:
 - Structured product variations (size, type, scent, etc.)
 - Price comparison across suppliers
 - Supplier-specific inventory and pricing
+## types\supplier-catalog.types.ts
+
+```typescript
+// Path: types\supplier-catalog.types.ts
+```
+
+Supplier Product Catalog - Type Definitions
+RPC fonksiyonları için TypeScript tipleri
 ## types\supplier.ts
 
 ```typescript
@@ -463,4 +583,4 @@ SECURITY NOTICE:
 
 ---
 
-**Son güncelleme:** 2026-01-10T14:25:35.963Z
+**Son güncelleme:** 2026-01-10T16:02:50.376Z

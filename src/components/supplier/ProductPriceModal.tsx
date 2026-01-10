@@ -15,20 +15,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-
-interface GlobalProduct {
-  id: string;
-  name: string;
-  category: string;
-  unit: string;
-  images: string[] | null;
-  description: string | null;
-}
+import { MAX_PRICE, MAX_STOCK, clampPrice, clampStock, isValidPrice, isValidStock, sanitizeImageUrl } from '@/lib/validation';
+import type { GlobalProductCatalogItem } from '@/types/supplier';
 
 interface ProductPriceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product: GlobalProduct;
+  product: GlobalProductCatalogItem;
   onSubmit: (data: { productId: string; price: number; stock: number }) => void;
   isSubmitting?: boolean;
 }
@@ -49,18 +42,23 @@ export function ProductPriceModal({
     const priceNum = parseFloat(price);
     const stockNum = parseInt(stock, 10);
 
-    if (isNaN(priceNum) || priceNum <= 0) {
+    // Validate and clamp inputs for security
+    if (!isValidPrice(priceNum)) {
       return;
     }
 
-    if (isNaN(stockNum) || stockNum < 0) {
+    if (!isValidStock(stockNum)) {
       return;
     }
+
+    // Clamp values to max limits
+    const clampedPrice = clampPrice(priceNum);
+    const clampedStock = clampStock(stockNum);
 
     onSubmit({
       productId: product.id,
-      price: priceNum,
-      stock: stockNum,
+      price: clampedPrice,
+      stock: clampedStock,
     });
   };
 
@@ -124,6 +122,7 @@ export function ProductPriceModal({
                   type="number"
                   step="0.01"
                   min="0"
+                  max={MAX_PRICE}
                   placeholder="0.00"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
@@ -144,6 +143,7 @@ export function ProductPriceModal({
                 id="stock"
                 type="number"
                 min="0"
+                max={MAX_STOCK}
                 placeholder="100"
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}

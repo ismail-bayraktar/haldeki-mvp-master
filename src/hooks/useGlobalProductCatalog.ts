@@ -428,6 +428,136 @@ export function useUpdateCatalogPrice() {
 }
 
 /**
+ * Hook: Update supplier's stock for a product (inline edit)
+ */
+export function useUpdateCatalogStock() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      stock,
+    }: {
+      productId: string;
+      stock: number;
+    }): Promise<ProductActionResult> => {
+      if (!user?.id) throw new Error('User not authenticated');
+
+      const supplierId = await getSupplierId(user.id);
+      if (!supplierId) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı' };
+      }
+
+      // Check if supplier_product exists
+      const { data: existingSp } = await supabase
+        .from('supplier_products')
+        .select('id')
+        .eq('supplier_id', supplierId)
+        .eq('product_id', productId)
+        .maybeSingle();
+
+      if (!existingSp) {
+        return { success: false, error: 'Ürün katalogunuzda bulunamadı' };
+      }
+
+      // Calculate availability based on stock
+      const availability: 'plenty' | 'limited' | 'last' = stock > 10 ? 'plenty' : stock > 0 ? 'limited' : 'last';
+
+      const { error } = await supabase
+        .from('supplier_products')
+        .update({
+          stock_quantity: stock,
+          availability,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingSp.id);
+
+      if (error) {
+        return { success: false, error: 'Stok güncellenemedi: ' + error.message };
+      }
+
+      return { success: true };
+    },
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success('Stok güncellendi');
+      } else {
+        toast.error(result.error || 'Stok güncellenemedi');
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['global-product-catalog'] });
+      queryClient.invalidateQueries({ queryKey: ['supplier-junction-products'] });
+      queryClient.invalidateQueries({ queryKey: ['bugun-halde'] });
+    },
+  });
+}
+
+/**
+ * Hook: Update supplier's product status (inline toggle)
+ */
+export function useUpdateCatalogStatus() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      isActive,
+    }: {
+      productId: string;
+      isActive: boolean;
+    }): Promise<ProductActionResult> => {
+      if (!user?.id) throw new Error('User not authenticated');
+
+      const supplierId = await getSupplierId(user.id);
+      if (!supplierId) {
+        return { success: false, error: 'Tedarikçi kaydınız bulunamadı' };
+      }
+
+      // Check if supplier_product exists
+      const { data: existingSp } = await supabase
+        .from('supplier_products')
+        .select('id')
+        .eq('supplier_id', supplierId)
+        .eq('product_id', productId)
+        .maybeSingle();
+
+      if (!existingSp) {
+        return { success: false, error: 'Ürün katalogunuzda bulunamadı' };
+      }
+
+      const { error } = await supabase
+        .from('supplier_products')
+        .update({
+          is_active: isActive,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingSp.id);
+
+      if (error) {
+        return { success: false, error: 'Durum güncellenemedi: ' + error.message };
+      }
+
+      return { success: true };
+    },
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success('Durum güncellendi');
+      } else {
+        toast.error(result.error || 'Durum güncellenemedi');
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['global-product-catalog'] });
+      queryClient.invalidateQueries({ queryKey: ['supplier-junction-products'] });
+      queryClient.invalidateQueries({ queryKey: ['bugun-halde'] });
+    },
+  });
+}
+
+/**
  * Hook: Link a product to supplier's catalog
  */
 export function useLinkProductToCatalog() {
