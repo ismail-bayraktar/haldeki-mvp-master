@@ -194,6 +194,8 @@ docs/
 ├── DOKUMASYON_YAPILANDIRMA_PLAN.md
 ├── faz-1-2-phase-2-delivery.md
 ├── faz-1-2-phase-2-quick-test.md
+├── HALDEKI-BUSINESS-MODEL-QUESTIONNAIRE.md
+├── HALDEKI-ROLES-PERMISSIONS.md
 ├── INDEKS-GUNCEL.md
 ├── INDEKS.md
 ├── INDEX.md
@@ -204,6 +206,9 @@ docs/
 ├── PLAN.md
 ├── PLAYGROUND-TEST-DELIVERY.md
 ├── PLAYGROUND-TESTING-SETUP.md
+├── PRODUCTION-TEST-REPORT.json
+├── PRODUCTION-TEST-REPORT.md
+├── production-screenshot.png
 ├── README.md
 ├── ROADMAP.md
 ├── SECURITY-TEST-REPORT.md
@@ -217,4 +222,4 @@ docs/
 └── TREE.md
 ```
 
-**Son güncelleme:** 2026-01-10T18:43:22.950Z
+**Son güncelleme:** 2026-01-10T19:40:31.716Z

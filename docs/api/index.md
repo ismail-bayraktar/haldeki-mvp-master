@@ -610,4 +610,4 @@ SECURITY NOTICE:
 
 ---
 
-**Son güncelleme:** 2026-01-10T18:43:22.933Z
+**Son güncelleme:** 2026-01-10T19:40:31.705Z

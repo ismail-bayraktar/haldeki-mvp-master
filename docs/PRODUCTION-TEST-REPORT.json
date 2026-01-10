@@ -1,0 +1,110 @@
+{
+  "url": "https://haldeki.com",
+  "timestamp": "2026-01-10T21:45:52.747519",
+  "tests": {
+    "security_headers": {
+      "status": "success",
+      "url": "https://haldeki.com",
+      "checks": {
+        "content_security_policy": false,
+        "x_frame_options": false,
+        "x_content_type_options": false,
+        "strict_transport_security": true,
+        "x_xss_protection": false,
+        "referrer_policy": false,
+        "permissions_policy": false
+      },
+      "actual_headers": {
+        "Content-Disposition": "inline",
+        "Content-Encoding": "gzip",
+        "Content-Type": "text/html; charset=utf-8",
+        "Strict-Transport-Security": "max-age=63072000",
+        "X-Vercel-Cache": "HIT",
+        "X-Vercel-Id": "fra1::q6jfz-1768070753689-38c7c7cdf10b"
+      },
+      "score": 14.285714285714285
+    },
+    "image_optimization": {
+      "url": "https://haldeki.com",
+      "images": [],
+      "summary": {
+        "total_images": 2,
+        "webp": 0,
+        "avif": 0,
+        "png": 0,
+        "jpg": 2,
+        "modern_format_percent": 0.0
+      },
+      "sample_images": [
+        {
+          "url": "https://www.haldeki.com/assets/maydanoz.BjI-PuHf.jpg",
+          "status": 200,
+          "headers": {
+            "strict-transport-security": "max-age=63072000",
+            "cache-control": "public, max-age=31536000, immutable",
+            "x-vercel-cache": "HIT",
+            "etag": "\"5e0bf2c0bbb5a44d56b0a6b2a2d9b04c\"",
+            "age": "0",
+            "accept-ranges": "bytes",
+            "access-control-allow-origin": "*",
+            "content-length": "50236",
+            "date": "Sat, 10 Jan 2026 18:45:56 GMT",
+            "content-disposition": "inline; filename=\"maydanoz.BjI-PuHf.jpg\"",
+            "content-type": "image/jpeg",
+            "server": "Vercel",
+            "last-modified": "Sat, 10 Jan 2026 18:45:56 GMT",
+            "x-vercel-id": "fra1::n6mlp-1768070755851-9a6c84dc347e"
+          }
+        },
+        {
+          "url": "https://www.haldeki.com/assets/patates.Bd19VjHG.jpg",
+          "status": 200,
+          "headers": {
+            "strict-transport-security": "max-age=63072000",
+            "cache-control": "public, max-age=31536000, immutable",
+            "x-vercel-cache": "HIT",
+            "etag": "\"b16b5772c3735d02b88bd7e2d92d0f3b\"",
+            "age": "0",
+            "accept-ranges": "bytes",
+            "access-control-allow-origin": "*",
+            "content-length": "55052",
+            "date": "Sat, 10 Jan 2026 18:45:56 GMT",
+            "content-disposition": "inline; filename=\"patates.Bd19VjHG.jpg\"",
+            "content-type": "image/jpeg",
+            "server": "Vercel",
+            "last-modified": "Sat, 10 Jan 2026 18:45:56 GMT",
+            "x-vercel-id": "fra1::kcdsp-1768070755852-8a7e91bc2df6"
+          }
+        }
+      ],
+      "status": "success"
+    },
+    "lazy_loading": {
+      "url": "https://haldeki.com",
+      "summary": {
+        "total_images": 25,
+        "lazy_loaded": 24,
+        "eager_loaded": 1,
+        "no_loading_attr": 0
+      },
+      "lazy_loading_percent": 96.0,
+      "status": "success"
+    },
+    "console_errors": {
+      "url": "https://haldeki.com",
+      "errors": [],
+      "warnings": [],
+      "status": "success",
+      "has_errors": false,
+      "error_count": 0,
+      "warning_count": 0
+    }
+  },
+  "overall": {
+    "status": "passed",
+    "recommendations": [
+      "Add missing security headers",
+      "Consider using WebP/AVIF for more images"
+    ]
+  }
+}
