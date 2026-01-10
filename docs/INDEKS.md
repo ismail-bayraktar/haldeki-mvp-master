@@ -180,3 +180,11 @@ typescript   react        supabase      postgres
 ---
 
 **Son güncelleme:** 2026-01-10
+---
+
+## Migrasyon & Bakım
+
+| Doküman | Açıklama |
+|---------|----------|
+| [Migrasyon Planı](./dokuman-migrasyon-plani.md) | Eski dokümanların yeni yapıya taşınma planı |
+| [TREE.md](./TREE.md) | Doküman yapısı ağaç görünümü |

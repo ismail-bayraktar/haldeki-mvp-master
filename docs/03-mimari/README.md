@@ -1,60 +1,37 @@
-# 03. Mimari
+# Mimari Dokümantasyon
 
-> Teknik mimari ve tasarım kararları
+> Sistem mimarisi, veritabanı yapısı ve API tasarımı
 
----
-
-## Bu Klasör
-
-Sistemin teknik detayları: veritabanı, API, güvenlik, veri akışları.
+**Oluşturulma:** 2026-01-10
+**Sürüm:** 1.0
+**Durum:** ✅
 
 ---
 
-## İçindekiler
+## 📝 Özet
 
-| Dosya | Konu | Detay Seviyesi |
-|-------|------|----------------|
-| [genel-bakis.md](./genel-bakis.md) | Sistemin genel mimarisi | Yüksek seviye |
-| [veritabani-semasi.md](./veritabani-semasi.md) | Tüm tablolar ve ilişkiler | Detaylı |
-| [api-referans.md](./api-referans.md) | API endpoint'leri | Detaylı |
-| [guvenlik-modeli.md](./guvenlik-modeli.md) | RLS ve RBAC | Detaylı |
-| [veri-akislari.md](./veri-akislari.md) | Veri akış diyagramları | Orta |
+Teknik mimari, veritabanı şeması, API endpoint'leri ve güvenlik modeli gibi sistem tasarım kararları. Bu bölüm, geliştiricilerin sistem yapısını anlaması için gereken teknik detayları içerir.
 
 ---
 
-## Mimari Özet
+## 📋 Belgeler
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        FRONTEND                             │
-│  React 18 + TypeScript + Tailwind + shadcn/ui              │
-└─────────────────────────────────────────────────────────────┘
-                              ↓ HTTPS
-┌─────────────────────────────────────────────────────────────┐
-│                       SUPABASE                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │  Postgres   │  │    Auth     │  │   Storage   │         │
-│  │  + RLS      │  │   + JWT     │  │  + Images   │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                    EXTERNAL SERVICES                        │
-│  ┌─────────────┐  ┌─────────────┐                          │
-│  │   Brevo     │  │  Vercel     │                          │
-│  │   (Email)   │  │  (Hosting)  │                          │
-│  └─────────────┘  └─────────────┘                          │
-└─────────────────────────────────────────────────────────────┘
-```
+| Doküman | Açıklama |
+|---------|----------|
+| [Veritabanı Şeması](./veritabani-semasi.md) | Tablo yapıları ve ilişkileri |
+| [API Referansı](./api-referans.md) | Endpoint dökümantasyonu |
+| [Güvenlik Modeli](./guvenlik-modeli.md) | RLS ve RBAC güvenlik yapısı |
+| [Veri Akışları](./veri-akislari.md) | Veri akış diyagramları |
 
 ---
 
-## İlgili Dokümanlar
+## 🔗 İlgili Belgeler
 
-- [İş Mantığı - Tüm Akışlar](../04-is-mantigi/)
-- [Faz 1: Temel Altyapı](../05-fazlar/phase-1-temel-altyapi.md)
-- [Database Optimization](../11-teknik/database-optimization.md)
+**Çapraz Referans:**
+- [Ana Sayfa](../README.md) - Dokümantasyon ana sayfası
+- [Fazlar](../05-fazlar/) - Implementasyon fazları
+- [Geliştirme](../06-gelistirme/) - Kod standartları
 
 ---
 
-**Son güncelleme:** 2026-01-10
+**Etiketler:** #mimari #database #api #security

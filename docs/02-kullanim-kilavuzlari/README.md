@@ -1,68 +1,37 @@
-# 02. Kullanım Kılavuzları
+# Kullanım Kılavuzları
 
-> Rol bazlı kullanım rehberleri
+> Rol bazlı kullanım rehberleri ve talimatlar
 
----
-
-## Bu Klasör
-
-Her rol (müşteri, tedarikçi, bayi, admin) için detaylı kullanım kılavuzları.
+**Oluşturulma:** 2026-01-10
+**Sürüm:** 1.0
+**Durum:** ✅
 
 ---
 
-## İçindekiler
+## 📝 Özet
 
-| Dosya | Hedef Kitle | Konular |
-|-------|------------|---------|
-| [musteri-paneli.md](./musteri-paneli.md) | Son kullanıcı | Ürün arama, sepet, sipariş takibi |
-| [tedarikci-paneli.md](./tedarikci-paneli.md) | Tedarikçiler | Ürün ekleme, stok yönetimi, siparişleri görme |
-| [bayi-paneli.md](./bayi-paneli.md) | Bayiler | B2B siparişler, müşteri yönetimi |
-| [admin-paneli.md](./admin-paneli.md) | Admin'ler | Kullanıcı onayı, sistem yönetimi, raporlar |
+Farklı kullanıcı rolleri (müşteri, bayi, tedarikçi, admin) için platform kullanım rehberleri. Her rolün panel özellikleri, iş akışları ve yetkileri detaylı olarak açıklanır.
 
 ---
 
-## Rol Bazlı Erişim
+## 📋 Rehberler
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                      CUSTOMER                           │
-│  - Ürün listesini gör                                   │
-│  - Sepete ekle                                          │
-│  - Sipariş oluştur                                      │
-│  - Teslimat takibi                                      │
-└─────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────┐
-│                      SUPPLIER                           │
-│  - Ürün katalog yönetimi                                │
-│  - Stok takibi                                         │
-│  - Gelen siparişleri gör                               │
-│  - Fiyat güncelleme                                     │
-└─────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────┐
-│                       DEALER                            │
-│  - B2B sipariş yönetimi                                 │
-│  - Müşteri portföyü                                    │
-│  - Teslimat planlama                                    │
-└─────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────┐
-│                        ADMIN                            │
-│  - Tüm kullanıcıları gör                                │
-│  - Tedarikçi onayı                                      │
-│  - Sistem konfigürasyonu                                │
-│  - Raporlar ve analytics                                │
-└─────────────────────────────────────────────────────────┘
-```
+| Rehber | Hedef Kitle |
+|--------|-------------|
+| [Tedarikçi Paneli](./tedarikci-paneli.md) | Tedarikçiler |
+| [Admin Panel](./admin-paneli.md) | Sistem yöneticileri |
+| [Bayi Panel](./bayi-paneli.md) | Bölge bayileri |
+| [Müşteri Panel](./musteri-paneli.md) | Son kullanıcılar |
 
 ---
 
-## İlgili Dokümanlar
+## 🔗 İlgili Belgeler
 
-- [RBAC ve Güvenlik](../03-mimari/guvenlik-modeli.md)
-- [İş Mantığı - Tedarikçi Yaşam Döngüsü](../04-is-mantigi/tedarikci-yasam-dongusu.md)
+**Çapraz Referans:**
+- [Ana Sayfa](../README.md) - Dokümantasyon ana sayfası
+- [Test Hesaplar](../01-baslangic/test-hesaplar.md) - Test kullanıcıları
+- [İş Mantığı](../04-is-mantigi/) - İş akışları
 
 ---
 
-**Son güncelleme:** 2026-01-10
+**Etiketler:** #kullanim-kilavuzu #user-guide #panels

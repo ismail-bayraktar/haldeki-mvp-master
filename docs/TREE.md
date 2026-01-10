@@ -6,15 +6,43 @@ docs/
 │   ├── kurulum.md
 │   ├── projeye-giris.md
 │   ├── README.md
+│   ├── test-hesaplar-guncelleme.md
 │   └── test-hesaplar.md
 ├── 02-kullanim-kilavuzlari/
-│   └── README.md
+│   ├── README.md
+│   ├── SUPERADMIN-DOCUMENTATION-SUMMARY.md
+│   ├── SUPERADMIN-QUICK-REFERENCE.md
+│   └── tedarikci-paneli.md
 ├── 03-mimari/
+│   ├── api/
+│   │   ├── index.md
+│   │   └── README.md
 │   ├── genel-bakis.md
-│   └── README.md
+│   ├── README.md
+│   └── veritabani-semasi.md
 ├── 04-is-mantigi/
+│   ├── diyagramlar/
+│   │   ├── admin-registration-flow-diagram.md
+│   │   └── invite-lifecycle-diagram.md
+│   ├── admin-panel-features.md
+│   ├── dealer-supplier-flow.md
+│   ├── direct-registration-flow.md
+│   ├── invite-filtering-logic.md
+│   ├── invite-lifecycle.md
+│   ├── password-change-flow.md
 │   └── README.md
 ├── 05-fazlar/
+│   ├── phase-10-excel.md
+│   ├── phase-11-depo.md
+│   ├── phase-12-coklu-tedarikci.md
+│   ├── phase-2a-bolge-sistemi.md
+│   ├── phase-3-rbac.md
+│   ├── phase-4-email.md
+│   ├── phase-5-onay-sistemi.md
+│   ├── phase-6-siparis-teslimat.md
+│   ├── phase-7-odeme.md
+│   ├── phase-8-b2b-panel.md
+│   ├── phase-9-mobil-tedarikci.md
 │   └── README.md
 ├── 06-ai/
 │   ├── agents/
@@ -54,10 +82,30 @@ docs/
 │   │   └── 40_RELEASE_READINESS.md
 │   └── START_HERE.md
 ├── 06-gelistirme/
-│   └── README.md
+│   ├── kontroller/
+│   │   ├── HERO_SECTION_TODOS.md
+│   │   ├── SEO_TODOS.md
+│   │   └── SITE_STATUS.md
+│   ├── notlar/
+│   │   └── VARYASYON-FIYAT-ISSUE.md
+│   ├── development-README.md
+│   ├── documentation-sync.md
+│   ├── README.md
+│   ├── SUPERADMIN-CREDENTIALS.md
+│   └── TEST_ACCOUNTS.md
 ├── 07-test/
-│   └── README.md
+│   ├── beta-testing-rehberi.md
+│   ├── e2e-getting-started-guide.md
+│   ├── e2e-implementation-summary.md
+│   ├── e2e-quick-reference.md
+│   ├── e2e-troubleshooting-visual.md
+│   ├── README.md
+│   └── test-data-attributes.md
 ├── 08-deployment/
+│   ├── MIGRATION_EXECUTION_GUIDE.md
+│   ├── MIGRATION_PLAN.md
+│   ├── MIGRATION_QUICK_START.md
+│   ├── MIGRATION_README.md
 │   └── README.md
 ├── 09-raporlar/
 │   ├── 2026-01/
@@ -65,180 +113,87 @@ docs/
 
 │   │   ├── daily/
 
-│   │   └── weekly/
+│   │   ├── weekly/
 
+│   │   ├── AUTH_FIX_SUMMARY.md
+│   │   ├── BACKEND_SECURITY_AUDIT_REPORT.md
+│   │   ├── CORNER_RIBBON_BADGE_REPORT.md
+│   │   ├── CUSTOMER_TEST_FIX_GUIDE.md
+│   │   ├── CUSTOMER_TEST_QUICK_SUMMARY.md
+│   │   ├── DISTRIBUTION_TEST_SUMMARY.md
+│   │   ├── E2E_TEST_SUITE_SUMMARY.md
+│   │   ├── E2E_TEST_USERS_DEPLOYMENT_COMPLETE.md
+│   │   ├── FAVICON_FIX_SUMMARY.md
+│   │   ├── GUEST_UX_IMPROVEMENTS_REPORT.md
+│   │   ├── HEADER_BADGE_UPDATE_REPORT.md
+│   │   ├── MASTER_ORCHESTRATION_REPORT.md
+│   │   ├── PASSWORD_RESET_REPORT.md
+│   │   ├── PHASE1_TECHNICAL_DEBT_REPORT.md
+│   │   ├── PHASE1-2-3_TECHNICAL_DEBT_STATUS.md
+│   │   ├── PHASE12_CART_UI_MIGRATION_REPORT.md
+│   │   ├── PHASE12_CRITICAL_ANALYSIS.md
+│   │   ├── PHASE12_VERIFICATION_REPORT.md
+│   │   ├── PHASE2_DEPLOYMENT_REPORT.md
+│   │   ├── PHASE2_FIXES_SUMMARY.md
+│   │   ├── PHASE2_FIXES_TEST_GUIDE.md
+│   │   ├── PHASE2_INTEGRATION_TEST_REPORT.md
+│   │   ├── PHASE2_MANUAL_TESTING_GUIDE.md
+│   │   ├── PHASE2_TECHNICAL_DEBT_REPORT.md
+│   │   ├── PHASE2_TEST_SUMMARY.md
+│   │   ├── PHASE2_TESTING_SUMMARY.md
+│   │   ├── SEO_GEO_SUMMARY.md
+│   │   └── SUPPLIER_PRODUCT_VISIBILITY_ANALYSIS.md
+│   ├── code-reviews/
+│   │   ├── CODE_REVIEW_2026-01-09.md
+│   │   └── README.md
+│   ├── fixler/
+│   │   ├── README.md
+│   │   └── WAREHOUSE_STAFF_FIXES_2026-01-09.md
+│   ├── guvenlik/
+│   │   ├── SECURITY_FIX_ACTION_PLAN.md
+│   │   ├── SECURITY_FIX_SUMMARY.md
+│   │   ├── TEST_ACCOUNTS_AUDIT.md
+│   │   └── TEST_ACCOUNTS_REPORT.md
+│   ├── performans/
+│   │   ├── haldeki-desktop-speed-test-result.pdf
+│   │   └── haldeki-mobil-speed-test-result.pdf
 │   └── README.md
 ├── 10-bakim/
+│   ├── teknik-borc/
+│   │   ├── CART_MIGRATION_DEBT.md
+│   │   └── README.md
 │   └── README.md
 ├── 11-teknik/
-│   └── README.md
+│   ├── README.md
+│   └── seo-keywords.md
 ├── 12-referanslar/
+│   ├── gorsel-referanslar/
+│   │   ├── image.png
+│   │   ├── prd-list.png
+│   │   ├── tedarikci-paneli-toplam-urun-siparisi.png
+│   │   └── urun-quick-edit-add-varyasyon.png
+│   ├── supabase/
+│   │   ├── 01-supabase-migration.md
+│   │   ├── 02-supabase-auth-setup.md
+│   │   ├── 03-auth-troubleshooting.md
+│   │   └── 04-supabase-cli-setup.md
 │   └── README.md
-├── analysis/
-
 ├── api/
-│   ├── index.md
-│   └── README.md
-├── architecture/
-│   └── database-schema.md
-├── business/
-│   ├── admin-panel-features.md
-│   ├── dealer-supplier-flow.md
-│   ├── direct-registration-flow.md
-│   ├── invite-filtering-logic.md
-│   ├── invite-lifecycle.md
-│   └── password-change-flow.md
-├── checklists/
-│   ├── HERO_SECTION_TODOS.md
-│   ├── SEO_TODOS.md
-│   └── SITE_STATUS.md
+│   └── index.md
 ├── deployment/
 │   └── BETA_SECURITY_CHECKLIST.md
-├── development/
-│   ├── documentation-sync.md
-│   ├── README.md
-│   ├── SUPERADMIN-CREDENTIALS.md
-│   └── TEST_ACCOUNTS.md
-├── diagrams/
-│   ├── admin-registration-flow-diagram.md
-│   └── invite-lifecycle-diagram.md
-├── fixes/
-│   ├── README.md
-│   └── WAREHOUSE_STAFF_FIXES_2026-01-09.md
-├── guides/
-│   ├── 01-supabase-migration.md
-│   ├── 02-supabase-auth-setup.md
-│   ├── 03-auth-troubleshooting.md
-│   └── 04-supabase-cli-setup.md
-├── img-ref/
-│   ├── image.png
-│   ├── prd-list.png
-│   └── urun-quick-edit-add-varyasyon.png
-├── notes/
-│   └── VARYASYON-FIYAT-ISSUE.md
-├── phases/
-│   ├── phase-10-import-export.md
-│   ├── phase-11-warehouse-mvp.md
-│   ├── phase-12-multi-supplier.md
-│   ├── phase-2a1-regioncontext.md
-│   ├── phase-2a2-region-products.md
-│   ├── phase-2a3-cart-region.md
-│   ├── phase-2a4-delivery-slots.md
-│   ├── phase-3-rbac.md
-│   ├── phase-4-email.md
-│   ├── phase-5-approval-system.md
-│   ├── phase-6-order-delivery.md
-│   ├── phase-7-payment-system.md
-│   ├── phase-8-business-panel.md
-│   └── phase-9-supplier-panel.md
-├── reports/
-│   ├── BACKEND_SECURITY_AUDIT_REPORT.md
-│   ├── CORNER_RIBBON_BADGE_REPORT.md
-│   ├── CUSTOMER_TEST_FIX_GUIDE.md
-│   ├── CUSTOMER_TEST_QUICK_SUMMARY.md
-│   ├── DISTRIBUTION_TEST_SUMMARY.md
-│   ├── E2E_TEST_SUITE_SUMMARY.md
-│   ├── E2E_TEST_USERS_DEPLOYMENT_COMPLETE.md
-│   ├── GUEST_UX_IMPROVEMENTS_REPORT.md
-│   ├── HEADER_BADGE_UPDATE_REPORT.md
-│   ├── MASTER_ORCHESTRATION_REPORT.md
-│   ├── PHASE1_TECHNICAL_DEBT_REPORT.md
-│   ├── PHASE1-2-3_TECHNICAL_DEBT_STATUS.md
-│   ├── PHASE12_CART_UI_MIGRATION_REPORT.md
-│   ├── PHASE12_CRITICAL_ANALYSIS.md
-│   ├── PHASE12_VERIFICATION_REPORT.md
-│   ├── PHASE2_DEPLOYMENT_REPORT.md
-│   ├── PHASE2_FIXES_SUMMARY.md
-│   ├── PHASE2_FIXES_TEST_GUIDE.md
-│   ├── PHASE2_INTEGRATION_TEST_REPORT.md
-│   ├── PHASE2_MANUAL_TESTING_GUIDE.md
-│   ├── PHASE2_TECHNICAL_DEBT_REPORT.md
-│   ├── PHASE2_TEST_SUMMARY.md
-│   └── PHASE2_TESTING_SUMMARY.md
-├── reviews/
-│   ├── CODE_REVIEW_2026-01-09.md
-│   └── README.md
-├── scripts/
-
-├── security/
-│   ├── TEST_ACCOUNTS_AUDIT.md
-│   └── TEST_ACCOUNTS_REPORT.md
-├── speed-test-sonuc/
-│   ├── haldeki-desktop-speed-test-result.pdf
-│   └── haldeki-mobil-speed-test-result.pdf
-├── technical-debt/
-│   ├── CART_MIGRATION_DEBT.md
-│   └── README.md
-├── testing/
-│   ├── e2e-getting-started-guide.md
-│   ├── e2e-implementation-summary.md
-│   ├── e2e-quick-reference.md
-│   ├── e2e-troubleshooting-visual.md
-│   ├── README.md
-│   └── test-data-attributes.md
-├── architecture.md
-├── AUTH_400_ERROR_FIX.md
-├── AUTH_FIX_SUMMARY.md
-├── BETA-TESTING-GUIDE.md
-├── CURRENT_STATUS.md
-├── DAILY_SUMMARY_2026-01-06.md
-├── DATABASE_SCHEMA_PHASE12.md
-├── DEPLOYMENT_REPORT_2026-01-09.md
-├── DEPLOYMENT_SUMMARY.md
-├── deployment-checklist.md
-├── DOCUMENTATION_UPDATE_SUMMARY.md
+├── dokuman-migrasyon-plani.md
 ├── DOKUMASYON_YAPILANDIRMA_PLAN.md
-├── FAVICON_FIX_SUMMARY.md
-├── FAVICON_SETUP.md
-├── GEO_STRATEGY.md
-├── haldeki_master_plan.md
-├── IMMEDIATE_ACTION_GUIDE.md
+├── INDEKS-GUNCEL.md
 ├── INDEKS.md
 ├── INDEX.md
-├── kendiyorumlar.md
-├── MIGRATION_EXECUTION_GUIDE.md
-├── MIGRATION_PLAN.md
-├── MIGRATION_QUICK_START.md
-├── MIGRATION_README.md
+├── MIGRATION_SUMMARY.md
 ├── PASSWORD_RESET_GUIDE.md
-├── PASSWORD_RESET_REPORT.md
-├── PASSWORD_RESET_USER_GUIDE.md
-├── PHASE12_COMPLETION_REPORT.md
-├── PHASE12_FIX_IMPLEMENTATION_PLAN.md
 ├── PLAN.md
-├── prd.md
-├── PRODUCTION_DEPLOYMENT_GUIDE_2026-01-09.md
-├── PRODUCTION_READINESS_REPORT_2026-01-09.md
 ├── README.md
 ├── ROADMAP.md
-├── SECURITY_AUDIT_2026-01-09.md
-├── SECURITY_FIX_ACTION_PLAN.md
-├── SECURITY_FIX_SUMMARY.md
-├── SEO_ACTION_PLAN.md
-├── SEO_AUDIT_REPORT_2026-01-09.md
-├── SEO_GEO_SUMMARY.md
-├── SEO_IMPLEMENTATION_REPORT_2026-01-09.md
-├── SUPERADMIN-DOCUMENTATION-SUMMARY.md
-├── SUPERADMIN-QUICK-REFERENCE.md
-├── SUPPLIER_DASHBOARD_ERROR_FIX_2026-01-09.md
-├── SUPPLIER_PANEL_TEST_REPORT.md
-├── SUPPLIER_PRODUCT_JUNCTION_VERIFICATION.md
-├── SUPPLIER_PRODUCT_VISIBILITY_ANALYSIS.md
-├── SUPPLIER_READINESS_IMPLEMENTATION_REPORT_2026-01-09.md
-├── SUPPLIER_TRUST_BUT_VERIFY_IMPLEMENTATION_2026-01-09.md
-├── TAB_SWITCH_RELOAD_FIX_2026-01-09.md
-├── TARGET_KEYWORDS.md
-├── TEDARIKCI_KULLANIM_KILAVUZU.md
-├── TEDARIKCI_YASAM_DONGUSU_2026-01-09.md
-├── tedarikci-paneli-toplam-urun-siparisi.png
-├── TEDIKCI_ROUTE_ACCESS_FIX_2026-01-09.md
 ├── TEMPLATE.md
-├── TEST_ACCOUNTS_CLEAN.md
-├── TEST_ACCOUNTS.md
-├── TEST_BULGULARI_PHASE12.md
-├── TEST_RESULTS_SUMMARY_2026-01-09.md
-├── TREE.md
-└── UPDATE-TEST-ACCOUNTS.md
+└── TREE.md
 ```
 
-**Son güncelleme:** 2026-01-10T14:00:30.767Z
+**Son güncelleme:** 2026-01-10T14:22:14.180Z

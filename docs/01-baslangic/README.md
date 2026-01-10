@@ -1,45 +1,56 @@
-# 01. Başlangıç
+# Başlangıç Rehberi
 
-> Yeni gelenler için hızlı başlangıç rehberleri
+> Yeni gelenler için hızlı başlangıç rehberi
 
----
-
-## Bu Klasör
-
-Yeni ekibe katılanlar, projeyi yeni öğrenenler ve hızlıca ortam kurmak isteyenler için.
+**Oluşturulma:** 2026-01-10
+**Sürüm:** 1.0
+**Durum:** ✅
 
 ---
 
-## İçindekiler
+## 📝 Özet
 
-| Dosya | Ne İçerir? | Okuma Süresi |
-|-------|-----------|--------------|
-| [projeye-giris.md](./projeye-giris.md) | Haldeki nedir? Ne işe yarar? 5 dk genel bakış | 5 dakika |
-| [kurulum.md](./kurulum.md) | Local development ortamı kurulumu adım adım | 10 dakika |
-| [test-hesaplar.md](./test-hesaplar.md) | Tüm roller için test kullanıcıları | 2 dakika |
+Yeni eklenen geliştiriciler ve proje paydaşları için hızlı başlangıç rehberi. Projenin ne olduğu, nasıl kurulacağı ve temel kavramlar hakkında bilgi içerir.
 
 ---
 
-## Önerilen Okuma Sırası
+## 📋 Rehberler
 
+| Rehber | Açıklama |
+|--------|----------|
+| [Projeye Giriş](./projeye-giris.md) | Haldeki nedir? 5 dakikalık genel bakış |
+| [Kurulum](./kurulum.md) | Local geliştirme ortamı kurulumu |
+| [Test Hesaplar](./test-hesaplar.md) | Test kullanıcıları ve roller |
+
+---
+
+## 🚀 Hızlı Başlangıç
+
+```bash
+# 1. Repoyu klonla
+git clone <repo-url>
+cd haldeki-market
+
+# 2. Bağımlılıkları yükle
+npm install
+
+# 3. Environment dosyasını oluştur
+cp .env.example .env
+# .env dosyasını düzenle
+
+# 4. Başlat
+npm run dev
 ```
-1. Projeye Giriş (5 dk)
-   ↓
-2. Test Hesaplar (2 dk)
-   ↓
-3. Kurulum (10 dk)
-   ↓
-4. Sistemde gezinmeye başla!
-```
 
 ---
 
-## Hızlı Linkler
+## 🔗 İlgili Belgeler
 
-- [Ana Dokümantasyon](../README.md)
-- [Mimari Genel Bakış](../03-mimari/genel-bakis.md)
-- [Kod Standartları](../06-gelistirme/kod-standartlari.md)
+**Çapraz Referans:**
+- [Ana Sayfa](../README.md) - Dokümantasyon ana sayfası
+- [Geliştirme](../06-gelistirme/) - Geliştirici rehberleri
+- [Mimari](../03-mimari/) - Sistem yapısı
 
 ---
 
-**Son güncelleme:** 2026-01-10
+**Etiketler:** #baslangic #getting-started #setup

@@ -1,58 +1,37 @@
-# 04. İş Mantığı
+# İş Mantığı Dokümantasyonu
 
-> İş akışları ve domain mantığı
+> Haldeki platformunun iş akışları, domain mantığı ve kuralları
 
----
-
-## Bu Klasör
-
-Business logic ve domain akışlarının dökümante edildiği kısım.
+**Oluşturulma:** 2026-01-10
+**Sürüm:** 1.0
+**Durum:** ✅
 
 ---
 
-## İçindekiler
+## 📝 Özet
 
-| Dosya | İş Akışı | Katılımcılar |
-|-------|----------|--------------|
-| [tedarikci-yasam-dongusu.md](./tedarikci-yasam-dongusu.md) | Kayıt → Onay → Ürün ekleme | Tedarikçi, Admin |
-| [siparis-akisi.md](./siparis-akisi.md) | Sepet → Sipariş → Teslimat | Müşteri, Tedarikçi, Bayi |
-| [bolgesel-fiyatlandirma.md](./bolgesel-fiyatlandirma.md) | Bölge bazlı fiyat hesaplama | Admin, Tedarikçi |
-| [onay-sistemi.md](./onay-sistemi.md) | Tedarikçi onay workflow'u | Admin |
+Bu bölüm, Haldeki platformunun iş mantığını, kullanıcı akışlarını ve domain kurallarını açıklar. Tedarikçi yaşam döngüsü, sipariş akışı, bölgesel fiyatlandırma ve onay süreçleri gibi kritik iş akışları detaylı olarak dökümante edilmiştir.
 
 ---
 
-## İş Akışları Map
+## 📋 Belgeler
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    TEDARİKÇİ YAŞAM DÖNGÜSÜ                    │
-│                                                              │
-│  1. Kayıt Ol   →   2. Email Onay   →   3. Admin Onay        │
-│  (Form)            (Brevo)              (Panel)               │
-│                                                              │
-│  4. Ürün Ekle →   5. Stok Giriş   →   6. Sipariş Al         │
-│  (Katalog)        (Inventory)          (Otomatik)            │
-└──────────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────┐
-│                      SİPARİŞ YAŞAM DÖNGÜSÜ                   │
-│                                                              │
-│  1. Ürün Seç  →  2. Sepete Ekle  →  3. Adres/Slot           │
-│  (Liste)         (Cart)              (Checkout)              │
-│                                                              │
-│  4. Sipariş   →   5. Onay   →   6. Hazırla   →   7. Teslim  │
-│  (Create)        (Payment)          (Picker)       (Driver)   │
-└──────────────────────────────────────────────────────────────┘
-```
+| Doküman | Açıklama |
+|---------|----------|
+| [Tedarikçi Yaşam Döngüsü](./tedarikci-yasam-dongusu.md) | Tedarikçi kayıt → onay → ürün akışı |
+| [Sipariş Akışı](./siparis-akisi.md) | Sepet → sipariş → teslimat workflow'u |
+| [Bölgesel Fiyatlandırma](./bolgesel-fiyatlandirma.md) | Bölge bazlı dinamik fiyat mantığı |
+| [Onay Sistemi](./onay-sistemi.md) | Tedarikçi onay süreci detayları |
 
 ---
 
-## İlgili Dokümanlar
+## 🔗 İlgili Belgeler
 
-- [Kullanım Kılavuzları](../02-kullanim-kilavuzlari/)
-- [Mimari - Veri Akışları](../03-mimari/veri-akislari.md)
-- [Faz 6: Sipariş & Teslimat](../05-fazlar/phase-6-siparis-teslimat.md)
+**Çapraz Referans:**
+- [Ana Sayfa](../README.md) - Dokümantasyon ana sayfası
+- [Faz 5: Onay Sistemi](../05-fazlar/phase-5-onay-sistemi.md) - Teknik implementasyon
+- [Mimari: Veritabanı Şeması](../03-mimari/veritabani-semasi.md) - Veri yapısı
 
 ---
 
-**Son güncelleme:** 2026-01-10
+**Etiketler:** #is-mantigi #business-logic #workflow

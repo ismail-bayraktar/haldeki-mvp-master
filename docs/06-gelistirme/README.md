@@ -1,104 +1,37 @@
-# 06. Geliştirme
+# Geliştirme Rehberi
 
-> Geliştirici rehberleri ve kod standartları
+> Kod standartları, geliştirme araçları ve best practices
 
----
-
-## Bu Klasör
-
-Geliştiriciler için çalışma standartları, workflow ve debugging rehberleri.
+**Oluşturulma:** 2026-01-10
+**Sürüm:** 1.0
+**Durum:** ✅
 
 ---
 
-## İçindekiler
+## 📝 Özet
 
-| Dosya | Konu | Hedef Kitle |
-|-------|------|-------------|
-| [kod-standartlari.md](./kod-standartlari.md) | TypeScript ve React standartları | Tüm geliştiriciler |
-| [git-workflow.md](./git-workflow.md) | Branch ve commit kuralları | Tüm geliştiriciler |
-| [debugging.md](./debugging.md) | Common sorunlar ve çözümler | Geliştiriciler |
-| [code-review.md](./code-review.md) | Code review checklist | Senior+ |
+Geliştiriciler için kod standartları, Git workflow, debugging rehberi ve code review checklist'i gibi geliştirme süreçlerine dair dökümanlar.
 
 ---
 
-## Kod Standartları Özeti
+## 📋 Belgeler
 
-### TypeScript Kuralları
-
-```typescript
-// ✅ DOĞRU
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-}
-
-async function getProduct(id: string): Promise<Product | null> {
-  // ...
-}
-
-// ❌ YANLIŞ
-function getProduct(id) {  // Tip yok
-  // ...
-}
-```
-
-### React Kuralları
-
-```typescript
-// ✅ DOĞRU
-function ProductList({ products }: ProductListProps) {
-  const [filter, setFilter] = useState('');
-
-  const filtered = useMemo(
-    () => products.filter(p => p.name.includes(filter)),
-    [products, filter]
-  );
-
-  return <div>{/* ... */}</div>;
-}
-
-// ❌ YANLIŞ
-function ProductList(props) {  // Tip yok, props destructuring yok
-  const filtered = products.filter(/* her render'da hesaplanır */);
-  return <div>{/* ... */}</div>;
-}
-```
+| Belge | Açıklama |
+|-------|----------|
+| [Kod Standartları](./kod-standartlari.md) | TypeScript ve React standartları |
+| [Git Workflow](./git-workflow.md) | Branch ve commit kuralları |
+| [Debugging Rehberi](./debugging.md) | Sorun giderme teknikleri |
+| [Code Review](./code-review.md) | Review checklist |
 
 ---
 
-## Git Workflow
+## 🔗 İlgili Belgeler
 
-```bash
-main
-├── feature/phase-12-multi-supplier
-├── fix/supplier-auth-error
-├── refactor/product-catalog
-└── docs/update-readme
-```
-
-**Branch kuralları:**
-- `feature/*` - Yeni özellik
-- `fix/*` - Bug fix
-- `refactor/*` - Refactoring
-- `docs/*` - Dokümantasyon
-
-**Commit format:**
-```
-type(scope): description
-
-feat(supplier): add product matching algorithm
-fix(auth): resolve login redirect loop
-docs(readme): update installation steps
-```
+**Çapraz Referans:**
+- [Ana Sayfa](../README.md) - Dokümantasyon ana sayfası
+- [Test](../07-test/) - Test stratejileri
+- [Mimari](../03-mimari/) - Sistem tasarımı
 
 ---
 
-## İlgili Dokümanlar
-
-- [Test Stratejisi](../07-test/test-stratejisi.md)
-- [CI/CD Pipeline](../08-deployment/ci-cd.md)
-
----
-
-**Son güncelleme:** 2026-01-10
+**Etiketler:** #development #coding-standards #workflow

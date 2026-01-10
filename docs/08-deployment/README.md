@@ -1,92 +1,37 @@
-# 08. Deployment
+# Deployment Rehberi
 
-> Deployment ve operasyon rehberleri
+> Production deployment, environment konfigürasyonu ve rollback prosedürleri
 
----
-
-## Bu Klasör
-
-Production deployment, environment yönetimi ve operasyon prosedürleri.
+**Oluşturulma:** 2026-01-10
+**Sürüm:** 1.0
+**Durum:** ✅
 
 ---
 
-## İçindekiler
+## 📝 Özet
 
-| Dosya | Konu | Ne Zaman Kullanılır? |
-|-------|------|---------------------|
-| [production-deployment.md](./production-deployment.md) | Production deploy adımları | Yeni versiyon release |
-| [environment-konfigurasyonu.md](./environment-konfigurasyonu.md) | Environment variable'lar | Kurulum ve konfigürasyon |
-| [rollback-proseduru.md](./rollback-proseduru.md) | Rollback adımları | Sorun durumunda |
-| [ci-cd.md](./ci-cd.md) | CI/CD pipeline yapısı | Pipeline kurulumu |
+Production'a deployment süreci, environment değişkenleri, CI/CD pipeline'ları ve rollback prosedürleri gibi operasyonel dökümanlar.
 
 ---
 
-## Deployment Pipeline
+## 📋 Belgeler
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                     DEVELOPMENT                              │
-│  Local → Feature Branch → PR → Merge to main                 │
-└──────────────────────────────────────────────────────────────┘
-                            ↓
-┌──────────────────────────────────────────────────────────────┐
-│                        CI/CD                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │  Lint    │→ │  Test    │→ │  Build   │→ │  Deploy  │   │
-│  │  Check   │  │  Run     │  │  Create  │  │  Vercel  │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└──────────────────────────────────────────────────────────────┘
-                            ↓
-┌──────────────────────────────────────────────────────────────┐
-│                      ENVIRONMENTS                            │
-│                                                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │  Staging    │  │  Production │  │   Preview   │         │
-│  │  (Test)     │  │  (Live)     │  │  (PR Demo)  │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
-└──────────────────────────────────────────────────────────────┘
-```
+| Belge | Açıklama |
+|-------|----------|
+| [Production Deployment](./production-deployment.md) | Canlıya alma rehberi |
+| [Environment Konfigürasyonu](./environment-konfigurasyonu.md) | Environment variable'lar |
+| [Rollback Prosedürü](./rollback-proseduru.md) | Geri alma adımları |
+| [CI/CD](./ci-cd.md) | Pipeline yapılandırması |
 
 ---
 
-## Deployment Checklist
+## 🔗 İlgili Belgeler
 
-### Öncesi
-- [ ] Tüm testler geçiyor
-- [ ] Code review tamamlandı
-- [ ] Migration script'leri hazır
-- [ ] Environment variable'lar kontrol edildi
-- [ ] Database backup alındı
-
-### Sırasında
-- [ ] Staging'de test edildi
-- [ ] Production deployment başlatıldı
-- [ ] Monitor paneli açık
-- [ ] Rollback planı hazır
-
-### Sonrası
-- [ ] Health check başarılı
-- [ ] Temel fonksiyonlar test edildi
-- [ ] Error loglar kontrol edildi
-- [ ] Performance metrics kaydedildi
+**Çapraz Referans:**
+- [Ana Sayfa](../README.md) - Dokümantasyon ana sayfası
+- [Bakım](../10-bakim/) - Monitoring ve troubleshooting
+- [Geliştirme](../06-gelistirme/) - Kod standartları
 
 ---
 
-## Emergency Contacts
-
-| Rol | Kişi | Telefon | Slack |
-|-----|------|---------|-------|
-| Tech Lead | - | - | @tech-lead |
-| DevOps | - | - | @devops |
-| Product Manager | - | - | @pm |
-
----
-
-## İlgili Dokümanlar
-
-- [Troubleshooting](../10-bakim/troubleshooting.md)
-- [Monitoring](../10-bakim/monitoring.md)
-
----
-
-**Son güncelleme:** 2026-01-10
+**Etiketler:** #deployment #ci-cd #production

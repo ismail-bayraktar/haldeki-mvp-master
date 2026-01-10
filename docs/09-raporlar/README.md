@@ -1,74 +1,40 @@
-# 09. Raporlar
+# Raporlar
 
-> Günlük ve dönemsel raporlar
+> Günlük, dönemsel ve audit raporları
 
----
-
-## Bu Klasör
-
-Proje ile ilgili günlük özetler, audit raporları, performans test sonuçları.
+**Oluşturulma:** 2026-01-10
+**Sürüm:** 1.0
+**Durum:** ✅
 
 ---
 
-## Yapı
+## 📝 Özet
+
+Test raporları, güvenlik audit'leri, performans test sonuçları ve deployment özetleri gibi proje raporları.
+
+---
+
+## 📂 Klasör Yapısı
 
 ```
 09-raporlar/
-├── 2026-01/                    # Ocak 2026 raporları
-│   ├── daily/                  # Günlük özetler
-│   ├── weekly/                 # Haftalık özetler
-│   └── audits/                 # Audit raporları
-├── audit-raporlari.md          # Genel audit özeti
-└── performance-raporlari.md    # Performans test sonuçları
+├── 2026-01/           # Ocak 2026 raporları
+│   ├── deployment/
+│   └── testing/
+├── guvenlik/          # Güvenlik raporları
+├── fixler/            # Fix raporları
+└── audit-raporlari.md # Audit özeti
 ```
 
 ---
 
-## Rapor Türleri
+## 🔗 İlgili Belgeler
 
-### Günlük Raporlar
-- Tamamlanan özellikler
-- Bug fix'ler
-- Blocker'lar
-- Ertesi gün planı
-
-### Haftalık Raporlar
-- Sprint summary
-- Velocity metrics
-- Risk assessment
-- Gelecek sprint planı
-
-### Audit Raporları
-- Güvenlik taramaları
-- Code coverage
-- Dependency audit
-- License check
-
-### Performance Raporları
-- Load test sonuçları
-- Response time metrics
-- Database query performance
-- Bundle size analysis
+**Çapraz Referans:**
+- [Ana Sayfa](../README.md) - Dokümantasyon ana sayfası
+- [Test](../07-test/) - Test raporları
+- [Bakım](../10-bakim/) - Monitoring raporları
 
 ---
 
-## 2026-01 Raporları
-
-### Günlük Özetler
-
-| Tarih | Başlık | Link |
-|-------|--------|------|
-| 2026-01-06 | Günlük Özet | [2026-01-06.md](./2026-01/daily/2026-01-06.md) |
-| 2026-01-09 | Faz 12 Tamamlandı | [2026-01-09.md](./2026-01/daily/2026-01-09.md) |
-
-### Audit Raporları
-
-| Audit Tipi | Tarih | Durum | Sonuç |
-|------------|-------|-------|-------|
-| Güvenlik | 2026-01-09 | ✅ | 0 critical |
-| SEO | 2026-01-09 | ✅ | 95/100 |
-| Performance | 2026-01-09 | ✅ | 92/100 |
-
----
-
-**Son güncelleme:** 2026-01-10
+**Etiketler:** #reports #audit #deployment #testing
