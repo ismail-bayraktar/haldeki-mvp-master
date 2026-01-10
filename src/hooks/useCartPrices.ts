@@ -39,9 +39,9 @@ export function useCartPrices(params: {
           supabase.rpc('calculate_product_price', {
             p_product_id: item.productId,
             p_region_id: regionId,
-            p_customer_type: customerType,
-            p_variation_id: item.variationId || null,
             p_supplier_id: item.supplierId || null,
+            p_user_role: customerType, // FIXED: was p_customer_type
+            p_variation_ids: item.variationId ? [item.variationId] : null, // FIXED: was p_variation_id (now array)
           })
         )
       );

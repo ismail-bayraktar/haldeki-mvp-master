@@ -47,12 +47,13 @@ export function useProductPrice(params: {
       }
 
       // Call RPC function
+      // Note: RPC parameters must match migration schema exactly
       const { data, error } = await supabase.rpc('calculate_product_price', {
         p_product_id: productId,
         p_region_id: regionId,
-        p_customer_type: customerType,
-        p_variation_id: variationId || null,
         p_supplier_id: supplierId || null,
+        p_user_role: customerType, // FIXED: was p_customer_type
+        p_variation_ids: variationId ? [variationId] : null, // FIXED: was p_variation_id (now array)
       });
 
       if (error) {
@@ -105,9 +106,9 @@ export function useProductPrices(params: {
           supabase.rpc('calculate_product_price', {
             p_product_id: productId,
             p_region_id: regionId,
-            p_customer_type: customerType,
-            p_variation_id: null,
             p_supplier_id: null,
+            p_user_role: customerType, // FIXED: was p_customer_type
+            p_variation_ids: null, // FIXED: was p_variation_id (now array)
           })
         )
       );
@@ -184,9 +185,9 @@ export function useLowestPriceForCart(params: {
         const { data: priceResult, error } = await supabase.rpc('calculate_product_price', {
           p_product_id: productId,
           p_region_id: regionId,
-          p_customer_type: customerType,
           p_supplier_id: supplier.supplier_id,
-          p_variation_id: null,
+          p_user_role: customerType, // FIXED: was p_customer_type
+          p_variation_ids: null, // FIXED: was p_variation_id (now array)
         });
 
         if (error || !priceResult) {

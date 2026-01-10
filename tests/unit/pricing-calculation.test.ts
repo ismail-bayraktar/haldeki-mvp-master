@@ -30,6 +30,7 @@ import {
   formatCommissionRate,
 } from '@/lib/pricing';
 import type { CustomerType, PriceCalculationResult } from '@/types/pricing';
+import { DEFAULT_COMMISSION_RATES } from '@/types/pricing';
 
 describe('Pricing Calculation - Commission Rates', () => {
   describe('getCommissionRate', () => {
@@ -591,7 +592,7 @@ describe('Pricing Calculation - Display Helpers', () => {
     it('should format price in Turkish Lira', () => {
       const formatted = formatPrice(100);
       expect(formatted).toContain('100');
-      expect(formatted).toContain('TL');
+      expect(formatted).toContain('₺');
     });
 
     it('should format decimal prices', () => {

@@ -70,7 +70,8 @@ export function applyRegionalMultiplier(
   basePrice: number,
   multiplier: number
 ): number {
-  return basePrice * (multiplier || 1.0);
+  const result = basePrice * (multiplier || 1.0);
+  return Math.round(result * 100) / 100;
 }
 
 /**
@@ -368,5 +369,5 @@ export function formatPriceChange(
  * Displays commission rate as percentage
  */
 export function formatCommissionRate(rate: number): string {
-  return `%%${Math.round(rate * 100)}`;
+  return `%${Math.round(rate * 100)}`;
 }
