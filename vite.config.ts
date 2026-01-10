@@ -1,15 +1,68 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
-import path from "path";
+import * as path from "path";
 import { componentTagger } from "lovable-tagger";
+import viteImagemin from "vite-plugin-imagemin";
+
+// Security headers for development and production
+const securityHeaders = {
+  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.unsplash.com https://*.supabase.co https://images.unsplash.com; connect-src 'self' https://*.supabase.co https://api.brevo.com; font-src 'self' data:; object-src 'none'; frame-ancestors 'none';",
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'geolocation=(), microphone=(), camera=(), payment=()',
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Resource-Policy': 'same-origin',
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: securityHeaders,
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  preview: {
+    headers: securityHeaders,
+  },
+  plugins: [
+    react(),
+    mode === "development" && componentTagger(),
+    // Build-time görüntü optimizasyonu - Sadece production'da aktif
+    mode === "production" && viteImagemin({
+      verbose: true, // Sıkıştırma sonuçlarını logla
+      // WebP formatına dönüşüm - Modern tarayıcılar için ideal
+      webp: {
+        quality: 80,
+        method: 6, // Daha iyi sıkıştırma (0-6 arası, 6 en yavaş ama en etkili)
+      },
+      // PNG optimizasyonu
+      optipng: {
+        optimizationLevel: 7, // 0-7 arası, 7 en agresif
+      },
+      // JPEG optimizasyonu
+      mozjpeg: {
+        quality: 80,
+      },
+      // SVG optimizasyonu
+      svgo: {
+        plugins: [
+          {
+            name: "preset-default",
+            params: {
+              overrides: {
+                cleanupNumericValues: {
+                  precision: 2,
+                },
+              },
+            },
+          },
+          "removeDimensions",
+          "removeViewBox",
+        ],
+      },
+    }),
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

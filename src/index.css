@@ -139,7 +139,7 @@
   }
   
   .badge-quality-premium {
-    @apply badge-quality bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200;
+    @apply badge-quality bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 border border-amber-600;
   }
   
   .badge-quality-standard {
@@ -313,5 +313,308 @@
   .superscript-badge:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 5px hsl(var(--primary) / 0.4);
+  }
+
+  /* Animation Utilities */
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--muted) / 0.5) 50%,
+      transparent 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  .animate-float-hover:hover {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out forwards;
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.5s ease-out forwards;
+  }
+
+  .animate-slide-left {
+    animation: slide-left 0.5s ease-out forwards;
+  }
+
+  .animate-slide-right {
+    animation: slide-right 0.5s ease-out forwards;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-3d-flip {
+    animation: flip-3d 0.6s ease-in-out;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out forwards;
+  }
+
+  .animate-scale-out {
+    animation: scale-out 0.3s ease-in forwards;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+
+  @keyframes slide-down {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-left {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-right {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 10px hsl(var(--primary) / 0);
+    }
+  }
+
+  @keyframes flip-3d {
+    0% { transform: rotateY(0); }
+    100% { transform: rotateY(180deg); }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes scale-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+  }
+
+  /* GPU Acceleration Hints */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Performance: Prevent layout thrashing */
+  .animate-transform-only {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  }
+
+  /* Stagger delay utilities */
+  .delay-75 { animation-delay: 75ms; }
+  .delay-100 { animation-delay: 100ms; }
+  .delay-150 { animation-delay: 150ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-250 { animation-delay: 250ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-350 { animation-delay: 350ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-450 { animation-delay: 450ms; }
+  .delay-500 { animation-delay: 500ms; }
+
+  /* 3D Flip Card Utilities */
+  .flip-card-container {
+    perspective: 1000px;
+    overflow: hidden;
+  }
+
+  .flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+  }
+
+  .flip-card-back {
+    transform: rotateY(180deg);
+  }
+
+  .flip-card-inner.flipped {
+    transform: rotateY(180deg);
+  }
+
+  /* Hover flip variant for AutoHoverFlipCard */
+  .flip-card-inner.hover\:flipped:hover {
+    transform: rotateY(180deg);
+  }
+
+  /* Animated Variant Selector Styles */
+  .variant-selector-icon {
+    transition: transform 225ms cubic-bezier(0.4, 0, 0.2, 1),
+                color 150ms ease-out,
+                background-color 150ms ease-out,
+                border-color 150ms ease-out,
+                box-shadow 150ms ease-out;
+  }
+
+  .variant-selector-icon:hover {
+    transform: rotate(90deg) scale(1.1);
+  }
+
+  .variant-selector-icon.open {
+    transform: rotate(90deg);
+  }
+
+  .variant-list-popover {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 300ms cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 300ms cubic-bezier(0.16, 1, 0.3, 1),
+                transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(-8px);
+  }
+
+  .variant-list-popover.open {
+    max-height: 256px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .variant-item-animate {
+    animation: variantSlideIn 250ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .variant-item-animate:nth-child(1) { animation-delay: 0ms; }
+  .variant-item-animate:nth-child(2) { animation-delay: 50ms; }
+  .variant-item-animate:nth-child(3) { animation-delay: 100ms; }
+  .variant-item-animate:nth-child(4) { animation-delay: 150ms; }
+  .variant-item-animate:nth-child(5) { animation-delay: 200ms; }
+  .variant-item-animate:nth-child(6) { animation-delay: 250ms; }
+
+  @keyframes variantSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Upward variant list popover (for AnimatedProductCard) */
+  .variant-list-popover-up {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 300ms cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 300ms cubic-bezier(0.16, 1, 0.3, 1),
+                transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(8px);
+  }
+
+  .variant-list-popover-up.open {
+    max-height: 256px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+
+    .animate-shimmer,
+    .animate-float,
+    .animate-float-hover:hover,
+    .animate-slide-up,
+    .animate-slide-down,
+    .animate-slide-left,
+    .animate-slide-right,
+    .animate-pulse-glow,
+    .animate-3d-flip,
+    .animate-scale-in,
+    .animate-scale-out,
+    .animate-pulse-soft,
+    .animate-bounce-soft,
+    .animate-marquee-vertical,
+    .variant-selector-icon,
+    .variant-list-popover,
+    .variant-list-popover-up,
+    .variant-item-animate {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    .gpu-accelerated {
+      transform: none;
+      will-change: auto;
+    }
+
+    .flip-card-inner {
+      transition: none !important;
+    }
+
+    .variant-selector-icon:hover {
+      transform: none;
+    }
   }
 }

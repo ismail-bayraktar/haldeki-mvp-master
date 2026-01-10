@@ -7,10 +7,19 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const securityHeaders = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: { ...corsHeaders, ...securityHeaders } });
   }
 
   try {
@@ -24,13 +33,13 @@ serve(async (req) => {
     
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Authorization header missing",
           details: "Please ensure you are logged in and have a valid session"
         }),
         {
           status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -55,7 +64,7 @@ serve(async (req) => {
         JSON.stringify({ error: "Authorization token missing" }),
         {
           status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -68,13 +77,13 @@ serve(async (req) => {
     if (userError) {
       console.error("Auth error:", userError);
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Unauthorized",
-          details: userError.message 
+          details: userError.message
         }),
         {
           status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -84,7 +93,7 @@ serve(async (req) => {
         JSON.stringify({ error: "User not found" }),
         {
           status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -99,13 +108,13 @@ serve(async (req) => {
     if (rolesError) {
       console.error("Roles query error:", rolesError);
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Failed to check user roles",
-          details: rolesError.message 
+          details: rolesError.message
         }),
         {
           status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -113,13 +122,13 @@ serve(async (req) => {
     if (!roles || roles.length === 0) {
       console.error(`User ${user.id} (${user.email}) does not have admin role`);
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Admin access required",
           details: "User does not have admin or superadmin role"
         }),
         {
           status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -144,7 +153,7 @@ serve(async (req) => {
         JSON.stringify({ error: "Missing required fields" }),
         {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -154,7 +163,7 @@ serve(async (req) => {
         JSON.stringify({ error: "Invalid role" }),
         {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -200,7 +209,7 @@ serve(async (req) => {
         JSON.stringify({ error: "User already exists" }),
         {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -223,7 +232,7 @@ serve(async (req) => {
         JSON.stringify({ error: createError.message }),
         {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -233,7 +242,7 @@ serve(async (req) => {
         JSON.stringify({ error: "User creation failed" }),
         {
           status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -318,7 +327,7 @@ serve(async (req) => {
       }),
       {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
       }
     );
   } catch (error) {
@@ -329,7 +338,7 @@ serve(async (req) => {
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
       }
     );
   }

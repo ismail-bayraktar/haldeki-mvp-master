@@ -8,8 +8,9 @@
 -- 1. DROP OLD FUNCTIONS (Security fix için recreate)
 -- ----------------------------------------------------------------------------
 
-DROP FUNCTION IF EXISTS get_supplier_product_catalog(UUID, INT, INT, TEXT, TEXT, BOOLEAN);
-DROP FUNCTION IF EXISTS upsert_supplier_product_price(UUID, UUID, NUMERIC, INTEGER, public.availability_status, INTEGER, INTEGER, TEXT, public.quality_grade);
+-- Not: Parametre tiplerini DROP için belirtmemize gerek yok, fonksiyon adı yeterli
+DROP FUNCTION IF EXISTS public.get_supplier_product_catalog CASCADE;
+DROP FUNCTION IF EXISTS public.upsert_supplier_product_price CASCADE;
 
 -- ----------------------------------------------------------------------------
 -- 2. SECURE VERSION: get_supplier_product_catalog

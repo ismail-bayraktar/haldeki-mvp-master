@@ -28,6 +28,7 @@ const BayiKayit = lazy(() => import("./pages/BayiKayit"));
 const TedarikciKayit = lazy(() => import("./pages/TedarikciKayit"));
 const BusinessRegistration = lazy(() => import("./pages/BusinessRegistration"));
 const Beklemede = lazy(() => import("./pages/Beklemede"));
+const Playground = lazy(() => import("./pages/Playground"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Protected routes
@@ -110,6 +111,7 @@ const App = ({ queryClient: providedQueryClient }: AppProps) => (
                       <Route path="/tedarikci-kayit" element={<TedarikciKayit />} />
                       <Route path="/isletme-kayit" element={<BusinessRegistration />} />
                       <Route path="/beklemede" element={<Beklemede />} />
+                      <Route path="/playground" element={<Playground />} />
 
                       {/* Protected routes - Auth required */}
                       <Route

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Plus, Minus, Heart, Leaf, Award, GitCompare, Ban, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { Product, ProductVariant, RegionPriceInfo } from "@/types";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -18,9 +19,10 @@ interface ProductCardProps {
   product: Product;
   regionInfo?: RegionPriceInfo | null;
   variant?: "default" | "bugunHalde";
+  priority?: boolean; // İlk 4 ürün için eager loading
 }
 
-const ProductCard = memo(({ product, regionInfo, variant = "default" }: ProductCardProps) => {
+const ProductCard = memo(({ product, regionInfo, variant = "default", priority = false }: ProductCardProps) => {
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { isInCompare, addToCompare, removeFromCompare } = useCompare();
@@ -165,15 +167,14 @@ const ProductCard = memo(({ product, regionInfo, variant = "default" }: ProductC
     >
       <Link to={`/urun/${product.slug}`} className="block" data-testid={`product-link-${product.id}`}>
         <div className="relative aspect-square overflow-hidden bg-secondary/30">
-          <img
+          <OptimizedImage
             src={product.images?.[0] || '/placeholder.svg'}
             alt={product.name}
-            loading="lazy"
-            decoding="async"
-            width="400"
-            height="400"
+            width={400}
+            height={400}
+            priority={priority}
             className={cn(
-              "w-full h-full object-cover transition-transform duration-500",
+              "transition-transform duration-500",
               canAddToCart && "group-hover:scale-105"
             )}
           />

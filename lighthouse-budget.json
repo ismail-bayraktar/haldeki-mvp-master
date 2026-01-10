@@ -1,0 +1,36 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "npm run preview",
+      "url": [
+        "http://localhost:8080/playground"
+      ],
+      "numberOfRuns": 3
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    },
+    "assert": {
+      "preset": "lighthouse:recommended",
+      "assertions": {
+        "categories:performance": ["error", { "minScore": 0.9 }],
+        "categories:accessibility": ["error", { "minScore": 1 }],
+        "categories:best-practices": ["warn", { "minScore": 0.9 }],
+        "categories:seo": ["warn", { "minScore": 0.9 }],
+        "categories:pwa": ["off"],
+        "first-contentful-paint": ["error", { "maxNumericValue": 1500 }],
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
+        "total-blocking-time": ["warn", { "maxNumericValue": 300 }],
+        "speed-index": ["warn", { "maxNumericValue": 3400 }],
+        "color-contrast": ["error", { "maxLength": 0 }],
+        "image-alt": ["error", { "maxLength": 0 }],
+        "link-name": ["error", { "maxLength": 0 }],
+        "button-name": ["error", { "maxLength": 0 }],
+        "bypass": ["warn", { "maxLength": 0 }],
+        "label": ["error", { "maxLength": 0 }],
+        "aria-valid-attr": ["error", { "maxLength": 0 }]
+      }
+    }
+  }
+}

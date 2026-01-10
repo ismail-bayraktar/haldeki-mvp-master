@@ -12,6 +12,15 @@ const getCorsHeaders = (origin: string | null): Record<string, string> => {
   };
 };
 
+const securityHeaders = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+};
+
 
 interface EmailRequest {
   to: string;
@@ -841,10 +850,10 @@ const getEmailTemplate = (type: string, data: Record<string, any>) => {
 const handler = async (req: Request): Promise<Response> => {
   const origin = req.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
-  
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: { ...corsHeaders, ...securityHeaders } });
   }
 
   try {
@@ -909,7 +918,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ success: true, messageId: result.messageId }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders },
       }
     );
   } catch (error: any) {
@@ -918,7 +927,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ error: error.message }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders },
       }
     );
   }

@@ -8,6 +8,15 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const securityHeaders = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+};
+
 const TEST_USERS = [
   // 1. SUPERADMIN
   {
@@ -132,7 +141,7 @@ serve(async (req) => {
   if (req.method !== "POST") {
     return new Response(
       JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
+      { status: 405, headers: { ...securityHeaders, "Content-Type": "application/json" } }
     );
   }
 
@@ -143,7 +152,7 @@ serve(async (req) => {
   if (!authHeader || !authHeader.includes("Bearer ")) {
     return new Response(
       JSON.stringify({ error: "Missing authorization header" }),
-      { status: 401, headers: { "Content-Type": "application/json" } }
+      { status: 401, headers: { ...securityHeaders, "Content-Type": "application/json" } }
     );
   }
 
@@ -151,7 +160,7 @@ serve(async (req) => {
   if (token !== serviceRoleKey) {
     return new Response(
       JSON.stringify({ error: "Unauthorized: Service role required" }),
-      { status: 403, headers: { "Content-Type": "application/json" } }
+      { status: 403, headers: { ...securityHeaders, "Content-Type": "application/json" } }
     );
   }
 
@@ -239,7 +248,7 @@ serve(async (req) => {
         results,
         message: "Auth users created successfully. Run the migration again to link them to profiles and roles.",
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { ...securityHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     return new Response(
@@ -247,7 +256,7 @@ serve(async (req) => {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { ...securityHeaders, "Content-Type": "application/json" } }
     );
   }
 });

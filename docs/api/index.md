@@ -119,6 +119,15 @@ It includes interactive demos for props and usage examples.
 
 TokenShowcase - Displays all design system tokens
 Colors, typography, spacing, shadows, etc.
+## components\playground\variations\BasicProductCard.tsx
+
+```typescript
+// Path: components\playground\variations\BasicProductCard.tsx
+```
+
+BasicProductCard - A simple wrapper around ProductCard
+This component provides a minimal product card by delegating all
+rendering to the standard ProductCard component with inline variant buttons.
 ## components\region\RegionBanner.tsx
 
 ```typescript
@@ -144,6 +153,24 @@ Kritik aksiyonlarda gösterilen zorunlu bölge seçim modal'ı
 ```
 
 Page header component for mobile pages
+## components\ui\OptimizedImage.tsx
+
+```typescript
+// Path: components\ui\OptimizedImage.tsx
+```
+
+OptimizedImage Bileşeni
+Özellikler:
+- Otomatik lazy/eager stratejisi (priority prop'a göre)
+- WebP/AVIF desteği (tarayıcı desteği kontrolü)
+- Progressive loading (blur placeholder)
+- Intersection Observer ile lazy loading
+- Erişilebilirlik (ARIA labels)
+Best Practices:
+- İlk 4 ürün: eager
+- Hero bölümü: eager + high priority
+- Fold altı: lazy
+- Thumbnail'ler: lazy
 ## hooks\useBugunHalde.ts
 
 ```typescript
@@ -172,7 +199,7 @@ Get supplier ID from user
 // Path: hooks\useImageUpload.ts
 ```
 
-Validate image file before upload
+Edge Function çağrısı: Görsel optimizasyonunu tetikler
 ## hooks\useIsAdmin.ts
 
 ```typescript
@@ -583,4 +610,4 @@ SECURITY NOTICE:
 
 ---
 
-**Son güncelleme:** 2026-01-10T16:02:50.376Z
+**Son güncelleme:** 2026-01-10T18:43:22.933Z

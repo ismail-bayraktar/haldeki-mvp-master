@@ -254,11 +254,12 @@ const Products = () => {
               </div>
             ) : filteredProducts.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredProducts.map((product) => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product} 
+                {filteredProducts.map((product, index) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
                     regionInfo={product.regionInfo}
+                    priority={index < 4} // İlk 4 ürün eager loading
                   />
                 ))}
               </div>

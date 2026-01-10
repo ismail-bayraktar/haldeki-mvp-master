@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo, memo, useEffect } from "react";
 import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import {
   Carousel,
   CarouselContent,
@@ -19,7 +20,7 @@ const ProductImageGallery = memo(({ images, productName }: ProductImageGalleryPr
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
   const [api, setApi] = useState<CarouselApi>();
-  const imageRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Handle carousel slide changes
   const onSelect = useCallback(() => {
@@ -87,6 +88,7 @@ const ProductImageGallery = memo(({ images, productName }: ProductImageGalleryPr
           {displayImages.map((image, index) => (
             <CarouselItem key={index}>
               <div
+                ref={index === currentIndex ? containerRef : null}
                 className={cn(
                   "relative aspect-square rounded-2xl overflow-hidden bg-secondary/30 cursor-zoom-in",
                   isZoomed && "cursor-move"
@@ -95,19 +97,16 @@ const ProductImageGallery = memo(({ images, productName }: ProductImageGalleryPr
                 onMouseMove={handleMouseMove}
                 onTouchMove={handleTouchMove}
               >
-                <img
-                  ref={index === currentIndex ? imageRef : null}
+                <OptimizedImage
                   src={image}
                   alt={`${productName} - ${index + 1}`}
-                  loading="eager"
-                  decoding="async"
-                  width="600"
-                  height="600"
-                  className={cn(
-                    "w-full h-full object-cover transition-transform duration-300",
-                    isZoomed && "scale-[2.5]"
-                  )}
+                  width={600}
+                  height={600}
+                  priority={index === 0} // İlk görsel eager
+                  loading={index === 0 ? "eager" : "lazy"}
+                  fetchPriority={index === 0 ? "high" : "auto"}
                   style={isZoomed ? {
+                    transform: `scale(2.5)`,
                     transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
                   } : undefined}
                   draggable={false}
@@ -162,19 +161,17 @@ const ProductImageGallery = memo(({ images, productName }: ProductImageGalleryPr
               onClick={() => api?.scrollTo(index)}
               className={cn(
                 "w-14 h-14 rounded-lg overflow-hidden border-2 transition-all",
-                index === currentIndex 
-                  ? "border-primary shadow-md" 
+                index === currentIndex
+                  ? "border-primary shadow-md"
                   : "border-transparent opacity-60 hover:opacity-100"
               )}
             >
-              <img
+              <OptimizedImage
                 src={image}
                 alt={`Thumbnail ${index + 1}`}
-                loading="lazy"
-                decoding="async"
-                width="56"
-                height="56"
-                className="w-full h-full object-cover"
+                width={56}
+                height={56}
+                priority={false} // Thumbnail'ler lazy
               />
             </button>
           ))}

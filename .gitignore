@@ -57,3 +57,4 @@ playwright/.cache/
 # Production credentials (NEVER COMMIT)
 docs/development/SUPERADMIN-CREDENTIALS.md
 docs/BETA-TESTING-GUIDE.md
+nul

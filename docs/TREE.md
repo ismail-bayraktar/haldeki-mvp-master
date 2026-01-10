@@ -184,24 +184,37 @@ docs/
 │   └── index.md
 ├── deployment/
 │   └── BETA_SECURITY_CHECKLIST.md
+├── faz-1/
+│   ├── FAZ-1.1-recharts-lazy-load.md
+│   ├── FAZ-1.2-image-optimization.md
+│   ├── FAZ-1.2-performance-report.md
+│   └── lighthouse-report.json
 ├── DOKUMAN_STANDARTLAMA_RAPORU.md
 ├── dokuman-migrasyon-plani.md
 ├── DOKUMASYON_YAPILANDIRMA_PLAN.md
+├── faz-1-2-phase-2-delivery.md
+├── faz-1-2-phase-2-quick-test.md
 ├── INDEKS-GUNCEL.md
 ├── INDEKS.md
 ├── INDEX.md
 ├── MIGRATION_COMPLETE_REPORT.md
 ├── MIGRATION_SUMMARY.md
+├── MVP-ROADMAP.md
 ├── PASSWORD_RESET_GUIDE.md
 ├── PLAN.md
 ├── PLAYGROUND-TEST-DELIVERY.md
 ├── PLAYGROUND-TESTING-SETUP.md
 ├── README.md
 ├── ROADMAP.md
+├── SECURITY-TEST-REPORT.md
+├── SECURITY-TESTING-GUIDE.md
+├── SUPABASE-MIGRATION-TROUBLESHOOTING.md
+├── SUPABASE-SQL-DEPLOYMENT-GUIDE.md
+├── SUPABASE-SQL-QUICK-REFERENCE.md
 ├── supplier-catalog-optimization.md
 ├── TEMPLATE.md
 ├── TESTING-STRATEGY.md
 └── TREE.md
 ```
 
-**Son güncelleme:** 2026-01-10T16:02:50.387Z
+**Son güncelleme:** 2026-01-10T18:43:22.950Z

@@ -1,4 +1,5 @@
 // Image Upload Hook for Suppliers (Phase 9)
+// FAZ 1.2 - Phase 2: Edge Function entegrasyonu eklendi
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +11,54 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const COMPRESSED_MAX_SIZE = 1024 * 1024; // 1MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_IMAGES_PER_PRODUCT = 5;
+
+/**
+ * Edge Function çağrısı: Görsel optimizasyonunu tetikler
+ * @param filePath - Görselin storage'daki yolu
+ * @param bucketId - Bucket ID (varsayılan: product-images)
+ */
+async function triggerImageOptimization(
+  filePath: string,
+  bucketId: string = 'product-images'
+): Promise<void> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      console.warn('Oturum açık değil, optimizasyon atlanıyor');
+      return;
+    }
+
+    // Edge Function URL'sini al
+    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/optimize-image`;
+
+    // Asenkron olarak optimizasyonu tetikle (kullanıcıyı bekleme)
+    fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        bucketId,
+        path: filePath,
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          console.log('Görsel optimizasyonu tetiklendi:', filePath);
+        } else {
+          console.warn('Optimizasyon tetiklenemedi:', response.status);
+        }
+      })
+      .catch((error) => {
+        // Hata durumunda kullanıcıyı rahatsız etme, sadece logla
+        console.warn('Optimizasyon hatası (görünmez):', error);
+      });
+  } catch (error) {
+    console.warn('Optimizasyon tetikleme hatası:', error);
+  }
+}
 
 /**
  * Validate image file before upload
@@ -180,6 +229,10 @@ export function useImageUpload() {
 
         const publicUrl = publicUrlData.publicUrl;
 
+        // FAZ 1.2: Edge Function ile optimizasyonu tetikle
+        // Kullanıcıyı beklemeden arka planda çalışır
+        triggerImageOptimization(filePath, 'product-images');
+
         // Update progress to complete
         setUploads((prev) =>
           prev.map((u) =>
@@ -243,33 +296,41 @@ export function useImageUpload() {
   );
 
   /**
-   * Delete image from storage
+   * Delete image from storage with server-side authorization check
+   * Güvenlik: Silme işlemi server-side RPC fonksiyonu ile doğrulanır
    */
   const deleteImage = useCallback(async (imageUrl: string): Promise<boolean> => {
     if (!user?.id) return false;
 
     try {
-      // Extract file path from URL
+      // URL'den dosya yolunu çıkar
       const url = new URL(imageUrl);
       const pathMatch = url.pathname.match(/\/product-images\/(.+)$/);
       if (!pathMatch) {
-        throw new Error('Invalid image URL');
+        throw new Error('Geçersiz görsel URL\'si');
       }
       const filePath = pathMatch[1];
 
-      // Verify file belongs to supplier
-      if (!filePath.startsWith(user.id)) {
-        throw new Error('Unauthorized');
+      // SERVER-SIDE: Yetki kontrolü ve silme işlemi RPC ile yapılır
+      // Bu, client-side manipülasyonunu önler
+      const { data, error } = await supabase.rpc('delete_supplier_image', {
+        image_path: filePath,
+        user_id: user.id
+      });
+
+      if (error) {
+        // Spesifik hata mesajları
+        if (error.message.includes('Unauthorized') || error.message.includes('yetki')) {
+          throw new Error('Bu görseli silme yetkiniz yok');
+        }
+        if (error.message.includes('not found') || error.message.includes('bulunamadı')) {
+          throw new Error('Görsel bulunamadı');
+        }
+        throw error;
       }
 
-      const { error } = await supabase.storage
-        .from('product-images')
-        .remove([filePath]);
-
-      if (error) throw error;
-
       toast.success('Görsel silindi');
-      return true;
+      return data === true;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Bilinmeyen hata';
       toast.error('Görsel silinirken hata: ' + message);
