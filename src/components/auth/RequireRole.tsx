@@ -50,6 +50,11 @@ const RequireRole = ({
   // SuperAdmin bypass: allow access to all routes for audit/management
   const isSuperAdmin = hasRole('superadmin');
 
+  // Redirect SuperAdmin from supplier routes to admin panel
+  if (isSuperAdmin && location.pathname.startsWith('/tedarikci')) {
+    return <Navigate to="/admin/suppliers" replace />;
+  }
+
   if (!hasAccess && !isSuperAdmin) {
     // Log failed access attempt for debugging
     console.warn('[AUTH] Access denied', {
