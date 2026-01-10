@@ -30,6 +30,11 @@ temp_env.txt
 *_GUIDE.md
 *_ANALYSIS.md
 
+# Archived documentation (.eski folder)
+.eski/
+# Note: Files already in .eski/ are preserved in git history
+# But new files added to .eski/ will be ignored
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
