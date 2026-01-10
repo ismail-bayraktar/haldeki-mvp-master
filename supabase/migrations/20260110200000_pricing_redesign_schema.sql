@@ -54,14 +54,18 @@ CREATE TABLE IF NOT EXISTS public.pricing_config (
   -- Timestamps
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_by UUID REFERENCES auth.users(id),
-
-  -- Constraints: Only one active config at a time
-  CONSTRAINT pricing_config_active_unique UNIQUE (is_active) WHERE is_active = true
+  created_by UUID REFERENCES auth.users(id)
 );
 
+-- Partial unique index: Only one active config at a time
+CREATE UNIQUE INDEX pricing_config_active_unique
+  ON public.pricing_config(is_active)
+  WHERE is_active = true;
+
 -- Index for quick config lookup
-CREATE INDEX idx_pricing_config_active ON public.pricing_config(is_active) WHERE is_active = true;
+CREATE INDEX idx_pricing_config_active
+  ON public.pricing_config(is_active)
+  WHERE is_active = true;
 
 -- Trigger to update updated_at
 CREATE TRIGGER pricing_config_updated_at
