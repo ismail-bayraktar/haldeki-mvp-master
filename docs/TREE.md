@@ -16,6 +16,7 @@ docs/
 ├── 03-mimari/
 │   ├── api/
 │   │   ├── index.md
+│   │   ├── otomatik-index.md
 │   │   └── README.md
 │   ├── genel-bakis.md
 │   ├── README.md
@@ -198,4 +199,4 @@ docs/
 └── TREE.md
 ```
 
-**Son güncelleme:** 2026-01-10T14:23:45.187Z
+**Son güncelleme:** 2026-01-10T14:25:35.979Z
