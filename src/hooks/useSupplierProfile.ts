@@ -37,16 +37,36 @@ export const useSupplierProfile = (): UseSupplierProfileReturn => {
     setError(null);
 
     try {
-      // Fetch supplier record for current user
-      const { data: supplierData, error: supplierError } = await supabase
-        .from('suppliers')
-        .select('*')
+      // Check if user is SuperAdmin - they can view/manage all suppliers
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
         .eq('user_id', user.id)
+        .eq('role', 'superadmin')
         .single();
+
+      const isSuperAdmin = !!roles;
+
+      // Fetch supplier record - for SuperAdmin, get first active supplier
+      let query = supabase.from('suppliers').select('*');
+
+      if (isSuperAdmin) {
+        // SuperAdmin: Get any active supplier (for dashboard access)
+        query = query.eq('is_active', true).limit(1).single();
+      } else {
+        // Regular supplier: Get own record
+        query = query.eq('user_id', user.id).single();
+      }
+
+      const { data: supplierData, error: supplierError } = await query;
 
       if (supplierError) {
         if (supplierError.code === 'PGRST116') {
-          setError('Tedarikçi kaydı bulunamadı. Lütfen yöneticinize başvurun.');
+          if (isSuperAdmin) {
+            setError('Sistemde aktif tedarikçi kaydı bulunamadı. Önce bir tedarikçi oluşturun.');
+          } else {
+            setError('Tedarikçi kaydı bulunamadı. Lütfen yöneticinize başvurun.');
+          }
         } else {
           throw supplierError;
         }
