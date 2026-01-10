@@ -2,6 +2,20 @@
 
 ```
 docs/
+├── 01-baslangic/
+│   ├── kurulum.md
+│   ├── projeye-giris.md
+│   ├── README.md
+│   └── test-hesaplar.md
+├── 02-kullanim-kilavuzlari/
+│   └── README.md
+├── 03-mimari/
+│   ├── genel-bakis.md
+│   └── README.md
+├── 04-is-mantigi/
+│   └── README.md
+├── 05-fazlar/
+│   └── README.md
 ├── 06-ai/
 │   ├── agents/
 │   │   ├── 01_IS_MANTIGI_KILAVUZU_AI.md
@@ -39,6 +53,27 @@ docs/
 │   │   ├── 30_TECH_SPECS_TO_TASKS.md
 │   │   └── 40_RELEASE_READINESS.md
 │   └── START_HERE.md
+├── 06-gelistirme/
+│   └── README.md
+├── 07-test/
+│   └── README.md
+├── 08-deployment/
+│   └── README.md
+├── 09-raporlar/
+│   ├── 2026-01/
+│   │   ├── audits/
+
+│   │   ├── daily/
+
+│   │   └── weekly/
+
+│   └── README.md
+├── 10-bakim/
+│   └── README.md
+├── 11-teknik/
+│   └── README.md
+├── 12-referanslar/
+│   └── README.md
 ├── analysis/
 
 ├── api/
@@ -152,15 +187,19 @@ docs/
 ├── DEPLOYMENT_SUMMARY.md
 ├── deployment-checklist.md
 ├── DOCUMENTATION_UPDATE_SUMMARY.md
+├── DOKUMASYON_YAPILANDIRMA_PLAN.md
 ├── FAVICON_FIX_SUMMARY.md
 ├── FAVICON_SETUP.md
 ├── GEO_STRATEGY.md
 ├── haldeki_master_plan.md
 ├── IMMEDIATE_ACTION_GUIDE.md
+├── INDEKS.md
 ├── INDEX.md
 ├── kendiyorumlar.md
 ├── MIGRATION_EXECUTION_GUIDE.md
+├── MIGRATION_PLAN.md
 ├── MIGRATION_QUICK_START.md
+├── MIGRATION_README.md
 ├── PASSWORD_RESET_GUIDE.md
 ├── PASSWORD_RESET_REPORT.md
 ├── PASSWORD_RESET_USER_GUIDE.md
@@ -193,6 +232,7 @@ docs/
 ├── TEDARIKCI_YASAM_DONGUSU_2026-01-09.md
 ├── tedarikci-paneli-toplam-urun-siparisi.png
 ├── TEDIKCI_ROUTE_ACCESS_FIX_2026-01-09.md
+├── TEMPLATE.md
 ├── TEST_ACCOUNTS_CLEAN.md
 ├── TEST_ACCOUNTS.md
 ├── TEST_BULGULARI_PHASE12.md
@@ -201,4 +241,4 @@ docs/
 └── UPDATE-TEST-ACCOUNTS.md
 ```
 
-**Son güncelleme:** 2026-01-10T10:56:11.992Z
+**Son güncelleme:** 2026-01-10T14:00:30.767Z
