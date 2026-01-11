@@ -53,31 +53,39 @@ export interface PriceCalculationInput {
 /**
  * Fiyat hesaplama sonucu
  * Price calculation result
+ *
+ * Matches the RPC function return type from calculate_product_price
  */
 export interface PriceCalculationResult {
+  // Product info
+  product_id: string;
+  product_name: string;
+  supplier_id: string;
+  supplier_name: string;
+  region_id: string | null;
+  region_name: string | null;
+
   // Base pricing
   supplier_price: number;           // Tedarikçinin baz fiyatı
   regional_multiplier: number;      // Bölgesel çarpan (default: 1.0)
   variation_adjustment: number;     // Varyasyon fiyat farkı
-
-  // Calculated prices
-  base_price: number;               // supplier_price * regional_multiplier + variation_adjustment
   commission_rate: number;          // Komisyon oranı (b2b veya b2c)
-  commission_amount: number;        // Komisyon tutarı
-  final_price: number;              // base_price + commission_amount
 
-  // Supplier info
-  supplier_id: string;
-  supplier_name: string;
-  supplier_product_id: string;
-
-  // Availability
-  stock_quantity: number;
-  availability: 'plenty' | 'limited' | 'last';
+  // Final prices
+  b2b_price: number;                // B2B final price
+  b2c_price: number;                // B2C final price
+  final_price: number;              // Price based on user role
 
   // Metadata
-  is_available: boolean;
-  min_order_quantity: number;
+  price_calculation_mode: string;
+  regional_pricing_mode: string;
+  calculated_at: string;
+
+  // Availability
+  availability: 'plenty' | 'limited' | 'last';
+  stock_quantity: number;
+  is_featured: boolean;
+  price_rank: number;
 }
 
 /**

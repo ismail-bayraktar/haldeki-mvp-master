@@ -239,4 +239,4 @@ docs/
 └── TREE.md
 ```
 
-**Son güncelleme:** 2026-01-11T01:27:14.720Z
+**Son güncelleme:** 2026-01-11T01:27:20.551Z

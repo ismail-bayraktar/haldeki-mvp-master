@@ -9,7 +9,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { CartPriceCalculationResult } from '@/types/pricing';
+import type { PriceCalculationResult, CartPriceCalculationResult } from '@/types/pricing';
 
 export interface CartItemInput {
   productId: string;

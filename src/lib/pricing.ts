@@ -163,7 +163,9 @@ export function calculateCustomerPriceClientSide(input: {
  */
 export function createPriceCalculationResultClientSide(input: {
   productId: string;
+  productName: string;
   regionId: string | null;
+  regionName: string | null;
   customerType: CustomerType;
   supplierProduct: {
     id: string;
@@ -172,7 +174,7 @@ export function createPriceCalculationResultClientSide(input: {
     price: number;
     stock_quantity: number;
     availability: 'plenty' | 'limited' | 'last';
-    min_order_quantity: number;
+    is_featured?: boolean;
   };
   regionalMultiplier?: number;
   variationAdjustments?: number[];
@@ -180,7 +182,9 @@ export function createPriceCalculationResultClientSide(input: {
 }): PriceCalculationResult {
   const {
     productId,
+    productName,
     regionId,
+    regionName,
     customerType,
     supplierProduct,
     regionalMultiplier = 1.0,
@@ -192,24 +196,44 @@ export function createPriceCalculationResultClientSide(input: {
   const afterRegional = applyRegionalMultiplier(supplierProduct.price, regionalMultiplier);
   const basePrice = applyVariationAdjustment(afterRegional, totalVariationAdjustment);
   const commissionRate = getCommissionRate(customerType, customRates);
-  const commissionAmount = calculateCommission(basePrice, customerType, customRates);
-  const finalPrice = basePrice + commissionAmount;
+  const finalPrice = calculatePriceWithCommission(basePrice, customerType, customRates);
+
+  // Calculate both B2B and B2C prices
+  const b2bRate = getCommissionRate('b2b', customRates);
+  const b2cRate = getCommissionRate('b2c', customRates);
+  const b2bPrice = calculatePriceWithCommission(basePrice, 'b2b', customRates);
+  const b2cPrice = calculatePriceWithCommission(basePrice, 'b2c', customRates);
 
   return {
+    // Product info
+    product_id: productId,
+    product_name: productName,
+    supplier_id: supplierProduct.supplier_id,
+    supplier_name: supplierProduct.supplier_name,
+    region_id: regionId,
+    region_name: regionName,
+
+    // Base pricing
     supplier_price: supplierProduct.price,
     regional_multiplier: regionalMultiplier,
     variation_adjustment: totalVariationAdjustment,
-    base_price: Math.round(basePrice * 100) / 100,
     commission_rate: commissionRate,
-    commission_amount: Math.round(commissionAmount * 100) / 100,
+
+    // Final prices
+    b2b_price: Math.round(b2bPrice * 100) / 100,
+    b2c_price: Math.round(b2cPrice * 100) / 100,
     final_price: Math.round(finalPrice * 100) / 100,
-    supplier_id: supplierProduct.supplier_id,
-    supplier_name: supplierProduct.supplier_name,
-    supplier_product_id: supplierProduct.id,
-    stock_quantity: supplierProduct.stock_quantity,
+
+    // Metadata
+    price_calculation_mode: 'markup',
+    regional_pricing_mode: 'multiplier',
+    calculated_at: new Date().toISOString(),
+
+    // Availability
     availability: supplierProduct.availability,
-    is_available: supplierProduct.stock_quantity > 0,
-    min_order_quantity: supplierProduct.min_order_quantity,
+    stock_quantity: supplierProduct.stock_quantity,
+    is_featured: supplierProduct.is_featured ?? false,
+    price_rank: 1,
   };
 }
 
