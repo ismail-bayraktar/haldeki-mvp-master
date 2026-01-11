@@ -1,5 +1,5 @@
-# Haldeki Market - Simple Pricing Migration
-# Best Practice: Minimal, tested SQL that works
+-- Haldeki Market - Simple Pricing Migration
+-- Best Practice: Minimal, tested SQL that works
 
 -- ============================================================================
 -- STEP 1: Create pricing_config table (Commission rates)
