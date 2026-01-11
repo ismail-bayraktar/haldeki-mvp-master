@@ -178,6 +178,16 @@ Best Practices:
 ```
 
 Hook: Get Bugün Halde comparison view with filters
+## hooks\useCartPrices.ts
+
+```typescript
+// Path: hooks\useCartPrices.ts
+```
+
+Cart Prices Hook (New Pricing System)
+Yeni pricing sistemi için sepet fiyat hesaplama hook'u.
+Cart price calculation hook for the new pricing system.
+Uses calculate_cart_prices RPC function for accurate pricing.
 ## hooks\useCartValidation.ts
 
 ```typescript
@@ -216,10 +226,10 @@ Basit admin yetki kontrolü
 ```
 
 Hook: Get lowest price for cart operations
-Phase 12 Cart Context Migration - Task 1.2
+Updated for New Pricing System Redesign
 Finds the best price across:
-1. Supplier products (if available)
-2. Region products (fallback)
+1. Supplier products (if available) - NEW: Uses calculate_product_price RPC
+2. Region products (fallback) - LEGACY: Backward compatible
 Returns supplier info to pass to addToCart for tracking
 ## hooks\useMultiSupplierProducts.ts
 
@@ -238,6 +248,15 @@ Picking List Hook
 Phase 11 - Warehouse MVP
 RPC çağrır: warehouse_get_picking_list(p_window_start, p_window_end)
 Aggregated ürün listesi (FIYAT YOK)
+## hooks\usePricingConfig.ts
+
+```typescript
+// Path: hooks\usePricingConfig.ts
+```
+
+Pricing Configuration Hook
+Manages pricing_config table operations for admin users.
+Hook for fetching and updating commission rates and pricing modes.
 ## hooks\useProductExport.ts
 
 ```typescript
@@ -256,6 +275,16 @@ Handles exporting products to Excel or CSV format
 Product Import Hook
 Phase 10.2 - Import Logic
 Handles product import operations with validation and error tracking
+## hooks\useProductPrice.ts
+
+```typescript
+// Path: hooks\useProductPrice.ts
+```
+
+Product Price Hook (New Pricing System)
+Yeni pricing sistemi için ürün fiyatı sorgulama hook'u.
+Product price query hook for the new pricing system.
+Uses calculate_product_price RPC function for accurate pricing.
 ## hooks\useProducts.ts
 
 ```typescript
@@ -421,6 +450,16 @@ Normalization steps:
 2. Remove Turkish country code (90 or +90)
 3. Remove leading zero (0)
 4. Validate length (must be exactly 10 digits)
+## lib\pricing.ts
+
+```typescript
+// Path: lib\pricing.ts
+```
+
+Fiyat Hesaplama Utilitesi
+Price Calculation Utility
+Yeni pricing sistemi için fiyat hesaplama fonksiyonları.
+Price calculation functions for the new pricing system.
 ## lib\productUtils.ts
 
 ```typescript
@@ -449,6 +488,16 @@ Validates product data from import files
 
 Base product validation schema
 Used across all product forms (supplier, admin)
+## lib\supabase\queries.ts
+
+```typescript
+// Path: lib\supabase\queries.ts
+```
+
+Supabase Queries - New Pricing System
+Yeni pricing sistemi için Supabase sorguları.
+Supabase queries for the new pricing system.
+Uses calculate_product_price RPC function as the single source of truth.
 ## lib\timeWindow.ts
 
 ```typescript
@@ -572,6 +621,16 @@ Supports:
 - Structured product variations (size, type, scent, etc.)
 - Price comparison across suppliers
 - Supplier-specific inventory and pricing
+## types\pricing.ts
+
+```typescript
+// Path: types\pricing.ts
+```
+
+Yeni Fiyatlandırma Sistemi Tipleri
+New Pricing System Types
+Tek kaynaklı fiyatlandırma sistemi için tip tanımları.
+Single source of truth pricing system types.
 ## types\supplier-catalog.types.ts
 
 ```typescript
@@ -610,4 +669,4 @@ SECURITY NOTICE:
 
 ---
 
-**Son güncelleme:** 2026-01-10T19:40:31.705Z
+**Son güncelleme:** 2026-01-11T01:27:14.706Z

@@ -258,8 +258,7 @@ const Products = () => {
                   <ProductCard
                     key={product.id}
                     product={product}
-                    regionInfo={product.regionInfo}
-                    priority={index < 4} // İlk 4 ürün eager loading
+                    priority={index < 4}
                   />
                 ))}
               </div>

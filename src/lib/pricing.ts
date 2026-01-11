@@ -13,8 +13,8 @@ import type {
   PriceCalculationResult,
   CartPriceCalculationResult,
   RegionalPricingConfig,
-  DEFAULT_COMMISSION_RATES,
 } from '@/types/pricing';
+import { DEFAULT_COMMISSION_RATES } from '@/types/pricing';
 
 // ============================================================================
 // COMMISSION HELPERS

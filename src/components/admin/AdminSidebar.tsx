@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingCart, Users, Settings, Package, MapPin, ChevronLeft, Store, Truck, FileText, Building2, Warehouse, TrendingDown, UserCheck, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Users, Settings, Package, MapPin, ChevronLeft, Store, Truck, FileText, Building2, Warehouse, TrendingDown, UserCheck, Percent, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -83,6 +83,11 @@ export const adminMenuItems: MenuItem[] = [
     title: "Whitelist",
     url: "/admin/whitelist-applications",
     icon: UserCheck,
+  },
+  {
+    title: "Fiyatlandırma",
+    url: "/admin/pricing",
+    icon: Percent,
   },
 ];
 

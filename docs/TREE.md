@@ -170,8 +170,8 @@ docs/
 │   └── seo-keywords.md
 ├── 12-referanslar/
 │   ├── gorsel-referanslar/
-│   │   ├── image.png
 │   │   ├── prd-list.png
+│   │   ├── tedarikci-mobil-urunler-sayfasi.png
 │   │   ├── tedarikci-paneli-toplam-urun-siparisi.png
 │   │   └── urun-quick-edit-add-varyasyon.png
 │   ├── supabase/
@@ -194,23 +194,40 @@ docs/
 ├── DOKUMASYON_YAPILANDIRMA_PLAN.md
 ├── faz-1-2-phase-2-delivery.md
 ├── faz-1-2-phase-2-quick-test.md
+├── frontend-pricing-implementation-summary.md
 ├── HALDEKI-BUSINESS-MODEL-QUESTIONNAIRE.md
 ├── HALDEKI-ROLES-PERMISSIONS.md
 ├── INDEKS-GUNCEL.md
 ├── INDEKS.md
 ├── INDEX.md
 ├── MIGRATION_COMPLETE_REPORT.md
+├── MIGRATION_EXECUTION_GUIDE.md
 ├── MIGRATION_SUMMARY.md
 ├── MVP-ROADMAP.md
 ├── PASSWORD_RESET_GUIDE.md
 ├── PLAN.md
 ├── PLAYGROUND-TEST-DELIVERY.md
 ├── PLAYGROUND-TESTING-SETUP.md
+├── PRICING_BROWSER_TEST_REPORT.md
+├── PRICING_DELIVERY_SUMMARY.md
+├── PRICING_QUICK_REFERENCE.md
+├── PRICING_RPC_BUG_FIX.md
+├── PRICING_SYSTEM_DIAGRAM.md
+├── PRICING_SYSTEM_REDESIGN.md
+├── PRICING_TEST_CHECKLIST.md
+├── PRICING_TEST_SUITE_SUMMARY.md
+├── PRICING_VERIFICATION_REPORT.md
+├── PRICING_VERIFICATION_SUMMARY.md
+├── pricing-system-backend-update.md
+├── pricing-system-quick-reference.md
 ├── PRODUCTION-TEST-REPORT.json
 ├── PRODUCTION-TEST-REPORT.md
 ├── production-screenshot.png
 ├── README.md
 ├── ROADMAP.md
+├── SECURITY_AUDIT_PRICING_SYSTEM.md
+├── SECURITY_CHECKLIST_PRICING.md
+├── SECURITY_IMPLEMENTATION_GUIDE.md
 ├── SECURITY-TEST-REPORT.md
 ├── SECURITY-TESTING-GUIDE.md
 ├── SUPABASE-MIGRATION-TROUBLESHOOTING.md
@@ -222,4 +239,4 @@ docs/
 └── TREE.md
 ```
 
-**Son güncelleme:** 2026-01-10T19:40:31.716Z
+**Son güncelleme:** 2026-01-11T01:27:14.720Z

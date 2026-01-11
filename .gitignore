@@ -58,3 +58,16 @@ playwright/.cache/
 docs/development/SUPERADMIN-CREDENTIALS.md
 docs/BETA-TESTING-GUIDE.md
 nul
+
+# Scripts with hardcoded credentials (NEVER COMMIT)
+scripts/create-test-*
+scripts/deploy-rpc-automated.ts
+scripts/check-test-users.ts
+scripts/create-aliaga-menemen-suppliers.ts
+scripts/reset-supabase-passwords-quick.js
+scripts/reset-passwords-admin.js
+scripts/diagnose-login-issue.js
+scripts/fix-test-user-roles.ts
+scripts/deploy-function-mgmt-api.ts
+scripts/deploy-with-pg.ts
+scripts/create-whitelist-test-users.ts
