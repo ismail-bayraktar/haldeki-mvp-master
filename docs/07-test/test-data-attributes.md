@@ -6,6 +6,11 @@ This document lists all `data-testid` attributes that should be added to compone
 
 | Test ID | Component | Location |
 |---------|-----------|----------|
+| `desktop-navigation` | Desktop nav container | Header navigation |
+| `nav-link-{path}` | Desktop navigation link | Header (e.g., `nav-link--home`, `nav-link--bugun-halde`) |
+| `mobile-navigation` | Mobile bottom nav | Mobile bottom navigation |
+| `mobile-nav-{path}` | Mobile navigation link | Mobile nav (e.g., `mobile-nav--home`, `mobile-nav--sepet`) |
+| `mobile-menu-trigger` | Mobile hamburger menu button | Header (mobile) |
 | `nav-products` | Products link | Header navigation |
 | `nav-bugun-halde` | Bugun Halde link | Header navigation |
 | `nav-cart` | Cart link | Header navigation |
@@ -146,6 +151,16 @@ This document lists all `data-testid` attributes that should be added to compone
 
 ## Registration Forms
 
+### Whitelist Form (Early Access)
+
+| Test ID | Component | Location |
+|---------|-----------|----------|
+| `whitelist-form` | Whitelist application form | Homepage (WhitelistLanding) |
+| `whitelist-name-input` | Full name input | Whitelist form |
+| `whitelist-phone-input` | Phone input | Whitelist form |
+| `whitelist-email-input` | Email input | Whitelist form |
+| `whitelist-submit-button` | Submit button ("Başvur") | Whitelist form |
+
 ### Dealer Registration
 
 | Test ID | Component | Location |
@@ -239,8 +254,9 @@ When adding `data-testid` to existing components:
 ## Priority Implementation
 
 ### High Priority (Required for initial tests)
+- Whitelist form (homepage application form)
+- Navigation elements (desktop and mobile)
 - Authentication drawer and forms
-- Navigation elements
 - Product cards and add-to-cart buttons
 - Cart and checkout flows
 - Admin approval buttons

@@ -16,10 +16,6 @@
 
 ## 💼 İş Mantığı
 
-| Doküman | Açıklama |
-|---------|----------|
-| [Product Roles Summary](./product-roles-summary.md) | Rol bazlı ürün görünürlük ve yetki matrisi |
-| [Product Workflow Diagram](./product-workflow-diagram.md) | Ürün iş akışları ve CRUD diyagramları |
 
 ## 📖 Rehberler
 
@@ -38,6 +34,6 @@ npm run docs:api
 
 ---
 
-**Son güncelleme:** 2026-01-11T01:27:20.542Z
+**Son güncelleme:** 2026-01-11T14:33:59.693Z
 
 **Otomatik oluşturuldu:** sync-docs.js tarafından

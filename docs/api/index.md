@@ -471,6 +471,10 @@ Bu strateji sayesinde:
 - Her iki veriyi ayrı ayrı cache'leyebiliriz
 - Bölge değiştiğinde sadece region_products yeniden çekilir
 - "Bu bölgede yok" durumunu kolayca işaretleyebiliriz
+FALLBACK STRATEJİSİ:
+- Eğer region_products'ta kayıt yoksa, ürünün base_price'ını kullan
+- Bu sayede veritabanı değişikliği yapılmadan ürünler görüntülenir
+- isInRegion: false olarak işaretlenir (fiyat fallback'dir)
 ## lib\productValidator.ts
 
 ```typescript
@@ -608,6 +612,26 @@ This script generates a standardized Excel template for suppliers to import prod
 
 Template exports for product import/export
 Phase 10.1 - Excel/CSV Templates
+## types\multiSupplier-cleaned.ts
+
+```typescript
+// Path: types\multiSupplier-cleaned.ts
+```
+
+Phase 12: Multi-Supplier Product Management Types
+FRESH FOOD MARKET EDITION
+UPDATED: 2026-01-11 - Removed invalid variation types for fresh food
+Defines types for products with multiple suppliers and variations.
+Supports:
+- Multiple suppliers per product
+- Structured product variations (size, packaging, quality, other)
+- Price comparison across suppliers
+- Supplier-specific inventory and pricing
+INVALID TYPES REMOVED:
+- type (was being used for colors like BEYAZ - inappropriate for produce)
+- scent (LAVANTA, LIMON - fragrance irrelevant for fresh produce)
+- material (CAM, PLASTIK, METAL - packaging material, not product variation)
+- flavor (VANILLA, ÇİKOLATA - for processed foods, not fresh produce)
 ## types\multiSupplier.ts
 
 ```typescript
@@ -669,4 +693,4 @@ SECURITY NOTICE:
 
 ---
 
-**Son güncelleme:** 2026-01-11T01:27:20.540Z
+**Son güncelleme:** 2026-01-11T14:33:59.691Z

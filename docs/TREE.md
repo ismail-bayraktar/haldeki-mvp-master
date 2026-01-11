@@ -182,6 +182,17 @@ docs/
 │   └── README.md
 ├── api/
 │   └── index.md
+├── database/
+│   ├── 01-count-by-type.sql
+│   ├── 02-find-beyaz-variations.sql
+│   ├── 03-find-invalid-types.sql
+│   ├── 04-find-all-type-variations.sql
+│   ├── 05-complete-inventory.sql
+│   ├── 06-find-beden-variations.sql
+│   ├── 07-products-mixed-variations.sql
+│   ├── INDEX.md
+│   ├── PRODUCT-STRUCTURE-ANALYSIS.md
+│   └── VARIATION-PRICING-ANALYSIS.md
 ├── deployment/
 │   └── BETA_SECURITY_CHECKLIST.md
 ├── faz-1/
@@ -189,6 +200,7 @@ docs/
 │   ├── FAZ-1.2-image-optimization.md
 │   ├── FAZ-1.2-performance-report.md
 │   └── lighthouse-report.json
+├── bug-report-super-admin-products-test.md
 ├── DOKUMAN_STANDARTLAMA_RAPORU.md
 ├── dokuman-migrasyon-plani.md
 ├── DOKUMASYON_YAPILANDIRMA_PLAN.md
@@ -220,6 +232,8 @@ docs/
 ├── PRICING_VERIFICATION_SUMMARY.md
 ├── pricing-system-backend-update.md
 ├── pricing-system-quick-reference.md
+├── product-roles-summary.md
+├── product-workflow-diagram.md
 ├── PRODUCTION-TEST-REPORT.json
 ├── PRODUCTION-TEST-REPORT.md
 ├── production-screenshot.png
@@ -228,6 +242,7 @@ docs/
 ├── SECURITY_AUDIT_PRICING_SYSTEM.md
 ├── SECURITY_CHECKLIST_PRICING.md
 ├── SECURITY_IMPLEMENTATION_GUIDE.md
+├── SECURITY-AUDIT-REPORT-2025-01-11.md
 ├── SECURITY-TEST-REPORT.md
 ├── SECURITY-TESTING-GUIDE.md
 ├── SUPABASE-MIGRATION-TROUBLESHOOTING.md
@@ -236,7 +251,10 @@ docs/
 ├── supplier-catalog-optimization.md
 ├── TEMPLATE.md
 ├── TESTING-STRATEGY.md
-└── TREE.md
+├── TREE.md
+├── variation-cleanup-report.md
+├── variation-pricing-flow.md
+└── variation-pricing-visual.md
 ```
 
-**Son güncelleme:** 2026-01-11T01:27:20.551Z
+**Son güncelleme:** 2026-01-11T14:33:59.704Z
