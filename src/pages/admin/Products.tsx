@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment as ReactFragment } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, Plus, Search, Pencil, Trash2, TrendingUp, TrendingDown, Minus, Users, Store } from "lucide-react";
+import { ProductVariationsRow } from "@/components/admin/ProductVariationsRow";
 import {
   useProducts,
   useCreateProduct,
@@ -66,6 +67,7 @@ const AdminProducts = () => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
   const [supplierFilter, setSupplierFilter] = useState<"all" | "multiple" | "single">("all");
+  const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
 
   const { data: productSuppliers, isLoading: suppliersLoading } = useProductSuppliers(
     selectedProductId || ""
@@ -247,81 +249,93 @@ const AdminProducts = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredProducts.map((product) => (
-                    <TableRow key={product.id} className={!product.is_active ? "opacity-50" : ""}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          {product.images?.[0] && (
-                            <img
-                              src={product.images?.[0] || '/placeholder.svg'}
-                              alt={product.name}
-                              className="h-10 w-10 rounded-md object-cover"
-                            />
+                    <React.Fragment key={product.id}>
+                      <TableRow className={!product.is_active ? "opacity-50" : ""}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {product.images?.[0] && (
+                              <img
+                                src={product.images?.[0] || '/placeholder.svg'}
+                                alt={product.name}
+                                className="h-10 w-10 rounded-md object-cover"
+                              />
+                            )}
+                            <div>
+                              <div className="font-medium">{product.name}</div>
+                              <div className="text-sm text-muted-foreground">{product.origin}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{product.category}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">₺{product.base_price.toFixed(2)}</span>
+                            <span className="text-xs text-muted-foreground">/{product.unit}</span>
+                            {product.price_change && getPriceChangeIcon(product.price_change)}
+                          </div>
+                          {product.previous_price && (
+                            <div className="text-xs text-muted-foreground line-through">
+                              ₺{product.previous_price.toFixed(2)}
+                            </div>
                           )}
-                          <div>
-                            <div className="font-medium">{product.name}</div>
-                            <div className="text-sm text-muted-foreground">{product.origin}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{product.category}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium">₺{product.base_price.toFixed(2)}</span>
-                          <span className="text-xs text-muted-foreground">/{product.unit}</span>
-                          {product.price_change && getPriceChangeIcon(product.price_change)}
-                        </div>
-                        {product.previous_price && (
-                          <div className="text-xs text-muted-foreground line-through">
-                            ₺{product.previous_price.toFixed(2)}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>{product.availability && getAvailabilityBadge(product.availability)}</TableCell>
-                      <TableCell>{product.quality && getQualityBadge(product.quality)}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewSuppliers(product.id)}
-                          className="h-7 px-2"
-                        >
-                          <Users className="h-3.5 w-3.5 mr-1" />
-                          Yönet
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={product.is_bugun_halde ? "default" : "outline"}>
-                          {product.is_bugun_halde ? "Evet" : "Hayır"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Switch
-                          checked={product.is_active}
-                          onCheckedChange={(checked) =>
-                            toggleActive.mutate({ id: product.id, isActive: checked })
-                          }
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        </TableCell>
+                        <TableCell>{product.availability && getAvailabilityBadge(product.availability)}</TableCell>
+                        <TableCell>{product.quality && getQualityBadge(product.quality)}</TableCell>
+                        <TableCell>
                           <Button
                             variant="ghost"
-                            size="icon"
-                            onClick={() => handleEdit(product)}
+                            size="sm"
+                            onClick={() => handleViewSuppliers(product.id)}
+                            className="h-7 px-2"
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Users className="h-3.5 w-3.5 mr-1" />
+                            Yönet
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => setDeleteProductId(product.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={product.is_bugun_halde ? "default" : "outline"}>
+                            {product.is_bugun_halde ? "Evet" : "Hayır"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Switch
+                            checked={product.is_active}
+                            onCheckedChange={(checked) =>
+                              toggleActive.mutate({ id: product.id, isActive: checked })
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(product)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteProductId(product.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      <ProductVariationsRow
+                        productId={product.id}
+                        productName={product.name}
+                        isOpen={expandedProductId === product.id}
+                        onToggle={() =>
+                          setExpandedProductId(
+                            expandedProductId === product.id ? null : product.id
+                          )
+                        }
+                      />
+                    </React.Fragment>
                   ))}
                 </TableBody>
               </Table>

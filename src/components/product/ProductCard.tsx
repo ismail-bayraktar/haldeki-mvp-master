@@ -150,8 +150,7 @@ const ProductCard = memo(({ product, variant = "default", priority = false }: Pr
   return (
     <Card
       className={cn(
-        "group overflow-hidden card-hover bg-card h-full flex flex-col",
-        (selectedRegion && !hasRegionPrice) && "opacity-70"
+        "group overflow-hidden card-hover bg-card h-full flex flex-col"
       )}
       data-testid={`product-card-${product.id}`}
     >
