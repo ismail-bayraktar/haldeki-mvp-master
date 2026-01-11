@@ -184,10 +184,7 @@ const BugunHalde = () => {
                       return (
                         <TableRow
                           key={product.id}
-                          className={cn(
-                            "hover:bg-secondary/30",
-                            isFallback && "opacity-70"
-                          )}
+                          className="hover:bg-secondary/30"
                         >
                           <TableCell>
                             <Link to={`/urun/${product.slug}`} className="flex items-center gap-3 hover:text-primary">

@@ -61,6 +61,7 @@ export interface PriceCalculationResult {
   product_id: string;
   product_name: string;
   supplier_id: string;
+  supplier_product_id: string;  // supplier_products junction table ID
   supplier_name: string;
   region_id: string | null;
   region_name: string | null;

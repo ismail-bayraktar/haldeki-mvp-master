@@ -67,9 +67,11 @@ const ProductCard = memo(({ product, variant = "default", priority = false }: Pr
   }, [priceResult, product.price, selectedVariant]);
 
   // Previous price (if available from pricing result)
-  const previousPrice = priceResult && priceResult.variation_adjustment && priceResult.variation_adjustment !== 0
-    ? displayPrice - priceResult.variation_adjustment
-    : null;
+  const previousPrice = priceResult
+    && priceResult.variation_adjustment != null  // checks for both null and undefined
+    && priceResult.variation_adjustment !== 0
+      ? displayPrice - priceResult.variation_adjustment
+      : null;
 
   const getAvailabilityLabel = () => {
     // No region selected
