@@ -2,11 +2,16 @@ import { Product, ProductWithRegionInfo, RegionProductInfo, RegionPriceInfo } fr
 
 /**
  * Master products listesi ile region_products verisini birleştirir (client-side merge)
- * 
+ *
  * Bu strateji sayesinde:
  * - Her iki veriyi ayrı ayrı cache'leyebiliriz
  * - Bölge değiştiğinde sadece region_products yeniden çekilir
  * - "Bu bölgede yok" durumunu kolayca işaretleyebiliriz
+ *
+ * FALLBACK STRATEJİSİ:
+ * - Eğer region_products'ta kayıt yoksa, ürünün base_price'ını kullan
+ * - Bu sayede veritabanı değişikliği yapılmadan ürünler görüntülenir
+ * - isInRegion: false olarak işaretlenir (fiyat fallback'dir)
  */
 export function mergeProductsWithRegion(
   products: Product[],
@@ -31,25 +36,36 @@ export function mergeProductsWithRegion(
             isAvailable: regionRow.stock_quantity > 0 && regionRow.is_active,
             isInRegion: true,
           }
-        : null, // Bölgede yok
+        : {
+            // FALLBACK: Ürünün base fiyatını kullan
+            // Region products kaydı olmadığında ürün yine de görünür
+            price: product.price,
+            businessPrice: null,
+            previousPrice: product.previousPrice,
+            priceChange: product.priceChange,
+            availability: product.availability,
+            stockQuantity: 999, // Büyük bir değer - bölgesiz varsayılan
+            isAvailable: true,
+            isInRegion: false, // Bölge kaydı yok, fallback fiyat
+          },
     };
   });
 }
 
 /**
  * Ürünleri stok durumuna göre sıralar:
- * 1. Normal stoklu ürünler (önce)
- * 2. Stok 0 olanlar (sonra)
- * 3. Bölgede olmayanlar (en sona)
+ * 1. Bölge kaydı olan ürünler (önce) - isInRegion: true
+ * 2. Fallback fiyatlı ürünler (sonra) - isInRegion: false
+ * 3. Her iki grupta da stok durumuna göre sıralama
  */
 export function sortByAvailability(
   products: ProductWithRegionInfo[]
 ): ProductWithRegionInfo[] {
   return [...products].sort((a, b) => {
-    // Bölgede olmayanlar en sona
-    if (!a.regionInfo && b.regionInfo) return 1;
-    if (a.regionInfo && !b.regionInfo) return -1;
-    if (!a.regionInfo && !b.regionInfo) return 0;
+    // Bölgede olmayanlar (fallback) en sona
+    if (!a.regionInfo?.isInRegion && b.regionInfo?.isInRegion) return 1;
+    if (a.regionInfo?.isInRegion && !b.regionInfo?.isInRegion) return -1;
+    if (!a.regionInfo?.isInRegion && !b.regionInfo?.isInRegion) return 0;
 
     // Her ikisi de bölgede varsa, stok durumuna göre
     const aStock = a.regionInfo?.stockQuantity ?? 0;

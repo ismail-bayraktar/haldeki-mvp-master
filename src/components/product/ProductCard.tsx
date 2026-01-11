@@ -53,13 +53,15 @@ const ProductCard = memo(({ product, variant = "default", priority = false }: Pr
 
   // Product availability based on pricing result
   // If pricing result exists, product is available (RPC only returns available products)
-  const isOutOfStock = !priceResult || priceResult?.stock_quantity === 0;
-  const canAddToCart = selectedRegion && priceResult && !isOutOfStock;
+  // FALLBACK: If no priceResult (RPC returned null), use product's base price
+  const isOutOfStock = priceResult?.stock_quantity === 0;
+  const hasRegionPrice = !!priceResult;
+  const canAddToCart = selectedRegion && !isOutOfStock;
 
-  // Display price from pricing result
+  // Display price from pricing result or fallback to product's base price
   const displayPrice = useMemo(() => {
-    if (!priceResult) return product.price;
-    const basePrice = priceResult.final_price;
+    // Fallback to product's base price if RPC returned null
+    const basePrice = priceResult?.final_price ?? product.price;
     const multiplier = selectedVariant?.priceMultiplier ?? 1;
     return basePrice * multiplier;
   }, [priceResult, product.price, selectedVariant]);
@@ -78,9 +80,9 @@ const ProductCard = memo(({ product, variant = "default", priority = false }: Pr
     if (isLoadingPrice) {
       return { label: "Yükleniyor", className: "bg-muted text-muted-foreground" };
     }
-    // No pricing result
-    if (!priceResult) {
-      return { label: "Bu bölgede yok", className: "bg-muted text-muted-foreground" };
+    // Fallback: No pricing result (RPC returned null) - use product's base availability
+    if (!hasRegionPrice) {
+      return { label: "Varsayılan Fiyat", className: "bg-orange-50 text-orange-600" };
     }
     // Stock status from pricing result
     switch (priceResult.availability) {
@@ -100,17 +102,20 @@ const ProductCard = memo(({ product, variant = "default", priority = false }: Pr
     if (!canAddToCart) {
       if (!selectedRegion) {
         // requireRegion CartContext içinde zaten modal açıyor
-      } else if (!priceResult) {
-        toast.error("Bu ürün seçili bölgede satılmamaktadır");
       } else if (isOutOfStock) {
         toast.error("Ürün stokta yok");
       }
       return;
     }
 
-    // Use priceResult for cart
-    addToCart(product, 1, selectedVariant, undefined, undefined, priceResult);
-  }, [canAddToCart, selectedRegion, isOutOfStock, priceResult, product, selectedVariant, addToCart]);
+    // Fallback: Show info toast if using default price
+    if (!hasRegionPrice) {
+      toast.info("Bu ürün için varsayılan fiyat kullanılıyor (bölge kaydı yok)");
+    }
+
+    // Use priceResult for cart, or null for fallback pricing
+    addToCart(product, 1, selectedVariant, undefined, undefined, priceResult ?? undefined);
+  }, [canAddToCart, selectedRegion, isOutOfStock, priceResult, product, selectedVariant, addToCart, hasRegionPrice]);
 
   const handleNotifyStock = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -146,7 +151,7 @@ const ProductCard = memo(({ product, variant = "default", priority = false }: Pr
     <Card
       className={cn(
         "group overflow-hidden card-hover bg-card h-full flex flex-col",
-        (selectedRegion && !priceResult) && "opacity-60"
+        (selectedRegion && !hasRegionPrice) && "opacity-70"
       )}
       data-testid={`product-card-${product.id}`}
     >
@@ -205,10 +210,9 @@ const ProductCard = memo(({ product, variant = "default", priority = false }: Pr
               </span>
             )}
             {/* Bölgede yok badge */}
-            {selectedRegion && !priceResult && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
-                <Ban className="h-3 w-3" />
-                Bu bölgede yok
+            {selectedRegion && !hasRegionPrice && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600">
+                Varsayılan
               </span>
             )}
             {/* Tükendi badge */}
@@ -236,7 +240,7 @@ const ProductCard = memo(({ product, variant = "default", priority = false }: Pr
             {availability.label}
           </span>
           {/* Stok miktarı göster */}
-          {priceResult && priceResult.stock_quantity > 0 && priceResult.stock_quantity <= 20 && (
+          {hasRegionPrice && priceResult && priceResult.stock_quantity > 0 && priceResult.stock_quantity <= 20 && (
             <span className="text-xs text-muted-foreground">
               {priceResult.stock_quantity} {product.unit}
             </span>
@@ -286,7 +290,7 @@ const ProductCard = memo(({ product, variant = "default", priority = false }: Pr
           </div>
 
           {/* Sepete Ekle / Tükendi / Haber Ver */}
-          {isOutOfStock && priceResult ? (
+          {isOutOfStock && hasRegionPrice ? (
             <Button
               size="icon"
               variant="outline"

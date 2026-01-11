@@ -62,11 +62,12 @@ const BugunHalde = () => {
 
   const handleAddToCart = (product: ProductWithRegionInfo) => {
     if (selectedRegion) {
+      // regionInfo var ama isInRegion false ise (fallback fiyat)
+      // Kullanıcıya bilgi ver ama sepete ekle
       if (!product.regionInfo?.isInRegion) {
-        toast.error("Bu ürün seçili bölgede satılmamaktadır");
-        return;
+        toast.info("Bu ürün için varsayılan fiyat kullanılıyor (bölge kaydı yok)");
       }
-      if (product.regionInfo.stockQuantity === 0) {
+      if (product.regionInfo?.stockQuantity === 0) {
         toast.error("Ürün stokta yok");
         return;
       }
@@ -171,20 +172,21 @@ const BugunHalde = () => {
                       const regularPrice = product.regionInfo?.price ?? product.price;
                       const businessPrice = product.regionInfo?.businessPrice;
                       const displayPrice = (isBusiness && businessPrice) ? businessPrice : regularPrice;
-                      
+
                       const isInRegion = product.regionInfo?.isInRegion ?? false;
                       const isOutOfStock = product.regionInfo?.stockQuantity === 0;
-                      const canAdd = !selectedRegion || (isInRegion && !isOutOfStock);
-                      const priceLabel = product.regionInfo?.priceChange 
+                      const isFallback = !isInRegion; // Fallback fiyat kullanılıyor
+                      const canAdd = !isOutOfStock;
+                      const priceLabel = product.regionInfo?.priceChange
                         ? getPriceChangeLabel(product.regionInfo.priceChange)
                         : getPriceChangeLabel(product.priceChange);
 
                       return (
-                        <TableRow 
-                          key={product.id} 
+                        <TableRow
+                          key={product.id}
                           className={cn(
                             "hover:bg-secondary/30",
-                            selectedRegion && !isInRegion && "opacity-60"
+                            isFallback && "opacity-70"
                           )}
                         >
                           <TableCell>
@@ -192,7 +194,12 @@ const BugunHalde = () => {
                               <img src={product.images?.[0] || '/placeholder.svg'} alt={product.name} className="w-12 h-12 rounded-lg object-cover" />
                               <div>
                                 <span className="font-medium block">{product.name}</span>
-                                {priceLabel && (
+                                {isFallback && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Varsayılan fiyat
+                                  </span>
+                                )}
+                                {priceLabel && !isFallback && (
                                   <span className={cn(
                                     "text-xs px-1.5 py-0.5 rounded-full",
                                     product.regionInfo?.priceChange === "down" || product.priceChange === "down"
@@ -227,47 +234,46 @@ const BugunHalde = () => {
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            {selectedRegion && !isInRegion ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
-                                <Ban className="h-3 w-3" />
-                                Yok
-                              </span>
-                            ) : isOutOfStock ? (
+                            {isOutOfStock ? (
                               <span className="text-xs px-2 py-1 rounded-full bg-stock-last/10 text-stock-last">
                                 Tükendi
+                              </span>
+                            ) : isFallback ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-600">
+                                Varsayılan
                               </span>
                             ) : (
                               <span className={cn(
                                 "text-xs px-2 py-1 rounded-full",
-                                product.regionInfo?.availability === "plenty" || product.availability === "plenty" 
-                                  ? "bg-stock-plenty/10 text-stock-plenty" 
+                                product.regionInfo?.availability === "plenty" || product.availability === "plenty"
+                                  ? "bg-stock-plenty/10 text-stock-plenty"
                                   : product.regionInfo?.availability === "limited" || product.availability === "limited"
                                   ? "bg-stock-limited/10 text-stock-limited"
                                   : "bg-stock-last/10 text-stock-last"
                               )}>
-                                {product.regionInfo?.availability === "plenty" || product.availability === "plenty" 
-                                  ? "Bol" 
+                                {product.regionInfo?.availability === "plenty" || product.availability === "plenty"
+                                  ? "Bol"
                                   : product.regionInfo?.availability === "limited" || product.availability === "limited"
-                                  ? "Sınırlı" 
+                                  ? "Sınırlı"
                                   : "Son"}
                               </span>
                             )}
                           </TableCell>
                           <TableCell>
-                            {product.regionInfo && product.regionInfo.stockQuantity > 0 ? (
+                            {!isOutOfStock && !isFallback && product.regionInfo && product.regionInfo.stockQuantity > 0 ? (
                               <span className="text-sm text-muted-foreground">
                                 {product.regionInfo.stockQuantity} {product.unit}
                               </span>
-                            ) : selectedRegion && isInRegion && isOutOfStock ? (
+                            ) : isOutOfStock ? (
                               <span className="text-xs text-stock-last">—</span>
                             ) : (
                               <span className="text-xs text-muted-foreground">—</span>
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            {isOutOfStock && isInRegion ? (
-                              <Button 
-                                size="icon" 
+                            {isOutOfStock ? (
+                              <Button
+                                size="icon"
                                 variant="outline"
                                 className="h-8 w-8 rounded-full"
                                 onClick={() => handleNotifyStock(product.name)}
@@ -276,14 +282,11 @@ const BugunHalde = () => {
                                 <Bell className="h-4 w-4" />
                               </Button>
                             ) : (
-                              <Button 
-                                size="icon" 
-                                className={cn(
-                                  "h-8 w-8 rounded-full",
-                                  !canAdd && "bg-muted text-muted-foreground cursor-not-allowed"
-                                )}
+                              <Button
+                                size="icon"
+                                className="h-8 w-8 rounded-full"
                                 onClick={() => handleAddToCart(product)}
-                                disabled={!canAdd && !!selectedRegion}
+                                disabled={!canAdd}
                               >
                                 <Plus className="h-4 w-4" />
                               </Button>

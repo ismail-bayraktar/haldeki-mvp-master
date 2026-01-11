@@ -16,6 +16,10 @@
 
 ## 💼 İş Mantığı
 
+| Doküman | Açıklama |
+|---------|----------|
+| [Product Roles Summary](./product-roles-summary.md) | Rol bazlı ürün görünürlük ve yetki matrisi |
+| [Product Workflow Diagram](./product-workflow-diagram.md) | Ürün iş akışları ve CRUD diyagramları |
 
 ## 📖 Rehberler
 
