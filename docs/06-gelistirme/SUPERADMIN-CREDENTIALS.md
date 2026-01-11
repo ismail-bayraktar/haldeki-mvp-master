@@ -28,12 +28,12 @@
 | Field | Value |
 |-------|-------|
 | **Email** | `admin@haldeki.com` |
-| **Password** | `hws8WadKktlvvjO8` |
+| **Password** | `${SUPERADMIN_PASSWORD}` (set via environment variable) |
 | **Role** | superadmin |
 | **Created** | 2026-01-09 |
 | **Status** | Active |
-| **2FA** | Not enabled (ENABLE IMMEDIATELY) |
-| **Last Password Change** | 2026-01-09 |
+| **2FA** | ENABLE IMMEDIATELY |
+| **Last Password Change** | See secure credentials storage |
 
 ### Access Permissions
 
@@ -55,7 +55,7 @@
 1. Navigate to: `https://haldeki-market.vercel.app`
 2. Click "Login" button
 3. Enter email: `admin@haldeki.com`
-4. Enter password: `hws8WadKktlvvjO8`
+4. Enter password: `${SUPERADMIN_PASSWORD}` (see secure credentials)
 5. Click "Sign In"
 
 ### Step 2: Enable 2FA (CRITICAL)
@@ -77,7 +77,7 @@
 
 1. Go to: Profile Settings → Security
 2. Click "Change Password"
-3. Enter current password: `hws8WadKktlvvjO8`
+3. Enter current password: `${SUPERADMIN_PASSWORD}`
 4. Enter new password (minimum 16 characters, must include):
    - Uppercase letters (A-Z)
    - Lowercase letters (a-z)
@@ -333,7 +333,7 @@
 
 **Problem: Cannot login**
 - Check email is correct: `admin@haldeki.com`
-- Verify password: `hws8WadKktlvvjO8`
+- Verify password: (see secure credentials)
 - Clear browser cache
 - Try different browser
 - Check internet connection

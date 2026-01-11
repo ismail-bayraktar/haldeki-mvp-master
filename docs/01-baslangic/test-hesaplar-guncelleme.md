@@ -15,7 +15,7 @@
 | Field | Old Value | New Value |
 |-------|-----------|-----------|
 | **Email** | `superadmin@haldeki.com` | `admin@haldeki.com` |
-| **Password** | `test123` | `hws8WadKktlvvjO8` |
+| **Password** | `test123` | `${SUPERADMIN_PASSWORD}` |
 | **Role** | superadmin | superadmin |
 | **Status** | TO BE DELETED | ACTIVE |
 | **Documentation** | TEST_ACCOUNTS.md | SUPERADMIN-CREDENTIALS.md |
@@ -42,7 +42,7 @@ docs/BETA-TESTING-GUIDE.md
 
 **3. Create New Test Accounts**
 Using the new SuperAdmin panel, create fresh test accounts:
-- Login as `admin@haldeki.com` / `hws8WadKktlvvjO8`
+- Login as `admin@haldeki.com` / `${SUPERADMIN_PASSWORD}`
 - Navigate to Business Panel → Users
 - Create new test users as needed
 
@@ -69,7 +69,7 @@ Using the new SuperAdmin panel, create fresh test accounts:
 
 | Email | Old Role | New Role | New Password | Action |
 |-------|----------|----------|--------------|--------|
-| `admin@haldeki.com` | admin | **superadmin** | `hws8WadKktlvvjO8` | KEEP |
+| `admin@haldeki.com` | admin | **superadmin** | `${SUPERADMIN_PASSWORD}` | KEEP |
 
 ---
 
@@ -145,7 +145,7 @@ ORDER BY email;
 ### For Beta Testing
 
 **1. SuperAdmin Testing:**
-- Use `admin@haldeki.com` / `hws8WadKktlvvjO8`
+- Use `admin@haldeki.com` / `${SUPERADMIN_PASSWORD}`
 - Test Business Panel features
 - Create test users as needed
 - Approve supplier applications

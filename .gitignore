@@ -51,6 +51,13 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# Coverage reports (generated code)
+coverage/
+*.lcov
+
+# Lint cache
+.eslintcache
+
 
 .vercel
 

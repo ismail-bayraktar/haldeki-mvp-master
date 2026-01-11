@@ -4,10 +4,11 @@
 -- Purpose: Create superadmin@haldeki.com with secure password
 -- ============================================================================
 -- SECURITY NOTES:
--- - Password: AUTO-GENERATED (hws8WadKktlvvjO8) - 16 chars, mixed entropy
+-- - Password: Set via ${SUPERADMIN_PASSWORD} environment variable
 -- - Email: admin@haldeki.com
 -- - Role: superadmin (full system access)
 -- - IMPORTANT: Change password after first login via Supabase Dashboard
+-- - NEVER commit actual password to repository
 -- ============================================================================
 
 -- ============================================================================
@@ -58,7 +59,7 @@ BEGIN
     RAISE NOTICE 'Step 1: Go to Supabase Dashboard > Authentication > Users';
     RAISE NOTICE 'Step 2: Click "Add User" > "Create New User"';
     RAISE NOTICE 'Step 3: Email: admin@haldeki.com';
-    RAISE NOTICE 'Step 4: Password: hws8WadKktlvvjO8 (CHANGE AFTER FIRST LOGIN)';
+    RAISE NOTICE 'Step 4: Password: (Set SUPERADMIN_PASSWORD in .env)';
     RAISE NOTICE 'Step 5: Check "Auto Confirm User"';
     RAISE NOTICE 'Step 6: Click "Create"';
     RAISE NOTICE 'Step 7: Re-run this migration to assign superadmin role';
@@ -117,7 +118,7 @@ VALUES (
   'Superadmin account setup executed',
   jsonb_build_object(
     'email', 'admin@haldeki.com',
-    'password_generated', 'hws8WadKktlvvjO8',
+    'password_source', 'environment_variable',
     'requires_password_change', true,
     'migration_date', NOW()
   )
@@ -173,17 +174,18 @@ END $$;
 DO $$
 BEGIN
   RAISE NOTICE '============================================================================';
-  RAISE NOTICE 'SUPERADMIN CREDENTIALS (SAVE THESE NOW)';
+  RAISE NOTICE 'SUPERADMIN SETUP INSTRUCTIONS';
   RAISE NOTICE '============================================================================';
   RAISE NOTICE 'Email: admin@haldeki.com';
-  RAISE NOTICE 'Password: hws8WadKktlvvjO8';
+  RAISE NOTICE 'Password: Set SUPERADMIN_PASSWORD in environment variable';
   RAISE NOTICE 'Role: superadmin';
   RAISE NOTICE '============================================================================';
   RAISE NOTICE 'SECURITY REMINDER:';
-  RAISE NOTICE '- Password is auto-generated and secure (16 chars, mixed entropy)';
+  RAISE NOTICE '- Password must be set via environment variable';
   RAISE NOTICE '- CHANGE PASSWORD AFTER FIRST LOGIN';
   RAISE NOTICE '- Enable MFA in Supabase Dashboard > Authentication > Policies';
   RAISE NOTICE '- Store credentials in secure password manager (1Password, Bitwarden)';
+  RAISE NOTICE '- NEVER commit password to version control';
   RAISE NOTICE '============================================================================';
 END $$;
 

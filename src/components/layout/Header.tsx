@@ -69,13 +69,14 @@ const Header = memo(() => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-6" data-testid="desktop-navigation">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
                 className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
                 onClick={(e) => handleProtectedNavClick(e, link.href)}
+                data-testid={`nav-link-${link.href.replace('/', '-') || 'home'}`}
               >
                 {link.label}
                 {link.badge && <span className="superscript-badge">{link.badge}</span>}
@@ -201,7 +202,7 @@ const Header = memo(() => {
             {/* Mobile Menu */}
             <Sheet>
               <SheetTrigger asChild className="lg:hidden">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" data-testid="mobile-menu-trigger">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>

@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingCart, Users, Settings, Package, MapPin, ChevronLeft, Store, Truck, FileText, Building2, Warehouse, TrendingDown, UserCheck, Percent, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Users, Settings, Package, MapPin, ChevronLeft, Store, Truck, FileText, Building2, Warehouse, TrendingDown, UserCheck, Percent, Layers, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -43,6 +43,11 @@ export const adminMenuItems: MenuItem[] = [
     title: "Ürünler",
     url: "/admin/products",
     icon: Package,
+  },
+  {
+    title: "Varyasyon Türleri",
+    url: "/admin/variation-types",
+    icon: Layers,
   },
   {
     title: "Bölge Ürünleri",

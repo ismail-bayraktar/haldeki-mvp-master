@@ -10,7 +10,7 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-const DEFAULT_PASSWORD = 'Test1234!';
+const DEFAULT_PASSWORD = process.env.TEST_USER_PASSWORD || process.env.ADMIN_PASSWORD || process.env.SUPERADMIN_PASSWORD || 'CHANGE_ME_IN_ENV';
 
 async function fixAllPasswords() {
   console.log('\n╔══════════════════════════════════════════════════╗');

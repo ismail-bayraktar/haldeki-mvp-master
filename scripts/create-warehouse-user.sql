@@ -8,13 +8,13 @@
 --
 -- Test Credentials:
 --   Email: warehouse@test.haldeki.com
---   Password: Test1234!
+--   Password: (Set TEST_USER_PASSWORD in .env)
 --   Role: warehouse_manager
 --
 -- ============================================================================
 
 -- Step 1: Create auth user with bcrypt hashed password
--- Password: Test1234! (pre-hashed for security)
+-- Password: (Set TEST_USER_PASSWORD in .env - DO NOT hardcode)
 INSERT INTO auth.users (
   instance_id,
   id,
@@ -34,8 +34,9 @@ VALUES (
   'authenticated',
   'authenticated',
   'warehouse@test.haldeki.com',
-  -- bcrypt hash of "Test1234!"
-  '$2a$10$U3LKZQMz9/xNXQZS8y8h1eK5E1XN1YQZx3R9J8mF2D3w4E5r6T7y8',
+  -- bcrypt hash - Set TEST_USER_PASSWORD in .env and generate hash
+  -- NEVER commit actual password hash to repository
+  '',
   NOW(),
   '{"provider":"email","providers":["email"]}'::jsonb,
   '{"full_name":"Depo Yöneticisi","phone":"0536 600 00 01"}'::jsonb,
@@ -139,7 +140,7 @@ BEGIN
   RAISE NOTICE 'WAREHOUSE TEST ACCOUNT CREATED SUCCESSFULLY!';
   RAISE NOTICE '============================================================================';
   RAISE NOTICE 'Email: warehouse@test.haldeki.com';
-  RAISE NOTICE 'Password: Test1234!';
+  RAISE NOTICE 'Password: (Set TEST_USER_PASSWORD in .env)';
   RAISE NOTICE 'Role: warehouse_manager';
   RAISE NOTICE '============================================================================';
   RAISE NOTICE 'You can now use RoleSwitcher to login as warehouse manager.';

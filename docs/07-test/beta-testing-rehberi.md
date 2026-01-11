@@ -107,7 +107,7 @@ Beta testing is the final testing phase before public launch. Real users test th
 1. Navigate to: `https://haldeki-market.vercel.app`
 2. Click "Login" button (top right)
 3. Enter email: `admin@haldeki.com`
-4. Enter password: `hws8WadKktlvvjO8`
+4. Enter password: `${SUPERADMIN_PASSWORD}` (see secure credentials)
 5. Click "Sign In"
 
 **Expected Result:**

@@ -23,7 +23,7 @@
 ### 2. SuperAdmin Setup
 
 - [ ] **SuperAdmin migration created**: `20260110000000_create_superadmin.sql`
-- [ ] **Password generated and saved securely**: `hws8WadKktlvvjO8`
+- [ ] **Password generated and saved securely**: `${SUPERADMIN_PASSWORD}`
 - [ ] **Password stored in password manager** (1Password, Bitwarden, etc.)
 - [ ] **SuperAdmin will be created after cleanup**
 
@@ -185,7 +185,7 @@ supabase migration up
 
 ### 1. SuperAdmin Verification
 
-- [ ] **Login test**: Login as `admin@haldeki.com` with password `hws8WadKktlvvjO8`
+- [ ] **Login test**: Login as `admin@haldeki.com` with password `${SUPERADMIN_PASSWORD}`
 - [ ] **Password changed**: Change password immediately after first login
 - [ ] **MFA enabled**: Enable multi-factor authentication in Supabase Dashboard
 - [ ] **Role test**: Verify superadmin permissions work correctly
@@ -325,7 +325,7 @@ Before marking this task complete:
 
 ```
 Email: admin@haldeki.com
-Initial Password: hws8WadKktlvvjO8
+Initial Password: ${SUPERADMIN_PASSWORD}
 Role: superadmin
 ```
 

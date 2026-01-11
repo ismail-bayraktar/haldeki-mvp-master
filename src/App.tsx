@@ -68,6 +68,7 @@ const AdminSuppliers = lazy(() => import("./pages/admin/Suppliers"));
 const AdminSupplierOffers = lazy(() => import("./pages/admin/SupplierOffers"));
 const AdminWarehouseStaff = lazy(() => import("./pages/admin/WarehouseStaff"));
 const AdminPricing = lazy(() => import("./pages/admin/Pricing"));
+const AdminVariationTypes = lazy(() => import("./pages/admin/VariationTypes"));
 
 // Loading component
 const PageLoader = () => (
@@ -285,6 +286,7 @@ const App = ({ queryClient: providedQueryClient }: AppProps) => (
                         <Route path="orders" element={<AdminOrders />} />
                         <Route path="users" element={<AdminUsers />} />
                         <Route path="products" element={<AdminProducts />} />
+                        <Route path="variation-types" element={<AdminVariationTypes />} />
                         <Route path="region-products" element={<AdminRegionProducts />} />
                         <Route path="dealers" element={<AdminDealers />} />
                         <Route path="suppliers" element={<AdminSuppliers />} />

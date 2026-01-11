@@ -26,7 +26,7 @@ const MobileNav = () => {
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t shadow-lg safe-area-pb">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t shadow-lg safe-area-pb" data-testid="mobile-navigation">
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const isActive = currentPath === item.href;
@@ -39,10 +39,11 @@ const MobileNav = () => {
               onClick={item.onClick}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 flex-1 h-full relative transition-colors",
-                isActive 
-                  ? "text-primary" 
+                isActive
+                  ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
+              data-testid={`mobile-nav-${item.href.replace('/', '-') || 'home'}`}
             >
               <div className="relative">
                 <Icon className="h-5 w-5" />

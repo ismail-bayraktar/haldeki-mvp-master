@@ -7,12 +7,17 @@
 
 const https = require('https');
 
-const SUPABASE_URL = 'https://epuhjrdqotyrryvkjnrp.supabase.co';
-const SERVICE_ROLE_KEY = process.argv[2];
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://epuhjrdqotyrryvkjnrp.supabase.co';
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.argv[2];
 
 if (!SERVICE_ROLE_KEY) {
-  console.error('Usage: node scripts/create-test-users.js <SERVICE_ROLE_KEY>');
-  console.error('Get service role key from: https://supabase.com/dashboard/project/epuhjrdqotyrryvkjnrp/settings/api');
+  console.error('❌ Missing SERVICE_ROLE_KEY');
+  console.error('\nSet SUPABASE_SERVICE_ROLE_KEY environment variable or pass as argument:');
+  console.error('  export SUPABASE_SERVICE_ROLE_KEY="your-key-here"');
+  console.error('  node scripts/create-test-users.js');
+  console.error('\nOR pass as argument:');
+  console.error('  node scripts/create-test-users.js <SERVICE_ROLE_KEY>');
+  console.error('\nGet service role key from: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api');
   process.exit(1);
 }
 
@@ -55,11 +60,17 @@ function makeRequest(options, data = null) {
 async function createUsers() {
   const results = { created: [], skipped: [], errors: [] };
 
+  // Extract hostname from SUPABASE_URL
+  const url = new URL(SUPABASE_URL);
+  const hostname = url.hostname;
+
+  console.log(`Using Supabase URL: ${SUPABASE_URL}`);
+
   for (const user of TEST_USERS) {
     try {
       // Check if user exists
       const checkOptions = {
-        hostname: 'epuhjrdqotyrryvkjnrp.supabase.co',
+        hostname: hostname,
         path: `/rest/v1/profiles?email=eq.${user.email}`,
         method: 'GET',
         headers: {
@@ -78,7 +89,7 @@ async function createUsers() {
 
       // Create user
       const createOptions = {
-        hostname: 'epuhjrdqotyrryvkjnrp.supabase.co',
+        hostname: hostname,
         path: '/auth/v1/admin/users',
         method: 'POST',
         headers: {

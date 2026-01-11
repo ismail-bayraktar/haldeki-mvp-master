@@ -101,7 +101,7 @@ BEGIN
   RAISE NOTICE '============================================================================';
   RAISE NOTICE 'User ID: %', v_user_id;
   RAISE NOTICE 'Email: %', v_email;
-  RAISE NOTICE 'Password: Test1234!';
+  RAISE NOTICE 'Password: (Set TEST_USER_PASSWORD in .env)';
   RAISE NOTICE 'Role: warehouse_manager';
   RAISE NOTICE '============================================================================';
   RAISE NOTICE 'You can now use RoleSwitcher to login!';

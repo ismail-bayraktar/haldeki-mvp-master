@@ -21,6 +21,8 @@ interface ProductVariationsRowProps {
 interface VariationEdit {
   variation_value: string;
   display_order: number;
+  price_adjustment: number;
+  stock_quantity: number;
 }
 
 export function ProductVariationsRow({
@@ -35,6 +37,10 @@ export function ProductVariationsRow({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newVariation, setNewVariation] = useState("");
   const [editValue, setEditValue] = useState("");
+  const [editPriceAdjustment, setEditPriceAdjustment] = useState("");
+  const [editStockQuantity, setEditStockQuantity] = useState("");
+  const [newPriceAdjustment, setNewPriceAdjustment] = useState("");
+  const [newStockQuantity, setNewStockQuantity] = useState("");
 
   const loadVariations = async () => {
     if (!isOpen && variations.length === 0) {
@@ -62,6 +68,10 @@ export function ProductVariationsRow({
       toast.error("Varyasyon değeri boş olamaz");
       return;
     }
+    if (newPriceAdjustment === "" || newStockQuantity === "") {
+      toast.error("Fiyat ayarı ve stok miktarı zorunludur");
+      return;
+    }
 
     setIsAdding(true);
     try {
@@ -80,6 +90,8 @@ export function ProductVariationsRow({
 
       setVariations([...variations, data]);
       setNewVariation("");
+      setNewPriceAdjustment("");
+      setNewStockQuantity("");
       toast.success("Varyasyon eklendi");
     } catch (error) {
       toast.error("Varyasyon eklenirken hata oluştu");
@@ -107,16 +119,24 @@ export function ProductVariationsRow({
   const handleStartEdit = (variation: ProductVariation) => {
     setEditingId(variation.id);
     setEditValue(variation.variation_value);
+    setEditPriceAdjustment("0");
+    setEditStockQuantity("0");
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditValue("");
+    setEditPriceAdjustment("");
+    setEditStockQuantity("");
   };
 
   const handleSaveEdit = async (id: string) => {
     if (!editValue.trim()) {
       toast.error("Varyasyon değeri boş olamaz");
+      return;
+    }
+    if (editPriceAdjustment === "" || editStockQuantity === "") {
+      toast.error("Fiyat ayarı ve stok miktarı zorunludur");
       return;
     }
 
@@ -134,6 +154,8 @@ export function ProductVariationsRow({
         )
       );
       setEditingId(null);
+      setEditPriceAdjustment("");
+      setEditStockQuantity("");
       toast.success("Varyasyon güncellendi");
     } catch (error) {
       toast.error("Varyasyon güncellenirken hata oluştu");
@@ -184,7 +206,7 @@ export function ProductVariationsRow({
           <td colSpan={9} className="p-0">
             <div className="border-t border-b bg-muted/20">
               <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-start justify-between mb-4">
                   <h4 className="font-medium text-sm">
                     {productName} - Varyasyonlar
                   </h4>
@@ -194,12 +216,35 @@ export function ProductVariationsRow({
                       value={newVariation}
                       onChange={(e) => setNewVariation(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddVariation()}
-                      className="h-8 w-64 text-sm"
+                      className="h-8 w-48 text-sm"
                     />
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">Fiyat Ayarı (₺)*</span>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={newPriceAdjustment}
+                        onChange={(e) => setNewPriceAdjustment(e.target.value)}
+                        className="h-8 w-20 text-sm"
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">Stok*</span>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={newStockQuantity}
+                        onChange={(e) => setNewStockQuantity(e.target.value)}
+                        className="h-8 w-20 text-sm"
+                        min="0"
+                      />
+                    </div>
                     <Button
                       size="sm"
                       onClick={handleAddVariation}
-                      disabled={isAdding || !newVariation.trim()}
+                      disabled={isAdding || !newVariation.trim() || newPriceAdjustment === "" || newStockQuantity === ""}
                       className="h-8"
                     >
                       <Plus className="h-3.5 w-3.5 mr-1" />
@@ -235,6 +280,27 @@ export function ProductVariationsRow({
                               className="h-8 flex-1 max-w-xs"
                               autoFocus
                             />
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">Fiyat Ayarı (₺)*</span>
+                              <Input
+                                type="number"
+                                value={editPriceAdjustment}
+                                onChange={(e) => setEditPriceAdjustment(e.target.value)}
+                                className="h-8 w-20 text-sm"
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">Stok*</span>
+                              <Input
+                                type="number"
+                                value={editStockQuantity}
+                                onChange={(e) => setEditStockQuantity(e.target.value)}
+                                className="h-8 w-20 text-sm"
+                                min="0"
+                              />
+                            </div>
                             <Button
                               size="sm"
                               variant="ghost"

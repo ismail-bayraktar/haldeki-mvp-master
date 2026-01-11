@@ -1,0 +1,172 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# ============================================
+# Pre-commit Hook: Secret Detection
+# ============================================
+# This script prevents commits that may contain
+# sensitive information like API keys, passwords,
+# or other secrets.
+# ============================================
+
+echo "[INFO] Running pre-commit checks..."
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Get staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+    echo "[OK] No files staged for commit"
+    exit 0
+fi
+
+# ============================================
+# Pattern Detection
+# ============================================
+
+# Patterns that should NEVER be committed
+PATTERNS=(
+    # Supabase service role keys
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.*service_role"
+    # Database connection strings with passwords
+    "postgresql://postgres:[^@]+@"
+    "postgres://[^:]+:[^@]+@"
+    # Stripe secret keys
+    "sk_live_[a-zA-Z0-9]{24,}"
+    "sk_test_[a-zA-Z0-9]{24,}"
+    # API keys
+    "api[_-]?key\s*=\s*['\"][^'\"]{20,}['\"]"
+    "API[_-]?KEY\s*=\s*['\"][^'\"]{20,}['\"]"
+    # JWT secrets
+    "jwt[_-]?secret\s*=\s*['\"][^'\"]{20,}['\"]"
+    "JWT[_-]?SECRET\s*=\s*['\"][^'\"]{20,}['\"]"
+    # Generic secrets
+    "secret\s*=\s*['\"][^'\"]{20,}['\"]"
+    "SECRET\s*=\s*['\"][^'\"]{20,}['\"]"
+    # Private keys
+    "-----BEGIN RSA PRIVATE KEY-----"
+    "-----BEGIN PRIVATE KEY-----"
+    # AWS keys
+    "AKIA[0-9A-Z]{16}"
+    # Slack tokens
+    "xox[baprs]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-z0-9]{32}"
+    # GitHub tokens
+    "ghp_[a-zA-Z0-9]{36}"
+    "gho_[a-zA-Z0-9]{36}"
+    "ghu_[a-zA-Z0-9]{36}"
+    "ghs_[a-zA-Z0-9]{36}"
+    "ghr_[a-zA-Z0-9]{36}"
+)
+
+# Files that should never be committed
+FORBIDDEN_FILES=(
+    ".env"
+    ".env.local"
+    ".env.*.local"
+    ".env.development.local"
+    ".env.production.local"
+    ".env.staging.local"
+    ".env.test.local"
+    "*.pem"
+    "*.key"
+    "id_rsa"
+    "id_ed25519"
+    ".secrets"
+    "credentials.json"
+    "service-account.json"
+)
+
+# ============================================
+# Check File Names
+# ============================================
+
+echo "[INFO] Checking for forbidden file types..."
+
+FOUND_FORBIDDEN=false
+for FILE in $STAGED_FILES; do
+    for PATTERN in "${FORBIDDEN_FILES[@]}"; do
+        # Check if filename matches pattern (supports wildcards)
+        if echo "$FILE" | grep -qE "$PATTERN"; then
+            echo "${RED}[ERROR] Forbidden file detected: $FILE${NC}"
+            echo "${YELLOW}Files matching '$PATTERN' should not be committed${NC}"
+            FOUND_FORBIDDEN=true
+        fi
+    done
+done
+
+if [ "$FOUND_FORBIDDEN" = true ]; then
+    echo "${RED}[FAIL] Commit blocked: Forbidden files found${NC}"
+    echo "${YELLOW}To fix:${NC}"
+    echo "  1. Remove these files from staging: git reset HEAD <file>"
+    echo "  2. Add them to .gitignore if not already"
+    echo "  3. Never commit credential files"
+    exit 1
+fi
+
+# ============================================
+# Check File Contents
+# ============================================
+
+echo "[INFO] Scanning for potential secrets..."
+
+FOUND_SECRETS=false
+SECRET_FILE=""
+
+for FILE in $STAGED_FILES; do
+    # Skip binary files and certain directories
+    if echo "$FILE" | grep -qE "\.(png|jpg|jpeg|gif|ico|pdf|zip|tar|gz)$"; then
+        continue
+    fi
+
+    if echo "$FILE" | grep -qE "(node_modules|dist|build|.next|coverage)"; then
+        continue
+    fi
+
+    # Check each pattern
+    for PATTERN in "${PATTERNS[@]}"; do
+        if git diff --cached "$FILE" | grep -iqE "$PATTERN"; then
+            echo "${RED}[ERROR] Potential secret found in: $FILE${NC}"
+            echo "${YELLOW}Pattern matched: $PATTERN${NC}"
+            FOUND_SECRETS=true
+            SECRET_FILE="$FILE"
+            break
+        fi
+    done
+
+    if [ "$FOUND_SECRETS" = true ]; then
+        break
+    fi
+done
+
+if [ "$FOUND_SECRETS" = true ]; then
+    echo "${RED}[FAIL] Commit blocked: Potential secrets detected${NC}"
+    echo ""
+    echo "${YELLOW}To fix:${NC}"
+    echo "  1. Remove the sensitive data from the file"
+    echo "  2. Use environment variables instead"
+    echo "  3. See docs/CREDENTIALS.md for guidance"
+    echo ""
+    echo "${YELLOW}To bypass (NOT RECOMMENDED):${NC}"
+    echo "  git commit --no-verify"
+    exit 1
+fi
+
+# ============================================
+# Success
+# ============================================
+
+echo "${GREEN}[OK] Pre-commit checks passed${NC}"
+echo ""
+
+# Run lint-staged if available
+if [ -f "package.json" ] && grep -q "lint-staged" package.json; then
+    echo "[INFO] Running lint-staged..."
+    npx lint-staged
+fi
+
+exit 0

@@ -9,7 +9,7 @@
 
 ```
 Email: admin@haldeki.com
-Password: hws8WadKktlvvjO8
+Password: ${SUPERADMIN_PASSWORD} (see secure credentials)
 URL: https://haldeki-market.vercel.app
 ```
 

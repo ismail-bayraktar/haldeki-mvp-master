@@ -138,12 +138,11 @@ const ProductDetail = () => {
   const inWishlist = product ? isInWishlist(product.id) : false;
 
   // Display price from pricing result
+  // RPC function already calculates final_price with variation adjustment included
   const currentPrice = useMemo(() => {
     if (!product) return 0;
-    const basePrice = priceResult?.final_price ?? product.price;
-    const multiplier = selectedVariant?.priceMultiplier ?? 1;
-    return basePrice * multiplier;
-  }, [product, priceResult, selectedVariant]);
+    return priceResult?.final_price ?? product.price;
+  }, [product, priceResult]);
 
   // Calculate savings percentage for variant
   const variantSavings = useMemo(() => {

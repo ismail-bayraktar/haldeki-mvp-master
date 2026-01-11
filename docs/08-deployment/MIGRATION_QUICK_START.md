@@ -14,7 +14,7 @@ Migration files are prepared and ready. Choose execution method below.
 - URL: https://supabase.com/dashboard/project/epuhjrdqotyrryvkjnrp/auth/users
 - Add User → Create New User
 - Email: `admin@haldeki.com`
-- Password: `hws8WadKktlvvjO8`
+- Password: `${SUPERADMIN_PASSWORD}` (set via environment variable)
 - Check "Auto Confirm User"
 
 **2. Assign SuperAdmin Role:**
@@ -50,7 +50,7 @@ node scripts/execute-cleanup-test-accounts.js
 ## Credentials
 
 **Email:** admin@haldeki.com
-**Password:** hws8WadKktlvvjO8
+**Password:** ${SUPERADMIN_PASSWORD} (see .env)
 **Role:** superadmin
 
 **IMPORTANT:** Change password after first login!
@@ -88,7 +88,7 @@ node scripts/execute-cleanup-test-accounts.js
 
    Credentials:
    - Email: admin@haldeki.com
-   - Password: hws8WadKktlvvjO8 (CHANGE AFTER FIRST LOGIN)
+   - Password: ${SUPERADMIN_PASSWORD} (set in environment variables)
    - Role: superadmin"
    ```
 

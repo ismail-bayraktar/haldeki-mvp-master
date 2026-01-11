@@ -59,12 +59,10 @@ const ProductCard = memo(({ product, variant = "default", priority = false }: Pr
   const canAddToCart = selectedRegion && !isOutOfStock;
 
   // Display price from pricing result or fallback to product's base price
+  // RPC function already calculates final_price with variation adjustment included
   const displayPrice = useMemo(() => {
-    // Fallback to product's base price if RPC returned null
-    const basePrice = priceResult?.final_price ?? product.price;
-    const multiplier = selectedVariant?.priceMultiplier ?? 1;
-    return basePrice * multiplier;
-  }, [priceResult, product.price, selectedVariant]);
+    return priceResult?.final_price ?? product.price;
+  }, [priceResult, product.price]);
 
   // Previous price (if available from pricing result)
   const previousPrice = priceResult

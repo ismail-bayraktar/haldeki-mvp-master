@@ -20,7 +20,7 @@ DELETE FROM warehouse_staff WHERE user_id = '00000000-0000-0000-0000-00000000001
 --
 -- supabase.auth.signUp({
 --   email: 'warehouse@test.haldeki.com',
---   password: 'Test1234!',
+--   password: process.env.TEST_USER_PASSWORD,
 --   options: {
 --     data: {
 --       full_name: 'Depo Yöneticisi',
@@ -88,7 +88,7 @@ VALUES (
 -- 1. Supabase Dashboard → Authentication → Users
 -- 2. "Add user" butonuna tıkla
 -- 3. Email: warehouse@test.haldeki.com
--- 4. Password: Test1234!
+-- 4. Password: (Set TEST_USER_PASSWORD in .env)
 -- 5. "Auto Confirm User" işaretle
 -- 6. "Create" butonuna tıkla
 -- 7. Oluşturulan kullanıcının UUID'sini kopyala
@@ -151,7 +151,7 @@ BEGIN
     RAISE NOTICE '1. Supabase Dashboard → Authentication → Users';
     RAISE NOTICE '2. warehouse@test.haldeki.com kullanıcısını bul';
     RAISE NOTICE '3. "Reset Password" butonuna tıkla';
-    RAISE NOTICE '4. Yeni şifre belirle: Test1234!';
+    RAISE NOTICE '4. Yeni şifre belirle: (Set TEST_USER_PASSWORD in .env)';
     RAISE NOTICE '============================================================================';
   ELSE
     RAISE NOTICE 'Kullanıcı bulunamadı. Lütfen manuel oluştur.';

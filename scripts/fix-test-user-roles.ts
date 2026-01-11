@@ -1,7 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 
-const supabaseUrl = 'https://ynatuiwdvkxcmmnmejkl.supabase.co';
-const serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluYXR1aXdkdmt4Y21tbm1lamtsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2Njc0NTYzMywiZXhwIjoyMDgyMzIxNjMzfQ.UZWD2y2d5pmtl-GEaWgRS3cZPcI69s4i0S7SU5V6Jnw';
+// Load environment variables
+dotenv.config({ path: '.env.local' });
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !serviceKey) {
+  console.error('Error: Missing required environment variables');
+  console.error('Required: VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+  console.error('Set them in .env.local or run with them set');
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, serviceKey);
 
@@ -16,7 +27,7 @@ const TEST_USERS = [
 ];
 
 async function fixTestUserRoles() {
-  console.log('🔧 Fixing E2E test user roles...\n');
+  console.log('Fixing E2E test user roles...\n');
 
   for (const testUser of TEST_USERS) {
     try {
@@ -28,7 +39,7 @@ async function fixTestUserRoles() {
         .single();
 
       if (!profile) {
-        console.log(`⚠️  ${testUser.email} - Profile not found`);
+        console.log(`${testUser.email} - Profile not found`);
         continue;
       }
 
@@ -47,16 +58,16 @@ async function fixTestUserRoles() {
         });
 
       if (error) {
-        console.error(`❌ ${testUser.email} - Failed to assign role:`, error.message);
+        console.error(`${testUser.email} - Failed to assign role:`, error.message);
       } else {
-        console.log(`✅ ${testUser.email} → ${testUser.role} (${testUser.fullName})`);
+        console.log(`${testUser.email} -> ${testUser.role} (${testUser.fullName})`);
       }
-    } catch (error) {
-      console.error(`❌ Error processing ${testUser.email}:`, error);
+    } catch (error: any) {
+      console.error(`Error processing ${testUser.email}:`, error);
     }
   }
 
-  console.log('\n✨ Role assignments fixed!');
+  console.log('\nRole assignments fixed!');
   console.log('\nTest Credentials:');
   console.log('  Email: test-{role}@haldeki.com');
   console.log('  Password: Test1234!');

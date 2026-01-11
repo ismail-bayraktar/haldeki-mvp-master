@@ -66,19 +66,76 @@
 
 ## 🚀 Local Development
 
+### Prerequisites
+
+- Node.js 22.x
+- npm or yarn
+- Git (with SSH key authentication)
+
+### Setup
+
 ```bash
 # Install dependencies
 npm install
 
+# Copy environment template
+cp .env.example .env.local
+
+# Edit .env.local with your credentials
+# See docs/CREDENTIALS.md for detailed setup instructions
+
 # Start development server
 npm run dev
-
-# Run tests
-npm run test
-
-# Build for production
-npm run build
 ```
+
+### Environment Variables
+
+This project requires environment variables for Supabase and optional services:
+
+```bash
+# Required
+VITE_SUPABASE_URL=your-project-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
+
+# Optional (Stripe for payments)
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+```
+
+**IMPORTANT**: Never commit `.env.local` or any files with real credentials. See [docs/SECURITY.md](docs/SECURITY.md) for details.
+
+### Available Scripts
+
+```bash
+# Development
+npm run dev              # Start dev server
+
+# Building
+npm run build            # Production build
+npm run build:dev        # Development build
+
+# Testing
+npm run test             # Run unit tests
+npm run test:e2e         # Run E2E tests
+npm run test:all         # Run all tests
+
+# Quality
+npm run lint             # Lint code
+npm run typecheck        # Type check
+```
+
+## 🔐 Security
+
+This project follows security best practices:
+
+- ✅ Environment variables for all credentials
+- ✅ `.gitignore` prevents credential commits
+- ✅ Row Level Security (RLS) in database
+- ✅ No hardcoded secrets in code
+- ✅ Security headers implemented
+
+For detailed security information, see:
+- [docs/SECURITY.md](docs/SECURITY.md) - Security policy and guidelines
+- [docs/CREDENTIALS.md](docs/CREDENTIALS.md) - How to set up credentials safely
 
 ## 📄 Lisans
 

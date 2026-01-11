@@ -46,8 +46,8 @@ export const WhitelistForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Normalize phone number (remove spaces, dashes)
-      const normalizedPhone = data.phone.replace(/[\s\-\(\)]/g, "");
+      // Normalize phone number (remove spaces, dashes, parentheses)
+      const normalizedPhone = data.phone.replace(/[\s\-()]/g, "");
 
       const { error } = await supabase.from("whitelist_applications").insert({
         full_name: data.full_name.trim(),
@@ -114,7 +114,7 @@ export const WhitelistForm = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" data-testid="whitelist-form">
       <div className="grid sm:grid-cols-2 gap-4">
         {/* Full Name */}
         <div className="space-y-2">
@@ -128,6 +128,7 @@ export const WhitelistForm = () => {
             {...register("full_name")}
             className={errors.full_name ? "border-destructive" : ""}
             disabled={isSubmitting}
+            data-testid="whitelist-name-input"
           />
           {errors.full_name && (
             <p className="text-xs text-destructive">{errors.full_name.message}</p>
@@ -147,6 +148,7 @@ export const WhitelistForm = () => {
             {...register("phone")}
             className={errors.phone ? "border-destructive" : ""}
             disabled={isSubmitting}
+            data-testid="whitelist-phone-input"
           />
           {errors.phone && (
             <p className="text-xs text-destructive">{errors.phone.message}</p>
@@ -167,6 +169,7 @@ export const WhitelistForm = () => {
           {...register("email")}
           className={errors.email ? "border-destructive" : ""}
           disabled={isSubmitting}
+          data-testid="whitelist-email-input"
         />
         {errors.email && (
           <p className="text-xs text-destructive">{errors.email.message}</p>
@@ -288,8 +291,9 @@ export const WhitelistForm = () => {
         size="lg"
         className="w-full"
         disabled={isSubmitting}
+        data-testid="whitelist-submit-button"
       >
-        {isSubmitting ? "Gönderiliyor..." : "Listeye Katıl"}
+        {isSubmitting ? "Gönderiliyor..." : "Başvur"}
       </Button>
 
       <p className="text-xs text-center text-muted-foreground">

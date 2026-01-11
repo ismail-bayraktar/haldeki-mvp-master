@@ -2,7 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import * as path from "path";
 import { componentTagger } from "lovable-tagger";
-import viteImagemin from "vite-plugin-imagemin";
+// TODO: Fix vite-plugin-imagemin import issue - temporarily disabled
+// import * as viteImagemin from "vite-plugin-imagemin";
+import viteCompression from "vite-plugin-compression";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // Security headers for development and production
 const securityHeaders = {
@@ -28,39 +31,28 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    // Build-time görüntü optimizasyonu - Sadece production'da aktif
-    mode === "production" && viteImagemin({
-      verbose: true, // Sıkıştırma sonuçlarını logla
-      // WebP formatına dönüşüm - Modern tarayıcılar için ideal
-      webp: {
-        quality: 80,
-        method: 6, // Daha iyi sıkıştırma (0-6 arası, 6 en yavaş ama en etkili)
-      },
-      // PNG optimizasyonu
-      optipng: {
-        optimizationLevel: 7, // 0-7 arası, 7 en agresif
-      },
-      // JPEG optimizasyonu
-      mozjpeg: {
-        quality: 80,
-      },
-      // SVG optimizasyonu
-      svgo: {
-        plugins: [
-          {
-            name: "preset-default",
-            params: {
-              overrides: {
-                cleanupNumericValues: {
-                  precision: 2,
-                },
-              },
-            },
-          },
-          "removeDimensions",
-          "removeViewBox",
-        ],
-      },
+    // TODO: Fix vite-plugin-imagemin import issue - temporarily disabled
+    // Build-time görüntü optimizasyonu will be added back after fixing the import
+    // Gzip compression for production
+    mode === "production" && viteCompression({
+      algorithm: 'gzip',
+      ext: '.gz',
+      threshold: 10240, // Only compress files larger than 10KB
+      deleteOriginFile: false,
+    }),
+    // Brotli compression for production (better than gzip)
+    mode === "production" && viteCompression({
+      algorithm: 'brotliCompress',
+      ext: '.br',
+      threshold: 10240,
+      deleteOriginFile: false,
+    }),
+    // Bundle analyzer - generates stats.html
+    mode === "production" && visualizer({
+      filename: './dist/stats.html',
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
     }),
   ].filter(Boolean),
   resolve: {
@@ -70,7 +62,17 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     target: 'es2015',
-    minify: 'esbuild',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+      },
+      format: {
+        comments: false,
+      },
+    },
     sourcemap: false,
     // Add cache busting suffix
     assetsDir: 'assets',
@@ -79,12 +81,21 @@ export default defineConfig(({ mode }) => ({
         // Add content hash to filenames for cache busting
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
-        assetFileNames: 'assets/[name].[hash].[ext]',
+        assetFileNames: (assetInfo) => {
+          // Separate images, fonts, and other assets for better caching
+          if (assetInfo.name && /\.(png|jpg|jpeg|gif|svg|webp|avif)$/.test(assetInfo.name)) {
+            return 'assets/images/[name].[hash].[ext]';
+          }
+          if (assetInfo.name && /\.(woff|woff2|ttf|otf|eot)$/.test(assetInfo.name)) {
+            return 'assets/fonts/[name].[hash].[ext]';
+          }
+          return 'assets/[name].[hash].[ext]';
+        },
         manualChunks: (id) => {
           // Don't create separate charts chunk - causes TDZ errors
           // Recharts will be bundled with dashboard pages only
 
-          // React core
+          // React core - separate for better caching
           if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
             return 'react-core';
           }
@@ -108,12 +119,19 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance')) {
             return 'utils';
           }
+          // Recharts - dynamic only
+          if (id.includes('recharts')) {
+            return 'charts';
+          }
         },
       },
     },
     chunkSizeWarningLimit: 1000,
     // Enable compression for better build output
     reportCompressedSize: true,
+    // Optimize CSS
+    cssCodeSplit: true,
+    cssMinify: true,
   },
   // Optimize dependencies
   optimizeDeps: {

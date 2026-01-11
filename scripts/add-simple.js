@@ -1,8 +1,25 @@
 // Simple script with PUBLISHABLE_KEY
 import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-const supabaseUrl = 'https://epuhjrdqotyrryvkjnrp.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwdWhqcmRxb3R5cnJ5dmtqbnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2Njc1NzMsImV4cCI6MjA4MjI0MzU3M30.gXZ8KusNhUOD0WSZUZNMgu1Ncg2Fafc2EX5VS2wfcU8';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables from .env.local
+dotenv.config({ path: join(__dirname, '../.env.local') });
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ Missing required environment variables:');
+  console.error('   - VITE_SUPABASE_URL');
+  console.error('   - VITE_SUPABASE_ANON_KEY');
+  console.error('\nAdd these to your .env.local file');
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 

@@ -17,7 +17,7 @@
 **Contents:**
 - Production SuperAdmin credentials
 - Email: `admin@haldeki.com`
-- Password: `hws8WadKktlvvjO8`
+- Password: `${SUPERADMIN_PASSWORD}` (set via environment variable)
 - First-time setup instructions
 - 2FA enablement guide
 - Admin panel feature overview
@@ -141,11 +141,11 @@ docs/BETA-TESTING-GUIDE.md
 | Field | Value |
 |-------|-------|
 | **Email** | `admin@haldeki.com` |
-| **Password** | `hws8WadKktlvvjO8` |
+| **Password** | `${SUPERADMIN_PASSWORD}` (see secure credentials) |
 | **Role** | superadmin |
 | **Created** | 2026-01-09 |
 | **Status** | Active |
-| **2FA** | Not enabled (ENABLE IMMEDIATELY) |
+| **2FA** | ENABLE IMMEDIATELY |
 
 ### Old Test Accounts (TO BE DELETED)
 

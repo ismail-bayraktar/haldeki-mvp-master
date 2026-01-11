@@ -9,7 +9,7 @@ import { chromium } from 'playwright';
 
 const BASE_URL = 'https://haldeki.com';
 const SUPPLIER_EMAIL = 'test-supplier@haldeki.com';
-const SUPPLIER_PASSWORD = 'Test1234!';
+const SUPPLIER_PASSWORD = process.env.SUPPLIER_PASSWORD || process.env.TEST_USER_PASSWORD || 'CHANGE_ME_IN_ENV';
 
 console.log('='.repeat(60));
 console.log('SUPPLIER ACCESS TEST - After has_role Fix');

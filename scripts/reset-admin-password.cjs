@@ -9,7 +9,7 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Hata: Supabase bilgileri bulunamadı');
+  console.error('Hata: Supabase bilgileri bulunamadı');
   process.exit(1);
 }
 
@@ -19,22 +19,22 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 async function resetPassword() {
   const email = 'bayraktarismail00@gmail.com';
-  const newPassword = 'Test1234!';
+  const newPassword = process.env.ADMIN_PASSWORD || process.env.TEST_USER_PASSWORD || process.env.SUPERADMIN_PASSWORD || 'CHANGE_ME_IN_ENV';
   
-  console.log(`\n🔐 ${email} şifresi güncelleniyor...`);
+  console.log(`\n${email} şifresi güncelleniyor...`);
   
   // Önce kullanıcıyı bul
   const { data: users, error: listError } = await supabase.auth.admin.listUsers();
   
   if (listError) {
-    console.error('❌ Kullanıcı listesi alınamadı:', listError.message);
+    console.error('Kullanıcı listesi alınamadı:', listError.message);
     return;
   }
   
   const user = users.users.find(u => u.email === email);
   
   if (!user) {
-    console.log('⚠️ Kullanıcı bulunamadı, oluşturuluyor...');
+    console.log('Kullanıcı bulunamadı, oluşturuluyor...');
     
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email: email,
@@ -44,11 +44,11 @@ async function resetPassword() {
     });
     
     if (createError) {
-      console.error('❌ Kullanıcı oluşturulamadı:', createError.message);
+      console.error('Kullanıcı oluşturulamadı:', createError.message);
       return;
     }
     
-    console.log('✅ Kullanıcı oluşturuldu:', newUser.user.id);
+    console.log('Kullanıcı oluşturuldu:', newUser.user.id);
     
     // Superadmin rolü ata
     const { error: roleError } = await supabase
@@ -59,12 +59,12 @@ async function resetPassword() {
       });
     
     if (roleError) {
-      console.error('❌ Rol atanamadı:', roleError.message);
+      console.error('Rol atanamadı:', roleError.message);
     } else {
-      console.log('✅ Superadmin rolü atandı');
+      console.log('Superadmin rolü atandı');
     }
   } else {
-    console.log('✅ Kullanıcı bulundu:', user.id);
+    console.log('Kullanıcı bulundu:', user.id);
     
     // Şifreyi güncelle
     const { error: updateError } = await supabase.auth.admin.updateUserById(
@@ -73,9 +73,9 @@ async function resetPassword() {
     );
     
     if (updateError) {
-      console.error('❌ Şifre güncellenemedi:', updateError.message);
+      console.error('Şifre güncellenemedi:', updateError.message);
     } else {
-      console.log('✅ Şifre güncellendi');
+      console.log('Şifre güncellendi');
     }
     
     // Superadmin rolünü kontrol et
@@ -86,7 +86,7 @@ async function resetPassword() {
       .single();
     
     if (!roleData || roleData.role !== 'superadmin') {
-      console.log('⚠️ Superadmin rolü yok, ekleniyor...');
+      console.log('Superadmin rolü yok, ekleniyor...');
       
       const { error: roleError } = await supabase
         .from('user_roles')
@@ -96,19 +96,18 @@ async function resetPassword() {
         });
       
       if (roleError) {
-        console.error('❌ Rol atanamadı:', roleError.message);
+        console.error('Rol atanamadı:', roleError.message);
       } else {
-        console.log('✅ Superadmin rolü atandı');
+        console.log('Superadmin rolü atandı');
       }
     } else {
-      console.log('✅ Superadmin rolü mevcut');
+      console.log('Superadmin rolü mevcut');
     }
   }
   
-  console.log('\n📌 Giriş bilgileri:');
+  console.log('\nGiriş bilgileri:');
   console.log(`   Email: ${email}`);
   console.log(`   Şifre: ${newPassword}`);
 }
 
 resetPassword().catch(console.error);
-
