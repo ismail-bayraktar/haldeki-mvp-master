@@ -75,7 +75,7 @@ export function useVariationTypes() {
   return useQuery<ProductVariationType[]>({
     queryKey: ['variation-types'],
     queryFn: async () => {
-      return ['size', 'type', 'scent', 'packaging', 'material', 'flavor', 'other'];
+      return ['size', 'packaging', 'quality', 'other'];
     },
     staleTime: Infinity, // Never stale
   });

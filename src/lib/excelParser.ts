@@ -547,22 +547,17 @@ export const VARIATION_PATTERNS: Array<{
     order: 1,
   },
   {
-    type: 'type',
-    regex: /\b(BEYAZ|RENKLI|SIVI|TOZ|KATI|YUVI|AKSKU|YUVARIK)\b/i,
+    type: 'packaging',
+    regex: /\*(\d+)\s*$/,
     extractor: (match) => ({
-      value: match[1].toUpperCase()
-        .replace('İ', 'I')
-        .replace('Ğ', 'G')
-        .replace('Ü', 'U')
-        .replace('Ş', 'S')
-        .replace('Ö', 'O')
-        .replace('Ç', 'C'),
+      value: match[1],
+      metadata: { count: parseInt(match[1], 10) },
     }),
     order: 2,
   },
   {
-    type: 'scent',
-    regex: /\b(LAVANTA|LİMON|GUL|GREYFURT|CILEK|VANILYA|CIKOLATA|PORTAKAL|ELMA|NANE|BERGAMOT|LAVAS|PORES|KARANFIL|MISKET|BAHAR|PORCEL|LOTUS|ORKIDE|LIMON|GÜL|ÇİLEK|VANİLYA|ÇİKOLATA)\b/i,
+    type: 'quality',
+    regex: /\b(SINIF|KALITE|PREMIUM|STANDART|SINIF|KALITE)\b/i,
     extractor: (match) => ({
       value: match[1].toUpperCase()
         .replace('İ', 'I')
@@ -574,40 +569,12 @@ export const VARIATION_PATTERNS: Array<{
     }),
     order: 3,
   },
-  {
-    type: 'packaging',
-    regex: /\*(\d+)\s*$/,
-    extractor: (match) => ({
-      value: match[1],
-      metadata: { count: parseInt(match[1], 10) },
-    }),
-    order: 4,
-  },
-  {
-    type: 'material',
-    regex: /\b(CAM|PLASTIK|METAL|KAGIT|AHŞAP|AGAC|KOROZON|KOROZYON)\b/i,
-    extractor: (match) => ({
-      value: match[1].toUpperCase()
-        .replace('Ş', 'S')
-        .replace('Ğ', 'G')
-        .replace('İ', 'I'),
-    }),
-    order: 5,
-  },
-  {
-    type: 'flavor',
-    regex: /\b(VANILLA|STRAWBERRY|CHOCOLATE|BANANA|MINT|CARAMEL|HAZELNUT)\b/i,
-    extractor: (match) => ({
-      value: match[1].toUpperCase(),
-    }),
-    order: 6,
-  },
 ];
 
 /**
  * Extract variations from product name
  *
- * Parses product name to identify structured variations (size, type, scent, etc.)
+ * Parses product name to identify structured variations (size, packaging, quality)
  * Returns extracted variations and the cleaned base product name
  */
 export function extractVariations(productName: string): {
@@ -649,7 +616,7 @@ export function extractVariations(productName: string): {
  *
  * Checks for:
  * - Duplicate variations within same product
- * - Invalid variation types
+ * - Invalid variation types (size, packaging, quality)
  * - Invalid variation values
  */
 export function validateVariations(
@@ -681,6 +648,11 @@ export function validateVariations(
       case 'packaging':
         if (!/^\d+$/.test(variation.value)) {
           errors.push(`Geçersiz paket formatı: ${variation.value}`);
+        }
+        break;
+      case 'quality':
+        if (!/\b(SINIF|KALITE|PREMIUM|STANDART)\b/i.test(variation.value)) {
+          errors.push(`Geçersiz kalite formatı: ${variation.value}`);
         }
         break;
     }

@@ -20,12 +20,9 @@ import type { ProductVariationsGrouped } from '@/types/multiSupplier';
 import type { ProductVariationType } from '@/types/multiSupplier';
 
 const VARIATION_TYPES: { value: ProductVariationType; label: string }[] = [
-  { value: 'size', label: 'Beden (Size)' },
-  { value: 'type', label: 'Tür (Type)' },
-  { value: 'scent', label: 'Koku (Scent)' },
+  { value: 'size', label: 'Boyut (Size)' },
   { value: 'packaging', label: 'Ambalaj (Packaging)' },
-  { value: 'material', label: 'Materyal (Material)' },
-  { value: 'flavor', label: 'Lezzet (Flavor)' },
+  { value: 'quality', label: 'Kalite (Quality)' },
   { value: 'other', label: 'Diğer (Other)' },
 ];
 

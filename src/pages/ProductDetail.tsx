@@ -76,7 +76,7 @@ const ProductDetail = () => {
     if (!dbVariations || dbVariations.length === 0) return product?.variants || [];
 
     // Group variations by type and convert to ProductVariant format
-    const sizeVariations = dbVariations.filter(v => v.variation_type === 'size' || v.variation_type === 'packaging');
+    const sizeVariations = dbVariations.filter(v => v.variation_type === 'size' || v.variation_type === 'packaging' || v.variation_type === 'quality');
 
     return sizeVariations
       .sort((a, b) => a.display_order - b.display_order)

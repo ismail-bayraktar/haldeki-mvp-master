@@ -1,5 +1,5 @@
 import { useState, KeyboardEvent } from 'react';
-import { Plus, X, Sparkles, Check } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,22 +15,16 @@ import { cn } from '@/lib/utils';
 import type { ProductVariationType } from '@/types/multiSupplier';
 
 const VARIATION_TYPES: { value: ProductVariationType; label: string }[] = [
-  { value: 'size', label: 'Büyüklük' },
-  { value: 'type', label: 'Tür' },
-  { value: 'scent', label: 'Koku' },
-  { value: 'packaging', label: 'Paketleme' },
-  { value: 'material', label: 'Malzeme' },
-  { value: 'flavor', label: 'Aroma' },
+  { value: 'size', label: 'Boyut' },
+  { value: 'packaging', label: 'Ambalaj' },
+  { value: 'quality', label: 'Kalite' },
   { value: 'other', label: 'Diğer' },
 ];
 
 const COMMON_VALUES: Record<ProductVariationType, string[]> = {
   size: ['4 LT', '1.5 KG', '500 ML', '1 KG', '2 LT', '5 KG', '750 ML', '250 ML'],
-  type: ['BEYAZ', 'RENKLİ', 'SIVI', 'TOZ', 'KATI', 'SPREY', 'KREM'],
-  scent: ['LAVANTA', 'LİMON', 'PORÇEL', 'ÇİÇEK', 'OKYANUS', 'ORMAN', 'VANİLYA'],
   packaging: ['*4', '*6', '*12', '*24', 'Tek', 'Çift', 'Kutu'],
-  material: ['CAM', 'PLASTİK', 'METAL', 'KAĞIT', 'AHŞAP'],
-  flavor: ['VANİLYA', 'ÇİLEK', 'ÇİKOLATA', 'KARANFİL', 'NANE'],
+  quality: ['PREMIUM', 'STANDART', 'EKONOMİK'],
   other: ['STANDART', 'PREMİUM', 'EKONOMİK', 'ÖZEL'],
 };
 
@@ -52,30 +46,18 @@ export function VariationSelector({
   const [type, setType] = useState<ProductVariationType>(selectedType || 'size');
   const [inputValue, setInputValue] = useState('');
   const [showCustom, setShowCustom] = useState(false);
-  const [selectedScents, setSelectedScents] = useState<string[]>([]);
 
   const commonValues = COMMON_VALUES[type] || [];
   const availableValues = commonValues.filter((v) => !existingValues.includes(v));
 
   const isSelected = (value: string) => {
-    if (type === 'scent') {
-      return selectedScents.includes(value);
-    }
     return existingValues.includes(value);
   };
 
   const handleSelect = (value: string) => {
-    if (type === 'scent') {
-      if (selectedScents.includes(value)) {
-        setSelectedScents(prev => prev.filter(s => s !== value));
-      } else {
-        setSelectedScents(prev => [...prev, value]);
-      }
-    } else {
-      onSelect?.(value, type);
-      setInputValue('');
-      setShowCustom(false);
-    }
+    onSelect?.(value, type);
+    setInputValue('');
+    setShowCustom(false);
   };
 
   const handleCustomSubmit = () => {
@@ -91,13 +73,6 @@ export function VariationSelector({
       e.preventDefault();
       handleCustomSubmit();
     }
-  };
-
-  const handleConfirmScents = () => {
-    selectedScents.forEach(scent => {
-      onSelect?.(scent, 'scent');
-    });
-    setSelectedScents([]);
   };
 
   return (
@@ -146,29 +121,6 @@ export function VariationSelector({
               </Button>
             ))}
           </div>
-
-          {type === 'scent' && selectedScents.length > 0 && (
-            <div className="pt-2 border-t">
-              <div className="flex flex-wrap gap-1 mb-2">
-                {selectedScents.map(scent => (
-                  <Badge key={scent} variant="default" className="gap-1 pr-1">
-                    {scent}
-                    <button
-                      type="button"
-                      onClick={() => handleSelect(scent)}
-                      className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-              <Button size="sm" onClick={handleConfirmScents} className="w-full">
-                <Check className="h-4 w-4 mr-1" />
-                {selectedScents.length} koku ekle
-              </Button>
-            </div>
-          )}
         </div>
       )}
 

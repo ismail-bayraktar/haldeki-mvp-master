@@ -234,7 +234,7 @@ export interface ProductImportRow {
  * Variation extracted from product name during import
  */
 export interface ProductImportVariation {
-  type: 'size' | 'type' | 'scent' | 'packaging' | 'material' | 'flavor' | 'other';
+  type: 'size' | 'packaging' | 'quality' | 'other';
   value: string;
   display_order: number;
   metadata?: Record<string, unknown>;

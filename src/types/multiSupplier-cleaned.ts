@@ -1,12 +1,21 @@
 /**
  * Phase 12: Multi-Supplier Product Management Types
+ * FRESH FOOD MARKET EDITION
+ *
+ * UPDATED: 2026-01-11 - Removed invalid variation types for fresh food
  *
  * Defines types for products with multiple suppliers and variations.
  * Supports:
  * - Multiple suppliers per product
- * - Structured product variations (size, type, scent, etc.)
+ * - Structured product variations (size, packaging, quality, other)
  * - Price comparison across suppliers
  * - Supplier-specific inventory and pricing
+ *
+ * INVALID TYPES REMOVED:
+ * - type (was being used for colors like BEYAZ - inappropriate for produce)
+ * - scent (LAVANTA, LIMON - fragrance irrelevant for fresh produce)
+ * - material (CAM, PLASTIK, METAL - packaging material, not product variation)
+ * - flavor (VANILLA, ÇİKOLATA - for processed foods, not fresh produce)
  */
 
 // ============================================================================
@@ -16,13 +25,35 @@
 /**
  * Product variation types from database enum
  *
- * Matches: product_variation_type in Postgres
+ * FRESH FOOD MARKET VALID TYPES ONLY
+ *
+ * Matches: product_variation_type in Postgres (after cleanup)
  */
 export type ProductVariationType =
-  | 'size'      // 4 LT, 1.5 KG, 500 ML
-  | 'packaging' // *4 (4-pack), *6, *12
-  | 'quality'   // PREMIUM, STANDART, EKONOMİK
-  | 'other';    // Catch-all for custom variations
+  | 'size'       // Boyut: 1 KG, 2 KG, 500 GR, 4 LT, 500 ML
+  | 'packaging'  // Ambalaj: Kasa, Koli, Poset, *4 (4-pack), *6, *12
+  | 'quality'    // Kalite: 1. Sınıf, 2. Sınıf, Premium, Standart
+  | 'other';     // Diğer: Custom variations (Organik, Yerli, İthal, etc.)
+
+/**
+ * Turkish labels for variation types (UI display)
+ */
+export const VARIATION_TYPE_LABELS: Record<ProductVariationType, string> = {
+  size: 'Boyut',
+  packaging: 'Ambalaj',
+  quality: 'Kalite',
+  other: 'Diğer'
+} as const;
+
+/**
+ * Valid variation values by type (for validation)
+ */
+export const VALID_VARIATION_VALUES: Record<ProductVariationType, string[]> = {
+  size: ['500 GR', '1 KG', '2 KG', '3 KG', '5 KG', '10 KG', '500 ML', '1 LT', '2 LT', '4 LT', '5 LT'],
+  packaging: ['Kasa', 'Koli', 'Poset', 'Adet', '*4', '*6', '*12', '*24'],
+  quality: ['1. Sınıf', '2. Sınıf', 'Premium', 'Standart', 'Organik'],
+  other: [] // Open-ended, any value allowed
+} as const;
 
 // ============================================================================
 // SUPPLIER PRODUCT TYPES
@@ -188,13 +219,13 @@ export interface BugunHaldeFilters {
 }
 
 // ============================================================================
-// PRODUCT VARIATION TYPES
+// PRODUCT VARIATION TYPES (UPDATED FOR FRESH FOOD)
 // ============================================================================
 
 /**
  * Product variation definition
  *
- * Stores structured variation data (size, type, scent, etc.)
+ * Stores structured variation data (size, packaging, quality, other)
  * Normalized to avoid duplication across suppliers
  *
  * Table: product_variations
@@ -384,4 +415,39 @@ export interface SupplierProductBulkResult {
     id: string;
     error: string;
   }>;
+}
+
+// ============================================================================
+// VALIDATION HELPERS
+// ============================================================================
+
+/**
+ * Check if a variation value is valid for its type
+ */
+export function isValidVariationValue(
+  type: ProductVariationType,
+  value: string
+): boolean {
+  // 'other' type accepts any value
+  if (type === 'other') return true;
+
+  // Check against valid values list
+  return VALID_VARIATION_VALUES[type].includes(value);
+}
+
+/**
+ * Get Turkish label for variation type
+ */
+export function getVariationTypeLabel(type: ProductVariationType): string {
+  return VARIATION_TYPE_LABELS[type];
+}
+
+/**
+ * Format variation for display (e.g., "Boyut: 1 KG")
+ */
+export function formatVariation(
+  type: ProductVariationType,
+  value: string
+): string {
+  return `${getVariationTypeLabel(type)}: ${value}`;
 }
